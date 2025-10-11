@@ -1,176 +1,91 @@
 "use client";
-import Image from "next/image";
-import { useState } from "react";
-import { CheckCircle2, FileText, Loader2, RefreshCcw, MapPin } from "lucide-react";
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import Image from 'next/image';
+import { MapPin } from 'lucide-react';
 
-export default function DashboardKPR() {
-  // Contoh data dummy
-  const [applications] = useState([
-    {
-      id: 1,
-      cluster: "Cluster Green Valley",
-      city: "Serpong, Banten",
-      status: "Disetujui",
-      loanAmount: 1500000,
-      date: "15 Juli 2025",
-      image: "/images/rumah1.jpg",
-    },
-    {
-      id: 2,
-      cluster: "Cluster Green Valley",
-      city: "Serpong, Banten",
-      status: "Disetujui",
-      loanAmount: 1500000,
-      date: "15 Juli 2025",
-      image: "/images/rumah1.jpg",
-    },
-  ]);
+export default function Beranda() {
+  const properties = [
+    { id: 1, name: 'Cluster Green Valley', location: 'Serpong, Banten', price: 456500000 },
+    { id: 2, name: 'Cluster Green Valley', location: 'Margonda, Depok', price: 625500000 },
+    { id: 3, name: 'PONDOK TAKTAKAN', location: 'Serang, Banten', price: 197000000 },
+  ];
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Navbar */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
-          <div className="flex items-center gap-2">
-            <Image src="/logo-satuatap.png" alt="Logo" width={40} height={40} />
-            <span className="font-bold text-lg text-orange-500">satuatap</span>
-          </div>
-          <nav className="flex gap-6 text-gray-700 font-medium">
-            <a href="/">Beranda</a>
-            <a href="/cari-rumah">Cari Rumah</a>
-            <a href="/simulasi">Simulasi</a>
-          </nav>
-          <button className="px-4 py-2 rounded-full bg-teal-900 text-white text-sm">
-            Login
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Header />
 
-      {/* Hero Dashboard */}
-      <section className="bg-teal-100 py-10">
+      {/* Hero */}
+      <section className="py-14" style={{ backgroundColor: '#C1F0EC' }}>
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Wujudkan Impian Rumah Anda</h1>
+          <p className="mt-2 text-gray-700">KPR BNI dengan bunga kompetitif dan proses yang mudah</p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/register" className="btn-outline text-sm sm:text-base">Ajukan KPR Sekarang</a>
+            <a href="/simulasi" className="btn-outline text-sm sm:text-base">Hitung Simulasi</a>
+          </div>
+        </div>
+      </section>
+
+      {/* Mengapa Memilih KPR BNI */}
+      <section className="py-12">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
-            Dashboard Tracking KPR
-          </h1>
-          <p className="text-center text-gray-600 mb-8">
-            Kelola aplikasi KPR Anda dengan mudah melalui dashboard ini
-          </p>
-
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <FileText className="mx-auto text-teal-700 mb-2" size={32} />
-              <h3 className="text-lg font-semibold">Total Aplikasi</h3>
-              <p className="text-2xl font-bold text-teal-900">2</p>
-            </div>
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <CheckCircle2 className="mx-auto text-green-600 mb-2" size={32} />
-              <h3 className="text-lg font-semibold">Disetujui</h3>
-              <p className="text-2xl font-bold text-green-700">2</p>
-            </div>
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <Loader2 className="mx-auto text-yellow-600 mb-2" size={32} />
-              <h3 className="text-lg font-semibold">Dalam Review</h3>
-              <p className="text-2xl font-bold text-yellow-700">0</p>
-            </div>
-            <div className="bg-white rounded-lg p-5 shadow-sm">
-              <RefreshCcw className="mx-auto text-indigo-600 mb-2" size={32} />
-              <h3 className="text-lg font-semibold">Total Pinjaman</h3>
-              <p className="text-2xl font-bold text-indigo-700">Rp 2.5M</p>
-            </div>
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Mengapa Memilih KPR BNI?</h2>
+            <p className="text-gray-600 mt-2">Dapatkan kemudahan dan keuntungan terbaik untuk kepemilikan rumah impian Anda!</p>
           </div>
-        </div>
-      </section>
-
-      {/* List Aplikasi */}
-      <section className="max-w-6xl mx-auto w-full px-4 py-10">
-        <h2 className="text-xl font-semibold mb-4">Total Aplikasi KPR Saya</h2>
-        <div className="flex flex-col gap-6">
-          {applications.map((app) => (
-            <div
-              key={app.id}
-              className="bg-white rounded-lg overflow-hidden shadow-sm border"
-            >
-              <div className="grid md:grid-cols-3">
-                <div className="relative h-48 md:h-full">
-                  <Image
-                    src={app.image}
-                    alt={app.cluster}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="md:col-span-2 p-5 flex flex-col justify-between bg-yellow-400/70">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">
-                      {app.cluster}
-                    </h3>
-                    <p className="flex items-center text-gray-600 mt-1 text-sm">
-                      <MapPin size={16} className="mr-1" /> {app.city}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-3 mt-4 text-sm text-gray-700">
-                    <div>
-                      <p className="font-semibold">ID Aplikasi</p>
-                      <p>KPR-{app.id.toString().padStart(4, "0")}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Jumlah Pinjaman</p>
-                      <p>
-                        Rp {app.loanAmount.toLocaleString("id-ID")}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Tanggal Pengajuan</p>
-                      <p>{app.date}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex justify-end">
-                    <span className="flex items-center bg-white text-green-700 px-3 py-1 rounded-full text-sm font-medium border border-green-700">
-                      <CheckCircle2 size={16} className="mr-1" /> {app.status}
-                    </span>
-                  </div>
-                </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="card text-center">
+              <div className="w-16 h-16 bg-bni-blue rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
+              <h3 className="text-lg font-semibold mb-2">Proses Cepat</h3>
+              <p className="text-gray-600 text-sm">Persetujuan kredit dalam 3–5 hari kerja dengan persyaratan yang mudah</p>
             </div>
-          ))}
+            <div className="card text-center">
+              <div className="w-16 h-16 bg-bni-orange rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Bunga Kompetitif</h3>
+              <p className="text-gray-600 text-sm">Suku bunga mulai dari 6.25% dengan berbagai pilihan tenor hingga 25 tahun</p>
+            </div>
+            <div className="card text-center">
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Fleksibel</h3>
+              <p className="text-gray-600 text-sm">Berbagai pilihan produk KPR sesuai kebutuhan dan kemampuan finansial Anda</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-orange-500 text-white mt-auto py-10">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-8">
-          <div>
-            <p className="text-sm leading-relaxed">
-              PT Bank Negara Indonesia (Persero) Tbk adalah bank BUMN terbesar di Indonesia.
-              Kami berkomitmen memberikan layanan KPR terbaik untuk mewujudkan impian rumah Anda.
-            </p>
-            <div className="flex gap-3 mt-3 text-white/80">
-              <i className="ri-facebook-fill"></i>
-              <i className="ri-instagram-line"></i>
-              <i className="ri-linkedin-box-fill"></i>
-            </div>
+      {/* Eksplor Rumah Impian */}
+      <section className="py-12" style={{ backgroundColor: '#ECF789' }}>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Eksplor Rumah Impian</h2>
+            <p className="text-gray-600">Tersedia rumah dengan kualitas terbaik dari developer pilihan BNI</p>
           </div>
-
-          <div>
-            <h4 className="font-bold mb-2">Layanan</h4>
-            <ul className="space-y-1 text-sm">
-              <li>Pengajuan</li>
-              <li>Simulasi</li>
-              <li>Cari Rumah</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold mb-2">Hubungi Kami</h4>
-            <ul className="text-sm space-y-1">
-              <li>📞 1500046</li>
-              <li>📧 kpr@bni.co.id</li>
-              <li>🏢 Jl. Jenderal Sudirman Kav. 1<br />Jakarta Pusat 10220</li>
-            </ul>
+          <div className="grid md:grid-cols-3 gap-6">
+            {properties.map((p) => (
+              <div key={p.id} className="card hover:shadow-lg transition-shadow">
+                <div className="relative h-40 rounded-lg overflow-hidden bg-gray-100 mb-4 flex items-center justify-center">
+                  <Image src="/window.svg" alt={p.name} width={200} height={120} className="object-contain" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{p.name}</h3>
+                <p className="flex items-center text-sm text-gray-600 mb-2"><MapPin className="w-4 h-4 mr-1" /> {p.location}</p>
+                <p className="font-semibold text-gray-900">{formatCurrency(p.price)}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </footer>
+      </section>
+
+      <Footer />
     </div>
   );
 }
