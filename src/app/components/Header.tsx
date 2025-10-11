@@ -28,14 +28,8 @@ export default function Header() {
             <Link href="/cari-rumah" className="text-gray-700 hover:text-bni-blue transition-colors">
               Cari Rumah
             </Link>
-            <Link href="#products" className="text-gray-700 hover:text-bni-blue transition-colors">
-              Produk KPR
-            </Link>
-            <Link href="#calculator" className="text-gray-700 hover:text-bni-blue transition-colors">
-              Kalkulator
-            </Link>
-            <Link href="#about" className="text-gray-700 hover:text-bni-blue transition-colors">
-              Tentang Kami
+            <Link href="#simulasi" className="text-gray-700 hover:text-bni-blue transition-colors">
+              Simulasi
             </Link>
           </nav>
 
@@ -76,14 +70,8 @@ export default function Header() {
               <Link href="/cari-rumah" className="block px-3 py-2 text-gray-700 hover:text-bni-blue">
                 Cari Rumah
               </Link>
-              <Link href="#products" className="block px-3 py-2 text-gray-700 hover:text-bni-blue">
-                Produk KPR
-              </Link>
-              <Link href="#calculator" className="block px-3 py-2 text-gray-700 hover:text-bni-blue">
-                Kalkulator
-              </Link>
-              <Link href="#about" className="block px-3 py-2 text-gray-700 hover:text-bni-blue">
-                Tentang Kami
+              <Link href="#simulasi" className="block px-3 py-2 text-gray-700 hover:text-bni-blue">
+                Simulasi
               </Link>
               <div className="flex flex-col space-y-2 px-3 py-2">
                 <Link href="/login" className="btn-outline text-center">
