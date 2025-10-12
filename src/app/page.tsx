@@ -36,7 +36,7 @@ export default function HomePage() {
           <nav className="hidden md:flex items-center gap-8 font-medium">
             <Link className="text-gray-700 hover:text-[#FF8500]" href="/">Beranda</Link>
             <Link className="text-gray-700 hover:text-[#FF8500]" href="/cari-rumah">Cari Rumah</Link>
-            <Link className="text-gray-700 hover:text-[#FF8500]" href="/simulasi">Simulasi</Link>
+            <Link className="text-gray-700 hover:text-[#FF8500]" href="/user/simulasi">Simulasi</Link>
           </nav>
           <UserBadge />
         </div>
@@ -62,7 +62,7 @@ export default function HomePage() {
               Ajukan KPR Sekarang
             </Link>
             <Link
-              href="/simulasi"
+              href="/user/simulasi"
               className="rounded-xl px-5 py-3 font-semibold border border-[#3FD8D4] bg-white hover:bg-gray-50 text-[#0f766e] transition"
             >
               Hitung Simulasi
@@ -310,7 +310,7 @@ function Footer() {
             <h5 className="font-semibold mb-3 text-base">Layanan</h5>
             <ul className="space-y-2 text-sm">
               <li><Link href="/pengajuan" className="hover:underline">Pengajuan</Link></li>
-              <li><Link href="/simulasi" className="hover:underline">Simulasi</Link></li>
+              <li><Link href="/user/simulasi" className="hover:underline">Simulasi</Link></li>
               <li><Link href="/cari-rumah" className="hover:underline">Cari Rumah</Link></li>
             </ul>
           </div>
