@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Header from '../components/Header';
+import Header from '../../components/Header';
 
 // Dummy property data
 const dummyProperties = [
