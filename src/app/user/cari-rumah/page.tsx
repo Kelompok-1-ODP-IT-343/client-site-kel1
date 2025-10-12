@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import Header from '../../components/Header';
 
 // Dummy property data
@@ -298,9 +299,9 @@ export default function CariRumah() {
                       <button className="btn-primary flex-1 text-center">
                         Ajukan
                       </button>
-                      <button className="btn-outline flex-1 text-center">
+                      <Link href="/user/detail-rumah" className="btn-outline flex-1 text-center">
                         Detail
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>
