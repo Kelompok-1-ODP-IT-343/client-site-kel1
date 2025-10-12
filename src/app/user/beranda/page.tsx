@@ -24,8 +24,8 @@ export default function Beranda() {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Wujudkan Impian Rumah Anda</h1>
           <p className="mt-2 text-gray-700">KPR BNI dengan bunga kompetitif dan proses yang mudah</p>
           <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/register" className="btn-outline text-sm sm:text-base">Ajukan KPR Sekarang</a>
-            <a href="/simulasi" className="btn-outline text-sm sm:text-base">Hitung Simulasi</a>
+            <a href="/user/cari-rumah" className="btn-outline text-sm sm:text-base">Ajukan KPR Sekarang</a>
+            <a href="/user/simulasi" className="btn-outline text-sm sm:text-base">Simulasi</a>
           </div>
         </div>
       </section>
