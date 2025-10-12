@@ -1,338 +1,334 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Clock3,
+  Percent,
+  Wallet,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Phone,
+  Mail,
+} from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 
-export default function Home() {
-  const [loanAmount, setLoanAmount] = useState(500000000);
-  const [interestRate, setInterestRate] = useState(6.5);
-  const [loanTerm, setLoanTerm] = useState(15);
+const COLORS = { teal: "#3FD8D4", gray: "#757575", orange: "#FF8500", lime: "#DDEE59" };
 
-  const calculateMonthlyPayment = () => {
-    const monthlyRate = interestRate / 100 / 12;
-    const numPayments = loanTerm * 12;
-    const monthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
-                          (Math.pow(1 + monthlyRate, numPayments) - 1);
-    return monthlyPayment;
-  };
+export default function HomePage() {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* NAV */}
+      <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="relative w-9 h-9">
+              <Image src="/logo-satuatap.png" alt="SatuAtap" fill className="object-contain" />
+            </div>
+            <span className="font-extrabold text-xl text-[#FF8500]">satuatap</span>
+          </div>
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
+          <nav className="hidden md:flex items-center gap-8 font-medium">
+            <Link className="text-gray-700 hover:text-[#FF8500]" href="/">Beranda</Link>
+            <Link className="text-gray-700 hover:text-[#FF8500]" href="/cari-rumah">Cari Rumah</Link>
+            <Link className="text-gray-700 hover:text-[#FF8500]" href="/simulasi">Simulasi</Link>
+          </nav>
+          <UserBadge />
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section className="relative bg-[#C5F3F3]">
+        <div className="max-w-7xl mx-auto px-4 py-14 text-center">
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900">
+            Wujudkan Impian Rumah Anda
+          </h1>
+          <p className="mt-3 text-gray-700 max-w-2xl mx-auto">
+            KPR BNI dengan bunga kompetitif dan proses yang mudah
+          </p>
+
+          {/* CTA */}
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <Link
+              href="/pengajuan"
+              className="rounded-xl px-5 py-3 text-white font-semibold shadow transition"
+              style={{ backgroundColor: "#3FD8D4" }}
+            >
+              Ajukan KPR Sekarang
+            </Link>
+            <Link
+              href="/simulasi"
+              className="rounded-xl px-5 py-3 font-semibold border border-[#3FD8D4] bg-white hover:bg-gray-50 text-[#0f766e] transition"
+            >
+              Hitung Simulasi
+            </Link>
+          </div>
+
+          {/* 3 fitur */}
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FeatureCard icon={<Clock3 />} title="Proses Cepat" desc="Persetujuan kredit 3–5 hari kerja dengan syarat mudah." accent="#3FD8D4" />
+            <FeatureCard icon={<Percent />} title="Bunga Kompetitif" desc="Suku bunga mulai 6.25% dengan tenor hingga 25 tahun." accent="#FF8500" />
+            <FeatureCard icon={<Wallet />} title="Fleksibel" desc="Pilihan produk KPR sesuai kebutuhan dan finansial Anda." accent="#DDEE59" />
+          </div>
+        </div>
+      </section>
+
+      {/* EKSPLOR RUMAH IMPIAN */}
+      <ExploreSection />
+
+      {/* FOOTER */}
+      <Footer />
+    </div>
+  );
+}
+
+function UserBadge() {
+  const [user, setUser] = useState<{ name?: string; photo?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const name = parsed?.name || parsed?.username || parsed?.fullName || "Pengguna";
+        const photo = parsed?.photo || parsed?.photoURL || parsed?.avatar || undefined;
+        setUser({ name, photo });
+      } else if (token) {
+        setUser({ name: "Pengguna", photo: undefined });
+      }
+    } catch {
+      // ignore parsing errors
+    }
+  }, []);
+
+  if (!user) {
+    return (
+      <Link href="/login">
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.98 }}
+          className="relative overflow-hidden px-5 py-2 rounded-full text-white text-sm shadow"
+          style={{ backgroundColor: "#0f766e" }}
+        >
+          <motion.span
+            initial={{ x: "-120%" }}
+            animate={{ x: ["-120%", "120%"] }}
+            transition={{ repeat: Infinity, duration: 2.2, ease: "linear" }}
+            className="pointer-events-none absolute inset-y-0 left-0 w-[120%] opacity-20"
+            style={{ background: "linear-gradient(90deg, transparent, #fff, transparent)" }}
+          />
+          Login
+        </motion.button>
+      </Link>
+    );
+  }
+
+  return (
+    <Link href="/user/beranda" className="flex items-center gap-2">
+      <div className="relative w-8 h-8 rounded-full overflow-hidden border">
+        {user.photo ? (
+          <Image src={user.photo} alt="Profile" fill className="object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+            {user.name?.charAt(0) || "U"}
+          </div>
+        )}
+      </div>
+      <span className="text-sm font-medium text-gray-800">{user.name || "Pengguna"}</span>
+    </Link>
+  );
+}
+
+function FeatureCard({ icon, title, desc, accent }:{
+  icon: React.ReactNode; title:string; desc:string; accent:string;
+}) {
+  return (
+    <div
+      className="rounded-2xl p-5 bg-white/80 backdrop-blur border border-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
+      style={{ boxShadow: `0 10px 30px -12px ${accent}55` }}
+    >
+      <div
+        className="inline-flex items-center justify-center w-12 h-12 rounded-xl text-white shadow"
+        style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+      >
+        {icon}
+      </div>
+      <h3 className="mt-3 text-lg font-bold text-gray-900">{title}</h3>
+      <p className="mt-1 text-sm text-gray-600">{desc}</p>
+    </div>
+  );
+}
+
+/* =========================
+   Eksplor Rumah Impian
+   ========================= */
+function ExploreSection() {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const items = [
+    {
+      id: 1,
+      title: "Cluster Green Valley",
+      location: "Serpong, Banten",
+      price: "Rp 456.500.000",
+      image: "/rumah-1.png", // ganti sesuai asetmu
+    },
+    {
+      id: 2,
+      title: "Cluster Green Valley",
+      location: "Margonda, Depok",
+      price: "Rp 625.500.000",
+      image: "/rumah-2.jpg",
+    },
+    {
+      id: 3,
+      title: "PONDOK TAKATAKAN",
+      location: "Serang, Banten",
+      price: "Rp 197.000.000",
+      image: "/rumah-3.jpg",
+    },
+    {
+      id: 4,
+      title: "Bukit Permata",
+      location: "Bogor, Jawa Barat",
+      price: "Rp 520.000.000",
+      image: "/rumah-4.jpg",
+    },
+  ];
+
+  const scrollBy = (delta: number) => {
+    const el = trackRef.current;
+    if (!el) return;
+    el.scrollTo({ left: el.scrollLeft + delta, behavior: "smooth" });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-bni-blue to-blue-700 text-white py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="hero-title text-4xl md:text-6xl font-bold mb-6">
-              Wujudkan Impian Rumah Anda
-            </h1>
-            <p className="hero-subtitle text-xl md:text-2xl mb-8">
-              KPR BNI dengan bunga kompetitif dan proses yang mudah
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/register" className="btn-primary text-lg px-8 py-4">
-                Ajukan KPR Sekarang
-              </a>
-              <a href="#kalkulator" className="btn-outline text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-bni-blue">
-                Hitung Simulasi
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="section-title text-3xl md:text-4xl font-bold mb-4">
-              Mengapa Memilih KPR BNI?
-            </h2>
-            <p className="section-subtitle text-xl">
-              Dapatkan kemudahan dan keuntungan terbaik untuk kepemilikan rumah impian Anda
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="card feature-card text-center">
-              <div className="w-16 h-16 bg-bni-blue rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Proses Cepat</h3>
-              <p>
-                Persetujuan kredit dalam 3-5 hari kerja dengan persyaratan yang mudah
-              </p>
-            </div>
-
-            <div className="card feature-card text-center">
-              <div className="w-16 h-16 bg-bni-orange rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Bunga Kompetitif</h3>
-              <p>
-                Suku bunga mulai dari 6.25% dengan berbagai pilihan tenor hingga 25 tahun
-              </p>
-            </div>
-
-            <div className="card feature-card text-center">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Fleksibel</h3>
-              <p>
-                Berbagai pilihan produk KPR sesuai kebutuhan dan kemampuan finansial Anda
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Products Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="section-title text-3xl md:text-4xl font-bold mb-4">
-              Produk KPR BNI
-            </h2>
-            <p className="section-subtitle text-xl">
-              Pilih produk KPR yang sesuai dengan kebutuhan Anda
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="card product-card hover:shadow-lg transition-shadow">
-              <div className="bg-bni-blue text-white p-4 rounded-t-lg">
-                <h3 className="text-xl font-semibold">KPR BNI Reguler</h3>
-              </div>
-              <div className="p-6">
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Bunga mulai 6.25% per tahun</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Tenor hingga 25 tahun</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>DP mulai 10%</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Untuk rumah ready stock</span>
-                  </li>
-                </ul>
-                <a href="/register" className="btn-primary w-full text-center">
-                  Pilih Produk
-                </a>
-              </div>
-            </div>
-
-            <div className="card product-card hover:shadow-lg transition-shadow border-2 border-bni-orange">
-              <div className="bg-bni-orange text-white p-4 rounded-t-lg relative">
-                <h3 className="text-xl font-semibold">KPR BNI Griya</h3>
-                <span className="absolute top-2 right-2 text-xs bg-white text-bni-orange px-2 py-1 rounded-full font-semibold">Populer</span>
-              </div>
-              <div className="p-6">
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Bunga mulai 5.99% per tahun</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Tenor hingga 25 tahun</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>DP mulai 5%</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Untuk rumah subsidi</span>
-                  </li>
-                </ul>
-                <a href="/register" className="btn-primary w-full text-center">
-                  Pilih Produk
-                </a>
-              </div>
-            </div>
-
-            <div className="card product-card hover:shadow-lg transition-shadow">
-              <div className="bg-gray-800 text-white p-4 rounded-t-lg">
-                <h3 className="text-xl font-semibold">KPR BNI Platinum</h3>
-              </div>
-              <div className="p-6">
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Bunga mulai 6.75% per tahun</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Tenor hingga 30 tahun</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>DP mulai 20%</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-green-500 mr-2 font-bold">✓</span>
-                    <span>Untuk rumah mewah</span>
-                  </li>
-                </ul>
-                <a href="/register" className="btn-primary w-full text-center">
-                  Pilih Produk
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Calculator Section */}
-      <section id="kalkulator" className="calculator-section py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="section-title text-3xl md:text-4xl font-bold mb-4">
-                Kalkulator KPR
-              </h2>
-              <p className="section-subtitle text-xl">
-                Hitung estimasi cicilan bulanan KPR Anda
-              </p>
-            </div>
-
-            <div className="calculator-card bg-white rounded-lg shadow-lg p-8">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <div className="mb-6">
-                    <label className="calculator-label block text-sm font-medium mb-2">
-                      Jumlah Pinjaman
-                    </label>
-                    <input
-                      type="range"
-                      min="100000000"
-                      max="2000000000"
-                      step="50000000"
-                      value={loanAmount}
-                      onChange={(e) => setLoanAmount(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="calculator-value text-center mt-2 text-lg font-semibold">
-                      {formatCurrency(loanAmount)}
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <label className="calculator-label block text-sm font-medium mb-2">
-                      Suku Bunga (% per tahun)
-                    </label>
-                    <input
-                      type="range"
-                      min="5"
-                      max="15"
-                      step="0.1"
-                      value={interestRate}
-                      onChange={(e) => setInterestRate(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="calculator-value text-center mt-2 text-lg font-semibold">
-                      {interestRate}%
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <label className="calculator-label block text-sm font-medium mb-2">
-                      Jangka Waktu (tahun)
-                    </label>
-                    <input
-                      type="range"
-                      min="5"
-                      max="25"
-                      step="1"
-                      value={loanTerm}
-                      onChange={(e) => setLoanTerm(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="calculator-value text-center mt-2 text-lg font-semibold">
-                      {loanTerm} tahun
-                    </div>
-                  </div>
-                </div>
-
-                <div className="calculator-result bg-bni-blue text-white p-6 rounded-lg">
-                  <h3 className="text-xl font-semibold mb-4">Hasil Simulasi</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="result-label text-sm opacity-90">Cicilan Bulanan</div>
-                      <div className="result-value text-2xl font-bold">
-                        {formatCurrency(calculateMonthlyPayment())}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="result-label text-sm opacity-90">Total Pembayaran</div>
-                      <div className="result-value text-xl font-semibold">
-                        {formatCurrency(calculateMonthlyPayment() * loanTerm * 12)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="result-label text-sm opacity-90">Total Bunga</div>
-                      <div className="result-value text-xl font-semibold">
-                        {formatCurrency((calculateMonthlyPayment() * loanTerm * 12) - loanAmount)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <a href="/register" className="btn-secondary w-full text-center bg-white text-bni-blue hover:bg-gray-100">
-                      Ajukan KPR Sekarang
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="cta-section py-16 bg-bni-blue text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="cta-title text-3xl md:text-4xl font-bold mb-4">
-            Siap Memiliki Rumah Impian?
+    <section className="py-10">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Judul + subjudul */}
+        <div
+          className="rounded-2xl p-6 md:p-7 mb-6"
+          style={{ background: `linear-gradient(0deg, ${COLORS.lime}55, ${COLORS.lime}55), #F7FEE7` }}
+        >
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-gray-900">
+            Eksplor Rumah Impian
           </h2>
-          <p className="cta-subtitle text-xl mb-8">
-            Bergabunglah dengan ribuan nasabah yang telah mempercayai KPR BNI
+          <p className="text-center text-sm text-gray-600 mt-1">
+            Tersedia rumah dengan kualitas terbaik dari developer pilihan BNI
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/register" className="btn-secondary bg-white text-bni-blue hover:bg-gray-100 text-lg px-8 py-4">
-              Daftar Sekarang
-            </a>
-            <a href="/login" className="btn-outline border-white text-white hover:bg-white hover:text-bni-blue text-lg px-8 py-4">
-              Sudah Punya Akun?
-            </a>
+
+          {/* Carousel kartu */}
+          <div className="relative mt-4">
+            <button
+              aria-label="prev"
+              onClick={() => scrollBy(-320)}
+              className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white shadow hover:bg-gray-50 items-center justify-center"
+            >
+              <ChevronLeft />
+            </button>
+            <button
+              aria-label="next"
+              onClick={() => scrollBy(320)}
+              className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white shadow hover:bg-gray-50 items-center justify-center"
+            >
+              <ChevronRight />
+            </button>
+
+            <div
+              ref={trackRef}
+              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-1 pb-2"
+            >
+              {items.map((it) => (
+                <PropertyCard key={it.id} {...it} />
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      <Footer />
+function PropertyCard({
+  title,
+  location,
+  price,
+  image,
+}: {
+  title: string;
+  location: string;
+  price: string;
+  image: string;
+}) {
+  return (
+    <div className="min-w-[260px] max-w-[280px] snap-start bg-white rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition">
+      <div className="relative h-36 w-full">
+        <Image src={image} alt={title} fill className="object-cover" />
+      </div>
+      <div className="p-3">
+        <h4 className="font-semibold text-gray-900 leading-snug">{title}</h4>
+        <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+          <MapPin className="h-4 w-4" />
+          <span>{location}</span>
+        </div>
+        <div className="mt-2 text-sm text-gray-500">Harga mulai</div>
+        <div className="font-extrabold text-gray-900">{price}</div>
+      </div>
     </div>
+  );
+}
+
+/* =========================
+   Footer
+   ========================= */
+function Footer() {
+  return (
+    <footer className="mt-6" style={{ background: COLORS.orange }}>
+      <div className="max-w-7xl mx-auto px-4 py-10 text-white">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Deskripsi */}
+          <div className="text-sm leading-relaxed">
+            <p className="opacity-95">
+              PT Bank Negara Indonesia (Persero) Tbk adalah bank BUMN terbesar di Indonesia.
+              Kami berkomitmen memberikan layanan KPR terbaik untuk mewujudkan impian rumah Anda.
+            </p>
+            <div className="flex items-center gap-3 mt-4 opacity-90">
+              <a className="hover:opacity-100" href="#" aria-label="Facebook"><Facebook size={18} /></a>
+              <a className="hover:opacity-100" href="#" aria-label="Instagram"><Instagram size={18} /></a>
+              <a className="hover:opacity-100" href="#" aria-label="LinkedIn"><Linkedin size={18} /></a>
+            </div>
+          </div>
+
+          {/* Layanan */}
+          <div>
+            <h5 className="font-semibold mb-3 text-base">Layanan</h5>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/pengajuan" className="hover:underline">Pengajuan</Link></li>
+              <li><Link href="/simulasi" className="hover:underline">Simulasi</Link></li>
+              <li><Link href="/cari-rumah" className="hover:underline">Cari Rumah</Link></li>
+            </ul>
+          </div>
+
+          {/* Hubungi Kami */}
+          <div>
+            <h5 className="font-semibold mb-3 text-base">Hubungi Kami</h5>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2"><Phone size={16} /> 1500046</li>
+              <li className="flex items-center gap-2"><Mail size={16} /> kpr@bni.co.id</li>
+              <li className="leading-relaxed">
+                Jl. Jenderal Sudirman Kav. 1<br/>Jakarta Pusat 10220
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div className="h-2" style={{ background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.lime})` }} />
+    </footer>
   );
 }
