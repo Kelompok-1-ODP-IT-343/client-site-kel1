@@ -8,7 +8,17 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { MapPin, Home, Wallet, CreditCard, Clock, Landmark } from "lucide-react";
+import {
+  MapPin,
+  Home,
+  Wallet,
+  CreditCard,
+  Clock,
+  Landmark,
+  CheckCircle,
+  Clock3,
+  XCircle,
+} from "lucide-react";
 import Image from "next/image";
 
 const COLORS = { orange: "#FF8500", teal: "#0f766e", gray: "#757575" };
@@ -20,6 +30,14 @@ export default function DetailPengajuanPage() {
     { name: "Sisa", value: 165 },
   ];
 
+  // Data untuk timeline pengajuan
+  const timelineSteps = [
+    { title: "Pengajuan Terkirim", date: "10 Okt 2025", status: "done" },
+    { title: "Verifikasi Dokumen", date: "11 Okt 2025", status: "done" },
+    { title: "Review", date: "13 Okt 2025", status: "process" },
+    { title: "Diterima / Ditolak", date: "15 Okt 2025", status: "pending" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       {/* HEADER */}
@@ -27,12 +45,20 @@ export default function DetailPengajuanPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-3">
           <div className="flex items-center gap-3">
             <Image src="/logo-satuatap.png" alt="logo" width={36} height={36} />
-            <span className="font-extrabold text-xl text-[#FF8500]">satuatap</span>
+            <span className="font-extrabold text-xl text-[#FF8500]">
+              satuatap
+            </span>
           </div>
           <nav className="hidden md:flex gap-8 text-gray-700 font-medium">
-            <a href="/" className="hover:text-[#0f766e]">Beranda</a>
-            <a href="/cari-rumah" className="hover:text-[#0f766e]">Cari Rumah</a>
-            <a href="/simulasi" className="hover:text-[#0f766e]">Simulasi</a>
+            <a href="/" className="hover:text-[#0f766e]">
+              Beranda
+            </a>
+            <a href="/cari-rumah" className="hover:text-[#0f766e]">
+              Cari Rumah
+            </a>
+            <a href="/simulasi" className="hover:text-[#0f766e]">
+              Simulasi
+            </a>
           </nav>
           <button className="px-4 py-2 rounded-full text-white text-sm bg-[#0f766e] hover:opacity-90 transition">
             Login
@@ -72,11 +98,22 @@ export default function DetailPengajuanPage() {
         {/* Info Pengajuan */}
         <Card title="Info Pengajuan" icon={<CreditCard className="text-[#0f766e]" />}>
           <ul className="text-sm space-y-2">
-            <li><b>Nomor Aplikasi:</b> KPR-2025-009</li>
-            <li><b>Tanggal Pengajuan:</b> 12 Oktober 2025</li>
-            <li><b>Status Pengajuan:</b> <span className="text-green-700 font-semibold">Disetujui ✅</span></li>
-            <li><b>Petugas KPR:</b> Budi Santoso</li>
-            <li><b>Cabang:</b> BNI Sudirman</li>
+            <li>
+              <b>Nomor Aplikasi:</b> KPR-2025-009
+            </li>
+            <li>
+              <b>Tanggal Pengajuan:</b> 12 Oktober 2025
+            </li>
+            <li>
+              <b>Status Pengajuan:</b>{" "}
+              <span className="text-green-700 font-semibold">Disetujui ✅</span>
+            </li>
+            <li>
+              <b>Petugas KPR:</b> Budi Santoso
+            </li>
+            <li>
+              <b>Cabang:</b> BNI Sudirman
+            </li>
           </ul>
         </Card>
 
@@ -122,12 +159,7 @@ export default function DetailPengajuanPage() {
         {/* Timeline Pengajuan */}
         <div className="md:col-span-2">
           <Card title="Timeline Pengajuan" icon={<Clock className="text-[#0f766e]" />}>
-            <div className="space-y-3 text-sm">
-              <TimelineItem date="10 Okt 2025" status="✅ Selesai" text="Pengajuan Dikirim" />
-              <TimelineItem date="11 Okt 2025" status="✅ Selesai" text="Verifikasi Dokumen" />
-              <TimelineItem date="13 Okt 2025" status="⏳ Proses" text="Survey Lapangan" />
-              <TimelineItem date="15 Okt 2025" status="❌ Belum" text="Persetujuan Akad" />
-            </div>
+            <TimelineVertical steps={timelineSteps} />
           </Card>
         </div>
 
@@ -186,22 +218,79 @@ function Card({
   );
 }
 
-function TimelineItem({
-  date,
-  text,
-  status,
-}: {
-  date: string;
-  text: string;
-  status: string;
-}) {
+/* ================= Timeline Vertical ================= */
+function TimelineVertical({ steps }: { steps: any[] }) {
+  const getStatus = (status: string) => {
+    switch (status) {
+      case "done":
+        return {
+          color: "text-green-600",
+          icon: <CheckCircle className="w-4 h-4 text-green-600" />,
+          label: "Selesai",
+        };
+      case "process":
+        return {
+          color: "text-yellow-600",
+          icon: <Clock3 className="w-4 h-4 text-yellow-600" />,
+          label: "Proses",
+        };
+      case "pending":
+        return {
+          color: "text-gray-400",
+          icon: <XCircle className="w-4 h-4 text-gray-400" />,
+          label: "Belum",
+        };
+      default:
+        return {
+          color: "text-gray-400",
+          icon: <XCircle className="w-4 h-4 text-gray-400" />,
+          label: "Belum",
+        };
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between border-b pb-2">
-      <div>
-        <p className="font-semibold text-gray-800">{text}</p>
-        <p className="text-xs text-gray-500">{date}</p>
-      </div>
-      <span className="text-sm">{status}</span>
+    <div className="relative pl-6">
+      {/* Garis utama */}
+      <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+
+      <ul className="space-y-8">
+        {steps.map((step, index) => {
+          const status = getStatus(step.status);
+          return (
+            <li key={index} className="relative flex justify-between items-start">
+              {/* Bullet */}
+              <div className="absolute -left-[9px] mt-1">
+                <span
+                  className={`block w-3.5 h-3.5 rounded-full border-2 ${
+                    step.status === "done"
+                      ? "bg-green-500 border-green-600"
+                      : step.status === "process"
+                      ? "bg-yellow-400 border-yellow-500"
+                      : "bg-gray-300 border-gray-400"
+                  }`}
+                ></span>
+              </div>
+
+              {/* Konten kiri */}
+              <div className="pl-3">
+                <h3 className="text-base font-semibold text-gray-900 leading-tight">
+                  {step.title}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">{step.date}</p>
+              </div>
+
+              {/* Status kanan */}
+              <div className="flex items-center gap-1 text-sm">
+                {status.icon}
+                <span className={`${status.color} font-medium`}>
+                  {status.label}
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
