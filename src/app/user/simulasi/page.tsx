@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import Header from "../../components/Header";
-import Footer from "../../components/Footer";
 
 export default function SimulasiKPRUser() {
+  const COLORS = { orange: "#FF8500", teal: "#0f766e", gray: "#757575" };
+
   const [pinjaman, setPinjaman] = useState(350_000_000);
   const [bungaTahunan, setBungaTahunan] = useState(6.5);
   const [tenorTahun, setTenorTahun] = useState(15);
@@ -51,11 +53,11 @@ export default function SimulasiKPRUser() {
   }, [pinjaman, bungaTahunan, tenorTahun, cicilanBulanan]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
 
       {/* Judul */}
-      <section className="py-12">
+      <section className="py-12 flex-grow">
         <div className="max-w-6xl mx-auto px-6">
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-10 text-gray-800">
             Simulasi KPR
@@ -191,7 +193,46 @@ export default function SimulasiKPRUser() {
         </div>
       </section>
 
-      <Footer />
+      {/* ✅ FOOTER */}
+      <footer
+        className="mt-auto text-white"
+        style={{ backgroundColor: COLORS.orange }}
+      >
+        <div className="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
+          <div>
+            <p className="text-sm/6 text-white/90">
+              PT Bank Negara Indonesia (Persero) Tbk adalah bank BUMN terbesar
+              di Indonesia. Kami berkomitmen memberikan layanan KPR terbaik
+              untuk mewujudkan impian rumah Anda.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-bold mb-3">Layanan</h4>
+            <ul className="space-y-2 text-sm/6 text-white/90">
+              <li>
+                <Link href="/user/cari-rumah" className="hover:opacity-80">
+                  Cari Rumah
+                </Link>
+              </li>
+              <li>
+                <Link href="/user/simulasi" className="hover:opacity-80">
+                  Simulasi
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold mb-3">Hubungi Kami</h4>
+            <ul className="text-sm/6 space-y-2 text-white/90">
+              <li>1500046</li>
+              <li>kpr@bni.co.id</li>
+              <li>🏢 Jl. Jenderal Sudirman Kav. 1 Jakarta Pusat 10220</li>
+            </ul>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
