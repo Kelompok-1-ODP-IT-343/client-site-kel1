@@ -34,3 +34,33 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Docker & Auto Push to Docker Hub
+
+This project includes a production-ready Dockerfile and a GitHub Actions workflow to automatically build and push images to Docker Hub on each push to `main` or version tags.
+
+### Prerequisites
+- A repository hosted on GitHub
+- A Docker Hub account and a repository (e.g., `your-username/client-side-kel1`)
+
+### Setup Secrets on GitHub
+Add the following secrets in your GitHub repository settings:
+- `DOCKERHUB_USERNAME`: your Docker Hub username
+- `DOCKERHUB_TOKEN`: a Docker Hub Access Token (Account Settings → Security → New Access Token)
+
+### Workflow
+The workflow file is located at `.github/workflows/dockerhub.yml` and will:
+- Build a multi-arch image (`linux/amd64`, `linux/arm64`)
+- Tag images based on branch, tag, and commit SHA
+- Push to Docker Hub with caching for faster builds
+
+### Build and Run Locally
+```
+docker build -t your-username/client-side-kel1:local .
+docker run -p 3000:3000 your-username/client-side-kel1:local
+```
+Open `http://localhost:3000`.
+
+### Notes
+- `next.config.ts` uses `output: "standalone"` to produce minimal runtime files
+- The runtime container uses a non-root user for security
