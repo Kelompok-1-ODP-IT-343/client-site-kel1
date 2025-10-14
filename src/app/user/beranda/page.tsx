@@ -1,3 +1,6 @@
+beranda:
+
+
 "use client";
 
 import Image from "next/image";
@@ -16,7 +19,7 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 
 const COLORS = { teal: "#3FD8D4", gray: "#757575", orange: "#FF8500", lime: "#DDEE59" };
 
@@ -24,46 +27,71 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* NAV */}
-      <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/85 backdrop-blur border-b">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="relative w-9 h-9">
               <Image src="/logo-satuatap.png" alt="SatuAtap" fill className="object-contain" />
             </div>
-            <span className="font-extrabold text-xl text-[#FF8500]">satuatap</span>
+            <span className="font-extrabold text-xl" style={{ color: COLORS.orange }}>satuatap</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-8 font-medium">
-            <Link className="text-gray-700 hover:text-[#FF8500]" href="/">Beranda</Link>
-            <Link className="text-gray-700 hover:text-[#FF8500]" href="/cari-rumah">Cari Rumah</Link>
-            <Link className="text-gray-700 hover:text-[#FF8500]" href="/user/simulasi">Simulasi</Link>
+            <Link className="text-gray-700 hover:opacity-80" href="/">Beranda</Link>
+            <Link className="text-gray-700 hover:opacity-80" href="/cari-rumah">Cari Rumah</Link>
+            <Link className="text-gray-700 hover:opacity-80" href="/simulasi">Simulasi</Link>
           </nav>
-          <UserBadge />
+
+          <Link href="/login">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative overflow-hidden px-5 py-2 rounded-full text-white text-sm shadow"
+              style={{ backgroundColor: "#0f766e" }}
+            >
+              <motion.span
+                initial={{ x: "-120%" }}
+                animate={{ x: ["-120%", "120%"] }}
+                transition={{ repeat: Infinity, duration: 2.2, ease: "linear" }}
+                className="pointer-events-none absolute inset-y-0 left-0 w-[120%] opacity-20"
+                style={{ background: "linear-gradient(90deg, transparent, #fff, transparent)" }}
+              />
+              Login
+            </motion.button>
+          </Link>
         </div>
+        <div
+          className="h-1 w-full"
+          style={{ background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.lime}, ${COLORS.orange})` }}
+        />
       </header>
 
       {/* HERO */}
-      <section className="relative bg-[#C5F3F3]">
+      <section
+        className="relative"
+        style={{ backgroundColor: "#C1F0EC" }} // ← ubah dari gradasi ke warna solid
+      >
         <div className="max-w-7xl mx-auto px-4 py-14 text-center">
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900">
             Wujudkan Impian Rumah Anda
           </h1>
-          <p className="mt-3 text-gray-700 max-w-2xl mx-auto">
+          <p className="mt-3 text-gray-600 max-w-2xl mx-auto">
             KPR BNI dengan bunga kompetitif dan proses yang mudah
           </p>
 
-          {/* CTA */}
+          {/* CTA ganda */}
           <div className="mt-6 flex items-center justify-center gap-3">
             <Link
               href="/pengajuan"
-              className="rounded-xl px-5 py-3 text-white font-semibold shadow transition"
-              style={{ backgroundColor: "#3FD8D4" }}
+              className="rounded-xl px-5 py-3 text-white font-semibold shadow hover:scale-[1.01] active:scale-[.99] transition"
+              style={{ background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.lime})` }}
             >
               Ajukan KPR Sekarang
             </Link>
             <Link
-              href="/user/simulasi"
-              className="rounded-xl px-5 py-3 font-semibold border border-[#3FD8D4] bg-white hover:bg-gray-50 text-[#0f766e] transition"
+              href="/simulasi"
+              className="rounded-xl px-5 py-3 font-semibold border bg-white hover:bg-gray-50 transition"
+              style={{ borderColor: COLORS.teal, color: "#0f766e" }}
             >
               Hitung Simulasi
             </Link>
@@ -71,9 +99,9 @@ export default function HomePage() {
 
           {/* 3 fitur */}
           <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FeatureCard icon={<Clock3 />} title="Proses Cepat" desc="Persetujuan kredit 3–5 hari kerja dengan syarat mudah." accent="#3FD8D4" />
-            <FeatureCard icon={<Percent />} title="Bunga Kompetitif" desc="Suku bunga mulai 6.25% dengan tenor hingga 25 tahun." accent="#FF8500" />
-            <FeatureCard icon={<Wallet />} title="Fleksibel" desc="Pilihan produk KPR sesuai kebutuhan dan finansial Anda." accent="#DDEE59" />
+            <FeatureCard icon={<Clock3 />} title="Proses Cepat" desc="Verifikasi ringkas & pendampingan personal." accent={COLORS.teal}/>
+            <FeatureCard icon={<Percent />} title="Bunga Kompetitif" desc="Mulai dari 2.55% (syarat & promo berlaku)." accent={COLORS.orange}/>
+            <FeatureCard icon={<Wallet />} title="Fleksibel" desc="Produk & tenor menyesuaikan rencana Anda." accent={COLORS.lime}/>
           </div>
         </div>
       </section>
@@ -84,64 +112,6 @@ export default function HomePage() {
       {/* FOOTER */}
       <Footer />
     </div>
-  );
-}
-
-function UserBadge() {
-  const [user, setUser] = useState<{ name?: string; photo?: string } | null>(null);
-
-  useEffect(() => {
-    try {
-      const stored = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const name = parsed?.name || parsed?.username || parsed?.fullName || "Pengguna";
-        const photo = parsed?.photo || parsed?.photoURL || parsed?.avatar || undefined;
-        setUser({ name, photo });
-      } else if (token) {
-        setUser({ name: "Pengguna", photo: undefined });
-      }
-    } catch {
-      // ignore parsing errors
-    }
-  }, []);
-
-  if (!user) {
-    return (
-      <Link href="/login">
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className="relative overflow-hidden px-5 py-2 rounded-full text-white text-sm shadow"
-          style={{ backgroundColor: "#0f766e" }}
-        >
-          <motion.span
-            initial={{ x: "-120%" }}
-            animate={{ x: ["-120%", "120%"] }}
-            transition={{ repeat: Infinity, duration: 2.2, ease: "linear" }}
-            className="pointer-events-none absolute inset-y-0 left-0 w-[120%] opacity-20"
-            style={{ background: "linear-gradient(90deg, transparent, #fff, transparent)" }}
-          />
-          Login
-        </motion.button>
-      </Link>
-    );
-  }
-
-  return (
-    <Link href="/user/beranda" className="flex items-center gap-2">
-      <div className="relative w-8 h-8 rounded-full overflow-hidden border">
-        {user.photo ? (
-          <Image src={user.photo} alt="Profile" fill className="object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-            {user.name?.charAt(0) || "U"}
-          </div>
-        )}
-      </div>
-      <span className="text-sm font-medium text-gray-800">{user.name || "Pengguna"}</span>
-    </Link>
   );
 }
 
@@ -172,34 +142,10 @@ function ExploreSection() {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const items = [
-    {
-      id: 1,
-      title: "Cluster Green Valley",
-      location: "Serpong, Banten",
-      price: "Rp 456.500.000",
-      image: "/rumah-1.png", // ganti sesuai asetmu
-    },
-    {
-      id: 2,
-      title: "Cluster Green Valley",
-      location: "Margonda, Depok",
-      price: "Rp 625.500.000",
-      image: "/rumah-2.jpg",
-    },
-    {
-      id: 3,
-      title: "PONDOK TAKATAKAN",
-      location: "Serang, Banten",
-      price: "Rp 197.000.000",
-      image: "/rumah-3.jpg",
-    },
-    {
-      id: 4,
-      title: "Bukit Permata",
-      location: "Bogor, Jawa Barat",
-      price: "Rp 520.000.000",
-      image: "/rumah-4.jpg",
-    },
+    { id: 1, title: "Cluster Green Valley", location: "Serpong, Banten", price: "Rp 456.500.000", image: "/rumah-1.jpg" },
+    { id: 2, title: "Cluster Green Valley", location: "Margonda, Depok", price: "Rp 625.500.000", image: "/rumah-2.jpg" },
+    { id: 3, title: "PONDOK TAKATAKAN", location: "Serang, Banten", price: "Rp 197.000.000", image: "/rumah-3.jpg" },
+    { id: 4, title: "Bukit Permata", location: "Bogor, Jawa Barat", price: "Rp 520.000.000", image: "/rumah-4.jpg" },
   ];
 
   const scrollBy = (delta: number) => {
@@ -211,7 +157,6 @@ function ExploreSection() {
   return (
     <section className="py-10">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Judul + subjudul */}
         <div
           className="rounded-2xl p-6 md:p-7 mb-6"
           style={{ background: `linear-gradient(0deg, ${COLORS.lime}55, ${COLORS.lime}55), #F7FEE7` }}
@@ -223,27 +168,15 @@ function ExploreSection() {
             Tersedia rumah dengan kualitas terbaik dari developer pilihan BNI
           </p>
 
-          {/* Carousel kartu */}
           <div className="relative mt-4">
-            <button
-              aria-label="prev"
-              onClick={() => scrollBy(-320)}
-              className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white shadow hover:bg-gray-50 items-center justify-center"
-            >
+            <button aria-label="prev" onClick={() => scrollBy(-320)} className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white shadow hover:bg-gray-50 items-center justify-center">
               <ChevronLeft />
             </button>
-            <button
-              aria-label="next"
-              onClick={() => scrollBy(320)}
-              className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white shadow hover:bg-gray-50 items-center justify-center"
-            >
+            <button aria-label="next" onClick={() => scrollBy(320)} className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full border bg-white shadow hover:bg-gray-50 items-center justify-center">
               <ChevronRight />
             </button>
 
-            <div
-              ref={trackRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-1 pb-2"
-            >
+            <div ref={trackRef} className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-1 pb-2">
               {items.map((it) => (
                 <PropertyCard key={it.id} {...it} />
               ))}
@@ -255,17 +188,7 @@ function ExploreSection() {
   );
 }
 
-function PropertyCard({
-  title,
-  location,
-  price,
-  image,
-}: {
-  title: string;
-  location: string;
-  price: string;
-  image: string;
-}) {
+function PropertyCard({ title, location, price, image }: { title: string; location: string; price: string; image: string; }) {
   return (
     <div className="min-w-[260px] max-w-[280px] snap-start bg-white rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition">
       <div className="relative h-36 w-full">
@@ -292,7 +215,6 @@ function Footer() {
     <footer className="mt-6" style={{ background: COLORS.orange }}>
       <div className="max-w-7xl mx-auto px-4 py-10 text-white">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Deskripsi */}
           <div className="text-sm leading-relaxed">
             <p className="opacity-95">
               PT Bank Negara Indonesia (Persero) Tbk adalah bank BUMN terbesar di Indonesia.
@@ -305,17 +227,15 @@ function Footer() {
             </div>
           </div>
 
-          {/* Layanan */}
           <div>
             <h5 className="font-semibold mb-3 text-base">Layanan</h5>
             <ul className="space-y-2 text-sm">
               <li><Link href="/pengajuan" className="hover:underline">Pengajuan</Link></li>
-              <li><Link href="/user/simulasi" className="hover:underline">Simulasi</Link></li>
+              <li><Link href="/simulasi" className="hover:underline">Simulasi</Link></li>
               <li><Link href="/cari-rumah" className="hover:underline">Cari Rumah</Link></li>
             </ul>
           </div>
 
-          {/* Hubungi Kami */}
           <div>
             <h5 className="font-semibold mb-3 text-base">Hubungi Kami</h5>
             <ul className="space-y-2 text-sm">
