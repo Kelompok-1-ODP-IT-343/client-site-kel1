@@ -30,7 +30,9 @@ export default function HomePage() {
             <div className="relative w-9 h-9">
               <Image src="/logo-satuatap.png" alt="SatuAtap" fill className="object-contain" />
             </div>
-            <span className="font-extrabold text-xl" style={{ color: COLORS.orange }}>satuatap</span>
+            <span className="font-extrabold text-xl" style={{ color: COLORS.orange }}>
+              satuatap
+            </span>
           </div>
 
           <nav className="hidden md:flex items-center gap-8 font-medium">
@@ -64,10 +66,7 @@ export default function HomePage() {
       </header>
 
       {/* HERO */}
-      <section
-        className="relative"
-        style={{ backgroundColor: "#C1F0EC" }} // ← ubah dari gradasi ke warna solid
-      >
+      <section className="relative" style={{ backgroundColor: "#C1F0EC" }}>
         <div className="max-w-7xl mx-auto px-4 py-14 text-center">
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900">
             Wujudkan Impian Rumah Anda
@@ -76,7 +75,7 @@ export default function HomePage() {
             KPR BNI dengan bunga kompetitif dan proses yang mudah
           </p>
 
-          {/* CTA ganda */}
+          {/* CTA */}
           <div className="mt-6 flex items-center justify-center gap-3">
             <Link
               href="/pengajuan"
@@ -94,7 +93,6 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* 3 fitur */}
           <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
             <FeatureCard icon={<Clock3 />} title="Proses Cepat" desc="Verifikasi ringkas & pendampingan personal." accent={COLORS.teal}/>
             <FeatureCard icon={<Percent />} title="Bunga Kompetitif" desc="Mulai dari 2.55% (syarat & promo berlaku)." accent={COLORS.orange}/>
@@ -103,18 +101,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* EKSPLOR RUMAH IMPIAN */}
       <ExploreSection />
-
-      {/* FOOTER */}
       <Footer />
     </div>
   );
 }
 
-function FeatureCard({ icon, title, desc, accent }:{
-  icon: React.ReactNode; title:string; desc:string; accent:string;
-}) {
+function FeatureCard({ icon, title, desc, accent }: { icon: React.ReactNode; title: string; desc: string; accent: string }) {
   return (
     <div
       className="rounded-2xl p-5 bg-white/80 backdrop-blur border border-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
@@ -132,12 +125,8 @@ function FeatureCard({ icon, title, desc, accent }:{
   );
 }
 
-/* =========================
-   Eksplor Rumah Impian
-   ========================= */
 function ExploreSection() {
   const trackRef = useRef<HTMLDivElement>(null);
-
   const items = [
     { id: 1, title: "Cluster Green Valley", location: "Serpong, Banten", price: "Rp 456.500.000", image: "/rumah-1.jpg" },
     { id: 2, title: "Cluster Green Valley", location: "Margonda, Depok", price: "Rp 625.500.000", image: "/rumah-2.jpg" },
@@ -154,8 +143,7 @@ function ExploreSection() {
   return (
     <section className="py-10">
       <div className="max-w-7xl mx-auto px-4">
-        <div
-          className="rounded-2xl p-6 md:p-7 mb-6"
+        <div className="rounded-2xl p-6 md:p-7 mb-6"
           style={{ background: `linear-gradient(0deg, ${COLORS.lime}55, ${COLORS.lime}55), #F7FEE7` }}
         >
           <h2 className="text-2xl md:text-3xl font-extrabold text-center text-gray-900">
@@ -185,7 +173,7 @@ function ExploreSection() {
   );
 }
 
-function PropertyCard({ title, location, price, image }: { title: string; location: string; price: string; image: string; }) {
+function PropertyCard({ title, location, price, image }: { title: string; location: string; price: string; image: string }) {
   return (
     <div className="min-w-[260px] max-w-[280px] snap-start bg-white rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition">
       <div className="relative h-36 w-full">
@@ -204,9 +192,6 @@ function PropertyCard({ title, location, price, image }: { title: string; locati
   );
 }
 
-/* =========================
-   Footer
-   ========================= */
 function Footer() {
   return (
     <footer className="mt-6" style={{ background: COLORS.orange }}>
@@ -218,9 +203,16 @@ function Footer() {
               Kami berkomitmen memberikan layanan KPR terbaik untuk mewujudkan impian rumah Anda.
             </p>
             <div className="flex items-center gap-3 mt-4 opacity-90">
-              <a className="hover:opacity-100" href="#" aria-label="Facebook"><Facebook size={18} /></a>
-              <a className="hover:opacity-100" href="#" aria-label="Instagram"><Instagram size={18} /></a>
-              <a className="hover:opacity-100" href="#" aria-label="LinkedIn"><Linkedin size={18} /></a>
+              {/* ✅ FIXED: replace <a href="#"> with safe external <Link> */}
+              <Link href="https://facebook.com" target="_blank" aria-label="Facebook" className="hover:opacity-100">
+                <Facebook size={18} />
+              </Link>
+              <Link href="https://instagram.com" target="_blank" aria-label="Instagram" className="hover:opacity-100">
+                <Instagram size={18} />
+              </Link>
+              <Link href="https://linkedin.com" target="_blank" aria-label="LinkedIn" className="hover:opacity-100">
+                <Linkedin size={18} />
+              </Link>
             </div>
           </div>
 
@@ -239,7 +231,7 @@ function Footer() {
               <li className="flex items-center gap-2"><Phone size={16} /> 1500046</li>
               <li className="flex items-center gap-2"><Mail size={16} /> kpr@bni.co.id</li>
               <li className="leading-relaxed">
-                Jl. Jenderal Sudirman Kav. 1<br/>Jakarta Pusat 10220
+                Jl. Jenderal Sudirman Kav. 1<br />Jakarta Pusat 10220
               </li>
             </ul>
           </div>
