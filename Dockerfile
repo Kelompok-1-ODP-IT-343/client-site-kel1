@@ -12,11 +12,17 @@ RUN apk add --no-cache libc6-compat
 COPY package*.json ./
 RUN npm ci
 
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV NEXT_DISABLE_ESLINT=1
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Copy all source code
 COPY . .
 
 # Build Next.js app (no linting)
-RUN npm run build --no-lint
+RUN NEXT_DISABLE_ESLINT=1 npm run build
 
 # ---------- Runtime Stage ----------
 FROM node:20-alpine AS runner
@@ -24,6 +30,8 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV NEXT_DISABLE_ESLINT=1
 
 # Create non-root user for security
 RUN adduser -D -u 1001 nextjs
@@ -37,4 +45,4 @@ COPY --from=builder /app/public ./public
 EXPOSE 3000
 
 USER nextjs
-CMD ["node", "server.js"]
+CMD ["node", "server.js", "-H", "0.0.0.0", "-p", "3000"]
