@@ -1,253 +1,127 @@
-// cari rumah
+'use client';
 
-"use client";
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { MapPin, Phone, Mail, Facebook, Instagram, Linkedin } from "lucide-react";
+// Pastikan path ini benar sesuai struktur folder Anda
+import Header from '@/app/components/layout/Header';
+import Footer from '@/app/components/layout/Footer';
+import FilterBar from '@/app/components/cari-rumah/FilterBar';
+import HouseList from '@/app/components/cari-rumah/HouseList';
+import Pagination from '@/app/components/cari-rumah/Pagination';
 
-const COLORS = {
-  orange: "#FF8500",
-  lime: "#DDEE59",
-  teal: "#3FD8D4",
-  blue: "#C5F3F3",
-  gray: "#757575",
+export type House = {
+  id: number;
+  property_type: 'Cluster' | 'Apartemen' | 'Rumah Tinggal' | 'Townhouse';
+  title: string;
+  description: string;
+  address: string;
+  sub_district: string;
+  district: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  land_area: number;
+  building_area: number;
+  bedrooms: number;
+  bathrooms: number;
+  floors: number;
+  garage: number;
+  year_built: number;
+  price: number;
+  image: string;
 };
 
+const allHouses: House[] = [
+    { id: 1, property_type: 'Cluster', title: 'Cluster Green Valley', description: 'Hunian asri di tengah kota...', address: 'Jl. Boulevard Raya No. 1', sub_district: 'Pagedangan', district: 'Serpong', city: 'Tangerang Selatan', province: 'Banten', postal_code: '15339', land_area: 120, building_area: 90, bedrooms: 3, bathrooms: 2, floors: 2, garage: 1, year_built: 2022, price: 1500000000, image: '/rumah-1.jpg' },
+    { id: 2, property_type: 'Rumah Tinggal', title: 'Rumah Klasik Menteng', description: 'Lokasi premium di jantung Jakarta...', address: 'Jl. Teuku Umar No. 20', sub_district: 'Menteng', district: 'Menteng', city: 'Jakarta Pusat', province: 'DKI Jakarta', postal_code: '10310', land_area: 300, building_area: 250, bedrooms: 5, bathrooms: 4, floors: 2, garage: 2, year_built: 2018, price: 25000000000, image: '/rumah-2.jpg' },
+    { id: 3, property_type: 'Apartemen', title: 'The Peak Apartment', description: 'Apartemen mewah...', address: 'Jl. Jenderal Sudirman Kav. 52-53', sub_district: 'Kebayoran Baru', district: 'Senayan', city: 'Jakarta Selatan', province: 'DKI Jakarta', postal_code: '12190', land_area: 0, building_area: 120, bedrooms: 2, bathrooms: 2, floors: 1, garage: 1, year_built: 2020, price: 4500000000, image: '/rumah-3.jpg' },
+    { id: 4, property_type: 'Cluster', title: 'Citra Garden Bintaro', description: 'Kawasan terpadu...', address: 'Jl. Bintaro Utama Sektor 9', sub_district: 'Pondok Aren', district: 'Bintaro', city: 'Tangerang Selatan', province: 'Banten', postal_code: '15229', land_area: 90, building_area: 75, bedrooms: 3, bathrooms: 2, floors: 2, garage: 1, year_built: 2023, price: 1200000000, image: '/rumah-4.jpg' },
+];
+
+const ITEMS_PER_PAGE = 8; // Menampilkan lebih banyak item per halaman
+
 export default function CariRumahPage() {
-  const [nameFilter, setNameFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [budgetFilter, setBudgetFilter] = useState("");
+  const router = useRouter();
+  const [filters, setFilters] = useState({ name: '', location: '', type: '', budget: '' });
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [favorites, setFavorites] = useState<number[]>([2, 4]);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const houses = [
-    {
-      id: 1,
-      name: "Cluster Green Valley",
-      location: "Serpong, Banten",
-      price: "Rp 1.500.000",
-      image: "/images/rumah1.jpg",
-    },
-    {
-      id: 2,
-      name: "Cluster Green Valley",
-      location: "Serpong, Banten",
-      price: "Rp 1.500.000",
-      image: "/images/rumah1.jpg",
-    },
-    {
-      id: 3,
-      name: "Cluster Green Valley",
-      location: "Serpong, Banten",
-      price: "Rp 1.500.000",
-      image: "/images/rumah1.jpg",
-    },
-    {
-      id: 4,
-      name: "Cluster Green Valley",
-      location: "Serpong, Banten",
-      price: "Rp 1.500.000",
-      image: "/images/rumah1.jpg",
-    },
-    {
-      id: 5,
-      name: "Cluster Green Valley",
-      location: "Serpong, Banten",
-      price: "Rp 1.500.000",
-      image: "/images/rumah1.jpg",
-    },
-    {
-      id: 6,
-      name: "Cluster Green Valley",
-      location: "Serpong, Banten",
-      price: "Rp 1.500.000",
-      image: "/images/rumah1.jpg",
-    },
-  ];
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters(prev => ({ ...prev, [filterName]: value }));
+    setCurrentPage(1);
+  };
 
-  const locationOptions = Array.from(new Set(houses.map(h => h.location)));
-  const typeOptions = ["Cluster", "Apartemen", "Rumah Tinggal"];
-  const budgetOptions = [
-    "< 1.000.000.000",
-    "1.000.000.000 - 2.000.000.000",
-    "> 2.000.000.000",
-  ];
+  const handleToggleFavorite = (houseId: number) => {
+    if (!isLoggedIn) {
+      alert('Silakan login untuk menyimpan favorit.');
+      // router.push('/login');
+      return;
+    }
+    setFavorites(prev =>
+      prev.includes(houseId)
+        ? prev.filter(id => id !== houseId)
+        : [...prev, houseId]
+    );
+  };
+
+  const filteredHouses = useMemo(() => {
+    return allHouses.filter(house => {
+      const nameMatch = house.title.toLowerCase().includes(filters.name.toLowerCase());
+      const locationMatch = filters.location ? house.city === filters.location : true;
+      const typeMatch = filters.type ? house.property_type === filters.type : true;
+      const budgetMatch = (() => {
+        if (!filters.budget) return true;
+        const [min, max] = filters.budget.split('-').map(Number);
+        return max ? house.price >= min && house.price <= max : house.price >= min;
+      })();
+      return nameMatch && locationMatch && typeMatch && budgetMatch;
+    });
+  }, [filters]);
+
+  const totalPages = Math.ceil(filteredHouses.length / ITEMS_PER_PAGE);
+  const currentHouses = filteredHouses.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* HEADER */}
-      <header className="bg-white sticky top-0 z-50 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="relative w-9 h-9">
-              <Image src="/logo-satuatap.png" alt="Logo" fill className="object-contain" />
+    <div className="min-h-screen flex flex-col bg-gray-50 antialiased">
+      <Header />
+      <main className="flex-1">
+        <section className="bg-[#E0F7F5] py-12 lg:py-16">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-bni-dark-blue">
+                Temukan Properti Impian Anda
+              </h1>
+              <p className="mt-3 text-base sm:text-lg text-bni-gray max-w-2xl mx-auto">
+                Gunakan filter di bawah untuk menemukan rumah yang sesuai dengan kriteria Anda.
+              </p>
             </div>
-            <span className="font-extrabold text-xl text-[#FF8500]">satuatap</span>
+            <FilterBar filters={filters} onFilterChange={handleFilterChange} houses={allHouses} />
           </div>
+        </section>
 
-          <nav className="hidden md:flex items-center gap-8 font-medium">
-            <Link href="/" className="text-gray-700 hover:text-[#FF8500]">
-              Beranda
-            </Link>
-            <Link href="/cari-rumah" className="text-gray-700 hover:text-[#FF8500] border-b-2 border-[#FF8500] pb-1">
-              Cari Rumah
-            </Link>
-            <Link href="/simulasi" className="text-gray-700 hover:text-[#FF8500]">
-              Simulasi
-            </Link>
-          </nav>
-
-          <button
-            onClick={() => (window.location.href = "/login")}
-            className="px-4 py-2 rounded-full text-white text-sm shadow-md hover:shadow-lg transition"
-            style={{ backgroundColor: "#0f766e" }}
-          >
-            Login
-          </button>
-        </div>
-      </header>
-
-      {/* HERO */}
-      <section className="py-12" style={{ backgroundColor: COLORS.blue }}>
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
-            Eksplor Rumah Impian
-          </h1>
-
-          {/* Search Filters (label + 1 input ketik + 3 dropdown) */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            <div className="text-left">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">Cari Rumah</label>
-              <input
-                type="text"
-                value={nameFilter}
-                onChange={(e) => setNameFilter(e.target.value)}
-                placeholder="Nama Rumah Impianmu"
-                className="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3FD8D4]"
+        <section className="py-16">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+            <HouseList
+              houses={currentHouses}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+            />
+            {filteredHouses.length > ITEMS_PER_PAGE && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
               />
-            </div>
-            <div className="text-left">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">Lokasi</label>
-              <select
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-                className="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3FD8D4]"
-              >
-                <option value="">Semua Lokasi</option>
-                {locationOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-            <div className="text-left">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">Tipe</label>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3FD8D4]"
-              >
-                <option value="">Semua Tipe</option>
-                {typeOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-            <div className="text-left">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">Rentang Harga</label>
-              <select
-                value={budgetFilter}
-                onChange={(e) => setBudgetFilter(e.target.value)}
-                className="w-full border border-gray-400 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3FD8D4]"
-              >
-                <option value="">Semua Budget</option>
-                {budgetOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
+            )}
           </div>
-        </div>
-      </section>
-
-      {/* GRID RUMAH */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {houses.map((house) => (
-            <div
-              key={house.id}
-              className="bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-md transition"
-            >
-              <div className="relative h-48 w-full">
-                <Image
-                  src={house.image}
-                  alt={house.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-gray-900 text-lg">{house.name}</h3>
-                <p className="flex items-center text-gray-600 mt-1 text-sm">
-                  <MapPin size={16} className="mr-1" /> {house.location}
-                </p>
-                <p className="mt-2 text-base font-semibold text-gray-900">
-                  {house.price}
-                </p>
-                <div className="mt-4 flex gap-3">
-                  <button
-                    className="flex-1 py-2 rounded-lg font-semibold text-sm text-gray-900 shadow hover:opacity-90 transition"
-                    style={{ backgroundColor: COLORS.orange }}
-                  >
-                    Ajukan
-                  </button>
-                  <button
-                    className="flex-1 py-2 rounded-lg font-semibold text-sm text-gray-900 shadow hover:opacity-90 transition"
-                    style={{ backgroundColor: COLORS.lime }}
-                  >
-                    Detail
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="mt-auto text-white" style={{ backgroundColor: COLORS.orange }}>
-        <div className="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
-          <div>
-            <p className="text-sm/6 text-white/90">
-              PT Bank Negara Indonesia (Persero) Tbk adalah bank BUMN terbesar di Indonesia.
-              Kami berkomitmen memberikan layanan KPR terbaik untuk mewujudkan impian rumah Anda.
-            </p>
-            <div className="flex gap-4 mt-4 text-white/90">
-              <a href="#" aria-label="Facebook" className="hover:opacity-80 transition"><Facebook size={20} /></a>
-              <a href="#" aria-label="Instagram" className="hover:opacity-80 transition"><Instagram size={20} /></a>
-              <a href="#" aria-label="LinkedIn" className="hover:opacity-80 transition"><Linkedin size={20} /></a>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-bold mb-3">Layanan</h4>
-            <ul className="space-y-2 text-sm/6 text-white/90">
-              <li>Pengajuan</li>
-              <li>Simulasi</li>
-              <li>Cari Rumah</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold mb-3">Hubungi Kami</h4>
-            <ul className="text-sm/6 space-y-2 text-white/90">
-              <li className="flex items-center gap-2"><Phone size={16} /> 1500046</li>
-              <li className="flex items-center gap-2"><Mail size={16} /> kpr@bni.co.id</li>
-              <li>🏢 Jl. Jenderal Sudirman Kav. 1<br />Jakarta Pusat 10220</li>
-            </ul>
-          </div>
-        </div>
-      </footer>
+        </section>
+      </main>
+      <Footer />
     </div>
   );
 }
