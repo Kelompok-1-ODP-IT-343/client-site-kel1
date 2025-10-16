@@ -41,8 +41,8 @@ export default function DashboardPage() {
           </div>
           <nav className="hidden md:flex items-center gap-8 font-medium">
             <a className="text-gray-700 hover:text-[#FF8500] transition" href="/">Beranda</a>
-            <a className="text-gray-700 hover:text-[#FF8500] transition" href="/cari-rumah">Cari Rumah</a>
-            <a className="text-gray-700 hover:text-[#FF8500] transition" href="/simulasi">Simulasi</a>
+            <a className="text-gray-700 hover:text-[#FF8500] transition" href="/user/cari-rumah">Cari Rumah</a>
+            <a className="text-gray-700 hover:text-[#FF8500] transition" href="/user/simulasi">Simulasi</a>
           </nav>
           <button
             onClick={() => (window.location.href = "/")}
