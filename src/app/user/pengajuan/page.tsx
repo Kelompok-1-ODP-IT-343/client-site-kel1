@@ -25,8 +25,8 @@ export default function FormPengajuan() {
           </div>
           <nav className="hidden md:flex gap-8 text-gray-700 font-medium">
             <a href="/" className="hover:text-[#0f766e]">Beranda</a>
-            <a href="/cari-rumah" className="hover:text-[#0f766e]">Cari Rumah</a>
-            <a href="/simulasi" className="hover:text-[#0f766e]">Simulasi</a>
+            <a href="/user/cari-rumah" className="hover:text-[#0f766e]">Cari Rumah</a>
+            <a href="/user/simulasi" className="hover:text-[#0f766e]">Simulasi</a>
           </nav>
           <button className="px-4 py-2 rounded-full text-white text-sm shadow-md bg-[#0f766e] hover:opacity-90 transition">
             Login
