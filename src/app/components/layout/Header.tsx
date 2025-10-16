@@ -1,119 +1,130 @@
 "use client";
+
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { X, Menu } from "lucide-react"; // Menggunakan ikon untuk konsistensi
+
+// Asumsi path ini sudah benar
 import { USER_ROUTES } from "@/app/routes/userRoutes";
+
+// Daftar item navigasi
+const navItems = [
+  { href: USER_ROUTES.BERANDA, label: "Beranda" },
+  { href: USER_ROUTES.CARI_RUMAH, label: "Cari Rumah" },
+  { href: USER_ROUTES.SIMULASI, label: "Simulasi" },
+];
+
+/**
+ * Komponen NavLink untuk menangani style tautan aktif.
+ * Ini membuat kode di Header utama lebih bersih.
+ */
+const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
+  return (
+    <Link
+      href={href}
+      className={`relative py-2 text-gray-700 font-semibold transition-colors duration-300 hover:text-bni-teal ${
+        isActive ? "text-bni-teal" : ""
+      }`}
+    >
+      {children}
+      {/* Indikator titik oranye di bawah link yang aktif */}
+      {isActive && (
+        <span className="absolute bottom-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-bni-orange"></span>
+      )}
+    </Link>
+  );
+};
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
-  const navItems = [
-    { href: USER_ROUTES.BERANDA, label: "Beranda" },
-    { href: USER_ROUTES.CARI_RUMAH, label: "Cari Rumah" },
-    { href: USER_ROUTES.SIMULASI, label: "Simulasi" },
-  ];
+  // Efek untuk menutup menu mobile secara otomatis saat berpindah halaman
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50 w-full">
+    <header className="bg-white/95 backdrop-blur-sm shadow-md sticky top-0 z-50 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* HEADER BAR */}
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="text-2xl font-bold text-[#FF8500]">BNI</div>
-            <span className="text-sm text-gray-600 font-medium">KPR</span>
+          <Link href="/" className="flex items-baseline gap-2">
+            <h1 className="text-3xl font-bold text-bni-orange">BNI</h1>
+            <span className="text-lg text-gray-600 font-semibold tracking-wide">KPR</span>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((nav) => (
-              <Link
-                key={nav.href}
-                href={nav.href}
-                className="text-gray-700 hover:text-[#0f766e] font-medium transition"
-              >
-                {nav.label}
-              </Link>
+          {/* Navigasi Desktop */}
+          <nav className="hidden md:flex items-center space-x-10">
+            {navItems.map((item) => (
+              <NavLink key={item.href} href={item.href}>
+                {item.label}
+              </NavLink>
             ))}
           </nav>
 
-          {/* Auth Buttons */}
+          {/* Tombol Autentikasi */}
           <div className="hidden md:flex items-center space-x-4">
             <Link
               href={USER_ROUTES.LOGIN}
-              className="border border-[#0f766e] text-[#0f766e] px-4 py-1.5 rounded-full font-medium hover:bg-[#0f766e] hover:text-white transition"
+              className="border border-bni-teal text-bni-teal px-5 py-2 rounded-full font-bold text-sm hover:bg-bni-teal hover:text-white transition-all duration-300"
             >
               Masuk
             </Link>
             <Link
               href={USER_ROUTES.REGISTER}
-              className="bg-[#FF8500] text-white px-4 py-1.5 rounded-full font-medium hover:bg-[#e96e00] transition"
+              className="bg-bni-orange text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-orange-600 shadow-md hover:shadow-lg transition-all duration-300"
             >
               Daftar
             </Link>
           </div>
 
-          {/* Mobile Toggle */}
+          {/* Tombol Menu Mobile */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-[#0f766e]"
+            className="md:hidden p-2 text-gray-700 hover:text-bni-teal transition-colors"
+            aria-label="Toggle menu"
           >
-            {isMenuOpen ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
+      </div>
 
-        {/* Mobile Nav Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 mt-2">
-            {navItems.map((nav) => (
-              <Link
-                key={nav.href}
-                href={nav.href}
-                className="block px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 hover:text-[#0f766e]"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {nav.label}
-              </Link>
-            ))}
-            <div className="px-4 py-3 flex flex-col gap-2">
-              <Link
-                href={USER_ROUTES.LOGIN}
-                className="border border-[#0f766e] text-[#0f766e] py-2 rounded-lg text-center hover:bg-[#0f766e] hover:text-white transition"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Masuk
-              </Link>
-              <Link
-                href={USER_ROUTES.REGISTER}
-                className="bg-[#FF8500] text-white py-2 rounded-lg text-center hover:bg-[#e96e00] transition"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Daftar
-              </Link>
-            </div>
+      {/* Konten Menu Mobile dengan Animasi */}
+      <div
+        className={`absolute top-full left-0 w-full bg-white shadow-lg md:hidden transition-all duration-300 ease-in-out ${
+          isMenuOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-4"
+        }`}
+      >
+        <div className="flex flex-col px-4 pt-2 pb-4 space-y-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="px-4 py-3 text-gray-700 font-medium rounded-md hover:bg-gray-100 hover:text-bni-teal"
+            >
+              {item.label}
+            </Link>
+          ))}
+          <div className="border-t border-gray-200 pt-4 mt-2 px-4 flex flex-col gap-3">
+            <Link
+              href={USER_ROUTES.LOGIN}
+              className="border border-bni-teal text-bni-teal py-2.5 rounded-lg text-center font-bold hover:bg-bni-teal hover:text-white transition-colors duration-300"
+            >
+              Masuk
+            </Link>
+            <Link
+              href={USER_ROUTES.REGISTER}
+              className="bg-bni-orange text-white py-2.5 rounded-lg text-center font-bold hover:bg-orange-600 transition-colors duration-300"
+            >
+              Daftar
+            </Link>
           </div>
-        )}
+        </div>
       </div>
     </header>
   );

@@ -30,83 +30,15 @@ const COLORS = {
 export default function BerandaPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 antialiased">
-      <Header />
       <main className="flex-1">
         <HeroSection />
         <FeatureSection />
         <ExploreSection />
       </main>
-      <Footer />
     </div>
   );
 }
 
-/* --------------------------- HEADER --------------------------- */
-function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? "hidden" : "auto";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isMenuOpen]);
-
-  return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/80">
-      {/* DIUBAH: Kontainer dilebarkan untuk mengurangi space kosong */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          <Link href="/" className="flex items-center gap-3 z-50">
-            <div className="relative w-9 h-9 sm:w-10 sm:h-10">
-              <Image src="/logo-satuatap.png" alt="SatuAtap Logo" fill className="object-contain" sizes="(max-width: 640px) 36px, 40px" />
-            </div>
-            <span className="font-extrabold text-xl sm:text-2xl tracking-tight" style={{ color: COLORS.orange }}>
-              satuatap
-            </span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-8 text-gray-700 font-medium">
-            <Link href="/" className="hover:text-teal-600 transition-colors">Beranda</Link>
-            <Link href="/user/cari-rumah" className="hover:text-teal-600 transition-colors">Cari Rumah</Link>
-            <Link href="/user/simulasi" className="hover:text-teal-600 transition-colors">Simulasi</Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/user/login" className="hidden md:block" passHref>
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="px-5 py-2.5 rounded-full text-white text-sm font-semibold shadow-md" style={{ backgroundColor: COLORS.darkTeal }}>
-                Login
-              </motion.button>
-            </Link>
-            <div className="md:hidden z-50">
-              <motion.button aria-label="Toggle menu" onClick={() => setIsMenuOpen(!isMenuOpen)} whileTap={{ scale: 0.9 }}>
-                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="fixed inset-0 bg-black/50 md:hidden" onClick={() => setIsMenuOpen(false)} />
-        )}
-        {isMenuOpen && (
-          <motion.div initial={{ opacity: 0, y: "-50%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "-50%" }} transition={{ duration: 0.3, ease: "easeInOut" }} className="absolute top-0 left-0 w-full bg-white shadow-lg pt-24 pb-12 px-8 md:hidden">
-            <nav className="flex flex-col items-center gap-8 text-lg font-medium">
-              <Link href="/" onClick={() => setIsMenuOpen(false)}>Beranda</Link>
-              <Link href="/user/cari-rumah" onClick={() => setIsMenuOpen(false)}>Cari Rumah</Link>
-              <Link href="/user/simulasi" onClick={() => setIsMenuOpen(false)}>Simulasi</Link>
-              <Link href="/user/login" passHref>
-                <motion.button className="w-full max-w-xs px-8 py-3 mt-4 rounded-full text-white font-medium shadow-md" style={{ backgroundColor: COLORS.darkTeal }}>
-                  Login
-                </motion.button>
-              </Link>
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.lime}, ${COLORS.orange})` }} />
-    </header>
-  );
-}
 
 /* --------------------------- HERO SECTION --------------------------- */
 function HeroSection() {
@@ -243,50 +175,3 @@ function PropertyCard({ title, location, price, image }: PropertyCardProps) {
   );
 }
 
-/* --------------------------- FOOTER --------------------------- */
-function Footer() {
-  return (
-    <footer className="bg-[#FF8500] text-white">
-      {/* DIUBAH: Kontainer dilebarkan untuk mengurangi space kosong */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-16">
-          <div className="text-sm">
-            <h5 className="font-bold text-lg mb-4">satuatap</h5>
-            <p className="opacity-90 leading-relaxed max-w-sm">
-              PT Bank Negara Indonesia (Persero) Tbk berkomitmen memberikan layanan KPR terbaik untuk mewujudkan impian rumah Anda.
-            </p>
-            <div className="flex items-center gap-4 mt-6">
-              <Link href="#" aria-label="Facebook" className="hover:opacity-80 transition-opacity"><Facebook /></Link>
-              <Link href="#" aria-label="Instagram" className="hover:opacity-80 transition-opacity"><Instagram /></Link>
-              <Link href="#" aria-label="LinkedIn" className="hover:opacity-80 transition-opacity"><Linkedin /></Link>
-            </div>
-          </div>
-          <div>
-            <h5 className="font-semibold mb-5 text-lg">Layanan</h5>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="/user/pengajuan" className="hover:underline">Pengajuan KPR</Link></li>
-              <li><Link href="/user/simulasi" className="hover:underline">Simulasi Kredit</Link></li>
-              <li><Link href="/user/cari-rumah" className="hover:underline">Cari Properti</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-semibold mb-5 text-lg">Hubungi Kami</h5>
-            <ul className="space-y-4 text-sm">
-              <li className="flex items-center gap-3"><Phone size={18} /> <span>1500046</span></li>
-              <li className="flex items-center gap-3"><Mail size={18} /> <span>kpr@bni.co.id</span></li>
-              <li className="flex items-start gap-3">
-                <MapPin size={24} className="mt-1 flex-shrink-0"/>
-                <span>Jl. Jenderal Sudirman Kav. 1<br />Jakarta Pusat 10220, Indonesia</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div className="border-t border-white/20">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 text-center sm:text-left">
-          <p className="text-xs opacity-80">&copy; {new Date().getFullYear()} satuatap by BNI. All Rights Reserved.</p>
-        </div>
-      </div>
-    </footer>
-  );
-}

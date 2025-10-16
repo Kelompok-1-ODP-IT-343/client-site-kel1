@@ -1,394 +1,94 @@
-// "use client";
-// import {
-//   PieChart,
-//   Pie,
-//   Cell,
-//   ResponsiveContainer,
-//   Tooltip,
-// } from "recharts";
-// import {
-//   MapPin, Home, Wallet, CreditCard, Clock, Landmark, CheckCircle, Clock3, XCircle, ChevronRight, FileText,
-// } from "lucide-react";
-// import Image from "next/image";
-// import { ReactNode } from "react";
-// import { motion } from "framer-motion";
-// import Header from "@/app/components/layout/Header";
-// import Footer from "@/app/components/layout/Footer"; // Menambahkan import Footer
-
-// const COLORS = { orange: "#FF8500", teal: "#0f766e", gray: "#a1a1aa", lightTeal: "#a7f3d0" };
-
-// // Tipe data untuk status timeline
-// type TimelineStatus = "done" | "process" | "pending" | "rejected";
-
-// export default function DetailPengajuanPage() {
-//   const applicationData = {
-//     status: "done", // 'done', 'process', 'rejected'
-//   };
-
-//   const progressData = [
-//     { name: "Sisa", value: 452250000 },
-//     { name: "Dibayar", value: 72750000 },
-//   ];
-
-//   // <<< INI PERBAIKANNYA >>>
-//   const timelineSteps: { title: string; date: string; status: TimelineStatus }[] = [
-//     { title: "Pengajuan Terkirim", date: "10 Okt 2025", status: "done" },
-//     { title: "Verifikasi Dokumen", date: "11 Okt 2025", status: "done" },
-//     { title: "Analisa & Review Kredit", date: "13 Okt 2025", status: "done" },
-//     { title: "Keputusan Pengajuan", date: "15 Okt 2025", status: "done" },
-//     { title: "Akad Kredit", date: "20 Okt 2025", status: "process" },
-//   ];
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 antialiased">
-//       <Header />
-
-//       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-//         {/* Breadcrumb & Title */}
-//         <div className="mb-8">
-//             <div className="flex items-center text-sm text-gray-500 mb-2">
-//                 <span>Dashboard</span>
-//                 <ChevronRight size={16} className="mx-1" />
-//                 <span className="font-semibold text-gray-700">Detail Pengajuan</span>
-//             </div>
-//             <h1 className="text-3xl sm:text-4xl font-bold text-bni-dark-blue">
-//                 Detail Pengajuan KPR
-//             </h1>
-//             <p className="mt-1 text-bni-gray">Nomor Aplikasi: KPR-2025-009</p>
-//         </div>
-
-//         {/* MAIN CONTENT GRID - Responsif */}
-//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-//           {/* Kolom Kiri */}
-//           <div className="lg:col-span-2 flex flex-col gap-6">
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//               <Card title="Informasi Properti" icon={<Home />}>
-//                 <div className="flex gap-4 items-start">
-//                   <Image src="/rumah-1.jpg" alt="Cluster Green Valley" width={120} height={120} className="rounded-xl object-cover aspect-square" />
-//                   <div>
-//                     <p className="font-semibold text-lg text-gray-900">Cluster Green Valley</p>
-//                     <p className="text-sm text-gray-600 flex items-center gap-1.5 mt-1"><MapPin size={14} /> Serpong, Banten</p>
-//                     <p className="mt-2 font-bold text-xl text-bni-orange">Rp 750.000.000</p>
-//                   </div>
-//                 </div>
-//               </Card>
-
-//               <Card title="Informasi Pengajuan" icon={<FileText />}>
-//                 <div className="grid grid-cols-2 gap-y-4 text-sm">
-//                     <InfoItem label="Status Pengajuan">
-//                         <StatusBadge status={applicationData.status} />
-//                     </InfoItem>
-//                     <InfoItem label="Tanggal Pengajuan" value="12 Oktober 2025" />
-//                     <InfoItem label="Petugas KPR" value="Budi Santoso" />
-//                     <InfoItem label="Cabang" value="BNI Sudirman" />
-//                 </div>
-//               </Card>
-//             </div>
-            
-//             <Card title="Timeline Pengajuan" icon={<Clock />}>
-//                 <TimelineVertical steps={timelineSteps} />
-//             </Card>
-
-//             <Card title="Riwayat Pembayaran Angsuran" icon={<Wallet />}>
-//               <div className="overflow-x-auto">
-//                 <table className="w-full text-sm">
-//                   <thead className="border-b">
-//                     <tr>
-//                       <th className="text-left py-2 px-2 font-semibold">Bulan</th>
-//                       <th className="text-left py-2 px-2 font-semibold">Tanggal Bayar</th>
-//                       <th className="text-left py-2 px-2 font-semibold">Jumlah</th>
-//                       <th className="text-left py-2 px-2 font-semibold">Status</th>
-//                     </tr>
-//                   </thead>
-//                   <tbody>
-//                     <tr className="border-b">
-//                       <td className="py-2.5 px-2">Nov 2025</td>
-//                       <td className="py-2.5 px-2">01-11-2025</td>
-//                       <td className="py-2.5 px-2">Rp 4.850.000</td>
-//                       <td className="py-2.5 px-2"><StatusBadge status="done" text="Lunas" /></td>
-//                     </tr>
-//                     <tr className="border-b">
-//                       <td className="py-2.5 px-2">Des 2025</td>
-//                       <td className="py-2.5 px-2">01-12-2025</td>
-//                       <td className="py-2.5 px-2">Rp 4.850.000</td>
-//                       <td className="py-2.5 px-2"><StatusBadge status="done" text="Lunas" /></td>
-//                     </tr>
-//                     <tr>
-//                       <td className="py-2.5 px-2">Jan 2026</td>
-//                       <td className="py-2.5 px-2">-</td>
-//                       <td className="py-2.5 px-2">Rp 4.850.000</td>
-//                       <td className="py-2.5 px-2"><StatusBadge status="process" text="Menunggu" /></td>
-//                     </tr>
-//                   </tbody>
-//                 </table>
-//               </div>
-//             </Card>
-//           </div>
-
-//           {/* Kolom Kanan */}
-//           <div className="flex flex-col gap-6">
-//             <Card title="Detail Pinjaman" icon={<CreditCard />}>
-//                 <div className="grid grid-cols-2 gap-y-5 text-sm">
-//                     <InfoItem label="Jumlah Pinjaman" value="Rp 525.000.000" />
-//                     <InfoItem label="Uang Muka" value="Rp 225.000.000" />
-//                     <InfoItem label="Tenor" value="15 Tahun" />
-//                     <InfoItem label="Suku Bunga" value="6.25% Fixed 3 Thn" />
-//                     <InfoItem label="Angsuran / Bulan" value="Rp 4.850.000" highlight />
-//                     <InfoItem label="Tanggal Akad" value="20 Oktober 2025" />
-//                 </div>
-//             </Card>
-            
-//             <Card title="Progress Pinjaman" icon={<Clock3 />}>
-//               <div className="flex flex-col items-center gap-4">
-//                 <div className="w-full h-48">
-//                   <ResponsiveContainer>
-//                     <PieChart>
-//                       <Pie data={progressData} dataKey="value" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} cornerRadius={5}>
-//                         <Cell key="cell-0" fill={COLORS.gray} opacity={0.3} />
-//                         <Cell key="cell-1" fill={COLORS.orange} />
-//                       </Pie>
-//                       <Tooltip formatter={(value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value)} />
-//                     </PieChart>
-//                   </ResponsiveContainer>
-//                 </div>
-//                 <div className="w-full grid grid-cols-2 gap-4 text-sm text-center">
-//                     <InfoItem label="Total Dibayar" value="Rp 72.750.000" />
-//                     <InfoItem label="Sisa Pinjaman" value="Rp 452.250.000" />
-//                     <InfoItem label="Total Tenor" value="180 Bulan" />
-//                     <InfoItem label="Sisa Tenor" value="165 Bulan" />
-//                 </div>
-//               </div>
-//             </Card>
-
-//              <Card title="Informasi Rekening Autodebet" icon={<Landmark />}>
-//                 <div className="space-y-3 text-sm">
-//                     <InfoItem label="Nama Pemilik Rekening" value="Acil Bocah Palembang" />
-//                     <InfoItem label="Nomor Rekening BNI" value="0287483879" />
-//                     <InfoItem label="Virtual Account KPR" value="987654321000001" />
-//                 </div>
-//             </Card>
-//           </div>
-//         </div>
-//       </main>
-//       <Footer />
-//     </div>
-//   );
-// }
-
-// // === KOMPONEN-KOMPONEN REUSABLE ===
-
-// const Card = ({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode; }) => (
-//   <motion.div whileHover={{ y: -3 }} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-//     <div className="flex items-center gap-3 mb-5 border-b pb-3">
-//       <div className="text-bni-orange">{icon}</div>
-//       <h2 className="text-lg font-bold text-bni-dark-blue">{title}</h2>
-//     </div>
-//     {children}
-//   </motion.div>
-// );
-
-// const InfoItem = ({ label, value, children, highlight = false }: { label: string; value?: string; children?: ReactNode; highlight?: boolean }) => (
-//     <div>
-//         <p className="text-xs text-gray-500">{label}</p>
-//         {value && <p className={`font-semibold ${highlight ? 'text-bni-orange text-lg' : 'text-gray-800'}`}>{value}</p>}
-//         {children}
-//     </div>
-// );
-
-// const StatusBadge = ({ status, text }: { status: TimelineStatus | string; text?: string; }) => {
-//   const styles = {
-//     done: { bg: 'bg-green-100', text: 'text-green-800', label: 'Disetujui' },
-//     process: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Dalam Proses' },
-//     rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Ditolak' },
-//     pending: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Menunggu' },
-//   };
-//   const currentStyle = styles[status as keyof typeof styles] || styles.pending;
-//   return (
-//     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${currentStyle.bg} ${currentStyle.text}`}>
-//       {text || currentStyle.label}
-//     </span>
-//   );
-// };
-
-// const TimelineVertical = ({ steps }: { steps: { title: string; date: string; status: TimelineStatus }[] }) => {
-//     const getStatusInfo = (status: TimelineStatus) => {
-//         switch (status) {
-//             case "done": return { icon: <CheckCircle className="text-white" size={12} />, color: "bg-green-500" };
-//             case "process": return { icon: <Clock3 className="text-white" size={12} />, color: "bg-yellow-500 animate-pulse" };
-//             default: return { icon: <div className="w-2 h-2 bg-gray-300 rounded-full" />, color: "bg-gray-400" };
-//         }
-//     };
-//     return (
-//         <div className="relative pl-4">
-//             <div className="absolute left-0 top-0 h-full w-0.5 bg-gray-200" style={{ transform: 'translateX(7px)' }}></div>
-//             <ul className="space-y-8">
-//                 {steps.map((step, index) => {
-//                     const statusInfo = getStatusInfo(step.status);
-//                     return (
-//                         <li key={index} className="relative flex items-start gap-4">
-//                             <div className={`absolute left-0 top-1 w-4 h-4 rounded-full flex items-center justify-center ${statusInfo.color}`}>
-//                                 {statusInfo.icon}
-//                             </div>
-//                             <div className="pl-6">
-//                                 <p className="font-semibold text-gray-800">{step.title}</p>
-//                                 <p className="text-sm text-gray-500">{step.date}</p>
-//                             </div>
-//                         </li>
-//                     );
-//                 })}
-//             </ul>
-//         </div>
-//     );
-// };
-
 "use client";
-import { ReactNode } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import { MapPin, Home, CreditCard, ChevronRight, BedDouble, Bath, FileText } from "lucide-react";
-import { motion } from "framer-motion";
+import { useSearchParams, useRouter } from "next/navigation";
+import { MapPin, ArrowRight, CheckCircle } from "lucide-react";
+import { allHouses } from '@/app/lib/propertyData';
 
-import Header from "@/app/components/layout/Header";
-import Footer from "@/app/components/layout/Footer";
+// Helper untuk format Rupiah
+const formatCurrency = (amount: number | string) => {
+  const num = Number(amount);
+  if (isNaN(num)) return "Rp 0";
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+};
 
-// Impor tipe House dan data allHouses dari halaman cari-rumah
-// Pastikan path ini benar sesuai struktur proyek Anda
-import { House, allHouses } from '@/app/lib/propertyData'; // Sesuaikan path jika perlu
-
-const COLORS = { orange: "#FF8500" };
-
-// Halaman sekarang menerima 'params' dari URL
-export default function PropertyDetailPage({ params }: { params: { id: string } }) {
-  // 1. Ambil ID dari URL
-  const houseId = parseInt(params.id, 10);
+export default function FormPengajuanPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   
-  // 2. Cari data rumah yang cocok berdasarkan ID
-  const house = allHouses.find(h => h.id === houseId);
+  const steps = ["Data Diri", "Alamat", "Pekerjaan", "Pengajuan"];
+  const [step, setStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 3. Jika rumah tidak ditemukan, tampilkan pesan error
-  if (!house) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-            <h1 className="text-2xl font-bold">Properti tidak ditemukan.</h1>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const applicationData = {
+    propertiId: searchParams.get('propertiId'),
+    propertiNama: searchParams.get('propertiNama'),
+    propertiLokasi: searchParams.get('propertiLokasi'),
+    hargaProperti: searchParams.get('hargaProperti') || '0',
+  };
 
-  const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(house.price);
+  const nextStep = () => setStep((s) => Math.min(s + 1, steps.length - 1));
+  const prevStep = () => setStep((s) => Math.max(s - 1, 0));
 
-  // 4. Tampilkan data dinamis di JSX
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const newApplicationId = 9; // Simulasi ID
+    router.push(`/user/pengajuan/${newApplicationId}`);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 antialiased">
-      <Header />
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-8">
-          <div className="flex items-center text-sm text-gray-500 mb-2">
-            <span>Cari Rumah</span>
-            <ChevronRight size={16} className="mx-1" />
-            <span className="font-semibold text-gray-700">Detail Properti</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-bni-dark-blue">
-            {house.title}
-          </h1>
-          <p className="mt-1 text-bni-gray flex items-center gap-1.5">
-            <MapPin size={16} /> {house.address}, {house.city}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Kolom Kiri - Informasi Properti */}
-          <div className="lg:col-span-2 flex flex-col gap-8">
-            <Card title="Galeri Properti" icon={<Home />}>
-                <div className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden mb-6">
-                    <Image src={house.image} alt={house.title} fill className="object-cover" />
-                </div>
-            </Card>
-
-            <Card title="Deskripsi & Spesifikasi" icon={<FileText />}>
-                <h3 className="text-xl font-bold text-bni-dark-blue mb-2">Deskripsi</h3>
-                <p className="text-bni-gray mb-6">{house.description}</p>
-                
-                <h3 className="text-xl font-bold text-bni-dark-blue mb-4">Spesifikasi Lengkap</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-5 text-sm">
-                    <InfoItem label="Tipe Properti" value={house.property_type} />
-                    <InfoItem label="Luas Tanah" value={`${house.land_area} m²`} />
-                    <InfoItem label="Luas Bangunan" value={`${house.building_area} m²`} />
-                    <InfoItem label="Kamar Tidur" value={house.bedrooms} icon={<BedDouble size={16} />} />
-                    <InfoItem label="Kamar Mandi" value={house.bathrooms} icon={<Bath size={16} />} />
-                    <InfoItem label="Jumlah Lantai" value={house.floors} />
-                    <InfoItem label="Garasi" value={`${house.garage} Mobil`} />
-                    <InfoItem label="Tahun Dibangun" value={house.year_built} />
-                </div>
-            </Card>
-          </div>
-
-          {/* Kolom Kanan - Simulasi & Pengajuan */}
-          <div className="flex flex-col gap-8">
-            <div className="sticky top-24">
-              <Card title="Harga & Simulasi Kredit" icon={<CreditCard />}>
-                  <div className="text-center mb-6">
-                      <p className="text-sm text-bni-gray">Harga Properti</p>
-                      <p className="text-4xl font-extrabold text-bni-orange">{formattedPrice}</p>
-                  </div>
-
-                  <div className="space-y-4">
-                       <div>
-                          <label className="text-sm font-medium text-gray-700">Uang Muka (DP)</label>
-                          <input type="number" placeholder="Contoh: 150000000" className="w-full mt-1 p-2 border rounded-md"/>
-                       </div>
-                       <div>
-                          <label className="text-sm font-medium text-gray-700">Jangka Waktu (Tenor)</label>
-                          <select className="w-full mt-1 p-2 border rounded-md bg-white">
-                              <option>10 Tahun</option>
-                              <option>15 Tahun</option>
-                              <option>20 Tahun</option>
-                          </select>
-                       </div>
-                  </div>
-                  
-                  <button className="mt-6 w-full bg-bni-orange text-white font-semibold py-3 rounded-lg hover:bg-bni-orange/90 transition-all">
-                      Hitung Estimasi Angsuran
-                  </button>
-              </Card>
-
-              <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                   <h3 className="font-bold text-lg text-bni-dark-blue text-center">Siap Mengajukan KPR?</h3>
-                   <p className="text-center text-sm text-bni-gray mt-1">Lanjutkan ke proses pengajuan untuk properti ini.</p>
-                   <button className="mt-4 w-full bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition-all">
-                      Ajukan KPR Sekarang
-                   </button>
+    <main className="flex-grow py-10">
+      <div className="max-w-5xl mx-auto p-8 bg-white rounded-3xl shadow-lg border">
+        <h1 className="text-center text-3xl font-extrabold text-gray-800 mb-10">Formulir Pengajuan KPR</h1>
+        <div className="flex justify-center items-center gap-4 mb-10 overflow-x-auto pb-4">
+          {steps.map((label, i) => (
+            <div key={i} className="flex items-center flex-shrink-0">
+              <div className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold transition ${ i === step ? "bg-bni-orange text-white shadow-md" : i < step ? "bg-bni-teal text-white" : "bg-gray-200 text-gray-600" }`}>
+                {i < step ? <CheckCircle size={18} /> : i + 1}
               </div>
+              <span className={`ml-3 text-sm font-medium hidden sm:inline ${i === step ? "text-bni-teal" : "text-gray-500"}`}>{label}</span>
+              {i < steps.length - 1 && (<div className="ml-4 w-8 h-[2px] bg-gray-300 hidden sm:block"></div>)}
             </div>
-          </div>
+          ))}
         </div>
-      </main>
-      <Footer />
-    </div>
+        <div className="transition-all duration-300 ease-in-out">
+          {step === 0 && <DataDiri />}
+          {step === 1 && <Alamat />}
+          {step === 2 && <Pekerjaan />}
+          {step === 3 && <Pengajuan data={applicationData} />}
+        </div>
+        <div className="flex justify-between items-center mt-10">
+          <div>{step > 0 && (<button onClick={prevStep} disabled={isLoading} className="px-5 py-2.5 rounded-xl border font-semibold text-bni-teal hover:bg-gray-50 disabled:opacity-50">Kembali</button>)}</div>
+          <div>{step < steps.length - 1 ? (<button onClick={nextStep} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-bni-teal text-white font-semibold hover:scale-[1.02] transition">Berikutnya <ArrowRight size={18} /></button>) : (<button onClick={handleSubmit} disabled={isLoading} className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-bni-orange text-white font-semibold hover:scale-[1.02] transition disabled:bg-gray-400 disabled:cursor-wait w-32">{isLoading ? (<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>) : ("Kirim")}</button>)}</div>
+        </div>
+      </div>
+    </main>
   );
 }
 
-// === KOMPONEN-KOMPONEN REUSABLE ===
+// === Step Components ===
+function InputField({ label, placeholder, value, readOnly }: { label:string; placeholder?:string; value?:string; readOnly?:boolean }) { return ( <div className="flex flex-col"><label className="text-sm font-semibold text-gray-700 mb-1">{label}</label><input type="text" placeholder={placeholder} defaultValue={value} readOnly={readOnly} className={`rounded-xl border border-gray-300 focus:border-bni-teal focus:ring-2 focus:ring-bni-teal/50 px-4 py-2 outline-none transition ${readOnly ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`} /></div> ); }
+function DataDiri() { return <div className="grid md:grid-cols-2 gap-5"><InputField label="Nama Lengkap" /><InputField label="NIK" /><InputField label="Tempat Lahir" /><InputField label="Tanggal Lahir" /><InputField label="Jenis Kelamin" /><InputField label="Status Perkawinan" /></div>; }
+function Alamat() { return <div className="grid md:grid-cols-2 gap-5"><InputField label="Alamat Sesuai KTP" /><InputField label="Kota" /><InputField label="Provinsi" /><InputField label="Kode Pos" /></div>; }
+function Pekerjaan() { return <div className="grid md:grid-cols-2 gap-5"><InputField label="Pekerjaan" /><InputField label="Pendapatan per Bulan" /><InputField label="Nama Perusahaan" /><InputField label="NPWP" /></div>; }
 
-const Card = ({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode; }) => (
-  <motion.div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-    <div className="flex items-center gap-3 mb-5 border-b pb-3">
-      <div className="text-bni-orange">{icon}</div>
-      <h2 className="text-lg font-bold text-bni-dark-blue">{title}</h2>
-    </div>
-    {children}
-  </motion.div>
-);
-
-const InfoItem = ({ label, value, icon }: { label: string; value?: string | number; icon?: ReactNode }) => (
-    <div className="flex items-start gap-2">
-        {icon && <div className="text-bni-gray mt-0.5">{icon}</div>}
-        <div>
-            <p className="text-xs text-gray-500">{label}</p>
-            {value && <p className="font-semibold text-gray-800">{value}</p>}
+function Pengajuan({ data }: { data: Record<string, string | null> }) {
+  return (
+    <div className="grid md:grid-cols-2 gap-8 items-center">
+      <div className="flex flex-col items-center p-4 border rounded-xl bg-gray-50">
+        <Image src={data.propertiId ? allHouses.find(h => h.id === Number(data.propertiId))?.image || '/rumah-1.jpg' : '/rumah-1.jpg'} alt={data.propertiNama || "Properti"} width={300} height={180} className="rounded-xl shadow-sm mb-3 object-cover" />
+        <div className="text-center">
+          <h3 className="font-semibold text-gray-800">{data.propertiNama || "Properti Pilihan"}</h3>
+          {data.propertiLokasi && <p className="text-sm text-gray-500 flex items-center justify-center gap-1"><MapPin size={14} /> {data.propertiLokasi}</p>}
+          <p className="mt-1 text-xl font-bold text-bni-orange">{formatCurrency(data.hargaProperti || '0')}</p>
         </div>
+      </div>
+      <div className="space-y-4">
+        <h3 className="text-xl font-bold text-gray-800">Isi Detail Pengajuan</h3>
+        <InputField label="Uang Muka (DP)" placeholder="Contoh: 150000000" />
+        <InputField label="Jangka Waktu (Tahun)" placeholder="Contoh: 15" />
+      </div>
     </div>
-);
+  );
+}

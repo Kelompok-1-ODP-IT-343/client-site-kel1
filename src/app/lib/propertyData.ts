@@ -1,26 +1,39 @@
-export type House = {
+// src/lib/propertyData.ts
+
+export interface House {
   id: number;
-  property_type: 'Cluster' | 'Apartemen' | 'Rumah Tinggal' | 'Townhouse';
-  title: string;
-  description: string;
-  address: string;
-  sub_district: string;
-  district: string;
-  city: string;
-  province: string;
-  postal_code: string;
-  land_area: number;
-  building_area: number;
-  bedrooms: number;
-  bathrooms: number;
-  floors: number;
-  garage: number;
-  year_built: number;
-  price: number;
+  name: string;
+  location: string;
+  price: number; // Tipe diubah ke number agar mudah dihitung
   image: string;
-};
+  specs: {
+    bedrooms: number;
+    bathrooms: number;
+    land_area: number;
+    building_area: number;
+  };
+  description: string;
+}
 
 export const allHouses: House[] = [
-    { id: 1, property_type: 'Cluster', title: 'Cluster Green Valley', description: 'Hunian asri di tengah kota...', address: 'Jl. Boulevard Raya No. 1', sub_district: 'Pagedangan', district: 'Serpong', city: 'Tangerang Selatan', province: 'Banten', postal_code: '15339', land_area: 120, building_area: 90, bedrooms: 3, bathrooms: 2, floors: 2, garage: 1, year_built: 2022, price: 1500000000, image: '/rumah-1.jpg' },
-    { id: 2, property_type: 'Rumah Tinggal', title: 'Rumah Klasik Menteng', description: 'Lokasi premium di jantung Jakarta...', address: 'Jl. Teuku Umar No. 20', sub_district: 'Menteng', district: 'Menteng', city: 'Jakarta Pusat', province: 'DKI Jakarta', postal_code: '10310', land_area: 300, building_area: 250, bedrooms: 5, bathrooms: 4, floors: 2, garage: 2, year_built: 2018, price: 25000000000, image: '/rumah-2.jpg' },
+    { 
+      id: 1, name: "Cluster Green Valley", location: "Serpong, Banten", price: 456500000, image: "/rumah-1.jpg",
+      specs: { bedrooms: 2, bathrooms: 1, land_area: 72, building_area: 45 },
+      description: "Hunian modern di lokasi strategis Serpong dengan lingkungan asri dan fasilitas lengkap untuk keluarga muda yang dinamis."
+    },
+    { 
+      id: 2, name: "Cluster Pinewood", location: "Depok, Jawa Barat", price: 625500000, image: "/rumah-2.jpg",
+      specs: { bedrooms: 3, bathrooms: 2, land_area: 84, building_area: 60 },
+      description: "Kenyamanan maksimal dengan desain elegan di jantung kota Depok, dekat dengan akses tol dan pusat perbelanjaan."
+    },
+    { 
+      id: 3, name: "Pondok Taktakan", location: "Serang, Banten", price: 197000000, image: "/rumah-3.jpg",
+      specs: { bedrooms: 2, bathrooms: 1, land_area: 60, building_area: 36 },
+      description: "Solusi rumah pertama yang terjangkau dengan kualitas bangunan terjamin di area berkembang kota Serang."
+    },
+    { 
+      id: 4, name: "Citra Garden", location: "Jakarta Barat", price: 850000000, image: "/rumah-4.jpg",
+      specs: { bedrooms: 3, bathrooms: 2, land_area: 90, building_area: 70 },
+      description: "Gaya hidup urban dengan fasilitas premium di kawasan elit Jakarta Barat, investasi properti yang menjanjikan."
+    },
 ];

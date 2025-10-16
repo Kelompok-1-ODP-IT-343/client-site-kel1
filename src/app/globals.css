@@ -15,7 +15,9 @@
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-foreground: var(--foregro@tailwind base;
+@tailwind components;
+@tailwind utilities;und);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-bni-orange: var(--bni-orange);
@@ -297,7 +299,7 @@ p {
 }
 
 .cta-title {
-  color: white !important;
+  color: white;
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

@@ -1,20 +1,18 @@
+// src/app/layout.tsx
+
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// Sesuaikan path import jika komponen Anda berada di folder lain
+import Header from "@/app/components/layout/Header"; 
+import Footer from "@/app/components/layout/Footer";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BNI KPR - Kredit Pemilikan Rumah",
-  description: "Ajukan KPR BNI dengan mudah dan cepat. Wujudkan impian memiliki rumah bersama Bank BNI.",
+  title: "BNI KPR - Wujudkan Rumah Impian",
+  description: "Platform pengajuan KPR BNI yang mudah dan cepat.",
 };
 
 export default function RootLayout({
@@ -23,11 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="id">
+      <body className={inter.className}>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          {/* Konten utama halaman akan dirender di sini */}
+          <main className="flex-grow bg-gray-50">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
