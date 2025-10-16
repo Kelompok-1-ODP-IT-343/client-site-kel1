@@ -53,8 +53,8 @@ export default function RegisterPage() {
           </div>
           <nav className="hidden md:flex gap-6 text-gray-700 font-medium">
             <Link href="/">Beranda</Link>
-            <Link href="/cari-rumah">Cari Rumah</Link>
-            <Link href="/simulasi">Simulasi</Link>
+            <Link href="/user/cari-rumah">Cari Rumah</Link>
+            <Link href="/user/simulasi">Simulasi</Link>
           </nav>
           <Link
             href="/login"
@@ -245,8 +245,8 @@ export default function RegisterPage() {
             <p className="font-semibold mb-2">Layanan</p>
             <ul className="space-y-1">
               <li><Link href="/pengajuan">Pengajuan</Link></li>
-              <li><Link href="/simulasi">Simulasi</Link></li>
-              <li><Link href="/cari-rumah">Cari Rumah</Link></li>
+              <li><Link href="/user/simulasi">Simulasi</Link></li>
+              <li><Link href="/user/cari-rumah">Cari Rumah</Link></li>
             </ul>
           </div>
           <div>
