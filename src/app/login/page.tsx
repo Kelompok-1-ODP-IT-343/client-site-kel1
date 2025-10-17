@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation'; // <-- Import useRouter
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, LoaderCircle, ShieldAlert } from 'lucide-react';
+import { loginApi } from '../lib/coreApi';
 
 // Impor Header & Footer (asumsikan path-nya benar)
 import Header from '../components/layout/Header';
@@ -44,34 +45,32 @@ export default function Login() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    try {
+      const payload = { identifier: formData.email, password: formData.password };
+      const data = await loginApi(payload);
 
-    // --- SIMULASI API CALL SESUAI REQUIREMENT ---
-    // Di aplikasi nyata, ini adalah tempat Anda memanggil API backend
-    setTimeout(() => {
-      // Data dummy untuk perbandingan
-      const MOCK_USER = {
-        email: "test@gmail.com",
-        password: "password123",
-        is_verified: true, // Ubah ke `false` untuk tes kasus "belum diverifikasi"
-      };
+      // Dukung berbagai bentuk respons: flat (jwt/token) atau nested (data.token)
+      const flatToken = (data?.jwt as string) || (data?.token as string) || (data?.access_token as string);
+      const nestedToken = (data?.data?.token as string) || undefined;
+      const token = flatToken || nestedToken;
+      const tokenType = (data?.data?.type as string) || 'Bearer';
 
-      if (formData.email === MOCK_USER.email && formData.password === MOCK_USER.password) {
-        if (MOCK_USER.is_verified) {
-          // Kasus 2.4: Login berhasil
-          console.log("Login berhasil, mengarahkan ke dashboard...");
-          router.push('/user/dashboard'); // Arahkan ke dashboard
-        } else {
-          // Kasus 2.6: Akun belum diverifikasi
-          setApiError('Verifikasi email Anda terlebih dahulu.');
-          setIsLoading(false);
-        }
-      } else {
-        // Kasus 2.5: Email atau password salah
-        setApiError('Email atau password salah.');
-        setIsLoading(false);
+      if (token) {
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('token_type', tokenType);
+        if (data?.jwt) localStorage.setItem('jwt', data.jwt);
       }
-      // Kasus 2.7 (akun terkunci) biasanya ditangani oleh backend
-    }, 1500);
+
+      // Redirect ke dashboard
+      router.push('/user/dashboard');
+    } catch (err: any) {
+      const message = err?.response?.data?.error?.message
+        || err?.response?.data?.message
+        || 'Terjadi kesalahan saat masuk. Coba lagi.';
+      setApiError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,8 +78,8 @@ export default function Login() {
       <Header />
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-20 items-center">
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
@@ -160,15 +159,15 @@ export default function Login() {
                 )}
 
                 {/* Tombol dinonaktifkan jika form kosong atau sedang loading */}
-                <button 
-                  type="submit" 
-                  disabled={isLoading || !formData.email || !formData.password} 
+                <button
+                  type="submit"
+                  disabled={isLoading || !formData.email || !formData.password}
                   className="w-full flex justify-center items-center bg-bni-orange text-white font-semibold py-3 px-4 rounded-lg hover:bg-bni-orange/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bni-orange transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isLoading ? <><LoaderCircle className="animate-spin mr-2" size={20} /> Memproses...</> : 'Masuk'}
                 </button>
               </form>
-              
+
               <div className="mt-6 text-center">
                 <p className="text-sm text-bni-gray">
                   Belum punya akun?{' '}
