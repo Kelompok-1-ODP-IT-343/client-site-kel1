@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import Image from "next/image"; // 1. Tambahkan import Image
 import { Phone, Mail, MapPin, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
 
-// Data untuk tautan cepat (tidak berubah)
+
 const quickLinks = [
   { href: "/user/beranda", label: "Beranda" },
   { href: "/user/cari-rumah", label: "Cari Rumah" },
@@ -25,22 +28,24 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    // Menggunakan warna oranye solid yang Anda berikan
     <footer className="bg-bni-orange text-white w-full">
-      {/* Garis pemisah tipis untuk transisi yang lebih halus */}
-      <div className="h-px bg-white/20"></div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           
           {/* Info Perusahaan & Social Media */}
           <div className="lg:col-span-2">
-            <div className="flex items-baseline gap-2 mb-4">
-              <h2 className="text-4xl font-extrabold text-white">BNI</h2>
-              <span className="text-2xl font-semibold tracking-wide opacity-90">KPR</span>
-            </div>
+            
+            {/* 2. Ganti blok "BNI KPR" dengan logo "satuatap" */}
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <div className="relative w-10 h-10 bg-white rounded-md p-1">
+                <Image src="/logo-satuatap.png" alt="SatuAtap Logo" fill className="object-contain" />
+              </div>
+              <span className="text-3xl font-extrabold text-white">satuatap</span>
+            </Link>
+
+            {/* 3. Sesuaikan teks deskripsi */}
             <p className="leading-relaxed max-w-md mb-6 opacity-90">
-              Wujudkan impian rumah Anda bersama BNI. Kami berkomitmen memberikan layanan KPR terbaik dengan proses yang mudah dan cepat.
+              Wujudkan impian rumah Anda bersama satuatap. Kami berkomitmen memberikan layanan KPR terbaik dengan proses yang mudah dan cepat.
             </p>
             <div className="flex items-center space-x-5">
               {socialLinks.map((social, index) => (
