@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { X, Menu } from "lucide-react"; // Menggunakan ikon untuk konsistensi
+import { X, Menu } from "lucide-react";
+import Image from "next/image"; // 1. Tambahkan import Image
 
 // Asumsi path ini sudah benar
 import { USER_ROUTES } from "@/app/routes/userRoutes";
@@ -15,10 +16,6 @@ const navItems = [
   { href: USER_ROUTES.SIMULASI, label: "Simulasi" },
 ];
 
-/**
- * Komponen NavLink untuk menangani style tautan aktif.
- * Ini membuat kode di Header utama lebih bersih.
- */
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   const pathname = usePathname();
   const isActive = pathname === href;
@@ -31,7 +28,6 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
       }`}
     >
       {children}
-      {/* Indikator titik oranye di bawah link yang aktif */}
       {isActive && (
         <span className="absolute bottom-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-bni-orange"></span>
       )}
@@ -43,7 +39,6 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // Efek untuk menutup menu mobile secara otomatis saat berpindah halaman
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
@@ -52,10 +47,13 @@ export default function Header() {
     <header className="bg-white/95 backdrop-blur-sm shadow-md sticky top-0 z-50 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-baseline gap-2">
-            <h1 className="text-3xl font-bold text-bni-orange">BNI</h1>
-            <span className="text-lg text-gray-600 font-semibold tracking-wide">KPR</span>
+          
+          {/* 2. Ganti blok logo "BNI KPR" dengan logo "SatuAtap" */}
+          <Link href="/" className="flex items-center gap-2">
+            <div className="relative w-9 h-9">
+              <Image src="/logo-satuatap.png" alt="SatuAtap Logo" fill className="object-contain" />
+            </div>
+            <span className="text-2xl font-extrabold text-bni-orange">satuatap</span>
           </Link>
 
           {/* Navigasi Desktop */}
@@ -94,7 +92,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Konten Menu Mobile dengan Animasi */}
+      {/* Konten Menu Mobile */}
       <div
         className={`absolute top-full left-0 w-full bg-white shadow-lg md:hidden transition-all duration-300 ease-in-out ${
           isMenuOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-4"
