@@ -1,19 +1,21 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, MapPin, Briefcase, FileText, Lock } from 'lucide-react';
+import Link from 'next/link';
 
-// Asumsikan komponen Header dan Footer sudah ada
+// Asumsikan Header & Footer sudah ada
 // import Header from '@/app/components/layout/Header';
 // import Footer from '@/app/components/layout/Footer';
 
-// Komponen Reusable untuk Input Field
+// ============================================================================
+// KOMPONEN-KOMPONEN REUSABLE
+// ============================================================================
+
 const InputField = ({ label, name, type = 'text', placeholder, value, onChange, error }: any) => (
     <div>
-        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">
-            {label}
-        </label>
+        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
         <input
             type={type}
             id={name}
@@ -29,12 +31,9 @@ const InputField = ({ label, name, type = 'text', placeholder, value, onChange, 
     </div>
 );
 
-// Komponen Reusable untuk Select Field (Dropdown)
 const SelectField = ({ label, name, value, onChange, error, children }: any) => (
     <div>
-        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">
-            {label}
-        </label>
+        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
         <select
             id={name}
             name={name}
@@ -50,56 +49,114 @@ const SelectField = ({ label, name, value, onChange, error, children }: any) => 
     </div>
 );
 
+const TextAreaField = ({ label, name, placeholder, value, onChange, error }: any) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
+        <textarea
+            id={name}
+            name={name}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            rows={4}
+            className={`w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 transition-all duration-300 ${
+                error ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:ring-yellow-400 focus:border-yellow-400'
+            }`}
+        />
+        {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+    </div>
+);
+
+// ============================================================================
+// KOMPONEN UTAMA HALAMAN REGISTER
+// ============================================================================
 export default function RegisterPage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
-        // Step 1
-        fullName: '',
-        email: '',
-        phone: '',
-        nik: '',
-        birthPlace: '',
-        birthDate: '',
-        gender: '',
-        maritalStatus: '',
-        // Tambahkan state untuk step lain di sini jika diperlukan
+        // Step 1: Data Pribadi
+        fullName: "", email: "", phone: "", nik: "", birthPlace: "", birthDate: "", gender: "", maritalStatus: "",
+        // Step 2: Alamat
+        address: "", city: "", province: "", postalCode: "",
+        // Step 3: Pekerjaan
+        occupation: "", companyName: "", monthlyIncome: "", workExperience: "",
+        // Step 4: Informasi KPR
+        propertyType: "", tenor: "",
+        // Step 5: Akun
+        password: "", confirmPassword: "", agreeTerms: false, agreePrivacy: false,
     });
-    const [errors, setErrors] = useState<any>({});
+    
+    // <<< INI PERBAIKANNYA >>>
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     const steps = [
-        { number: 1, title: 'Data Pribadi' },
-        { number: 2, title: 'Alamat' },
-        { number: 3, title: 'Pekerjaan' },
-        { number: 4, title: 'Informasi KPR' },
-        { number: 5, title: 'Akun' },
+        { number: 1, title: 'Data Pribadi' }, { number: 2, title: 'Alamat' },
+        { number: 3, title: 'Pekerjaan' }, { number: 4, title: 'Informasi KPR' },
+        { number: 5, title: 'Buat Akun' },
     ];
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+    const formatSalary = (value: string): string => {
+        const rawValue = value.replace(/[^0-9]/g, "");
+        if (!rawValue) return "";
+        return new Intl.NumberFormat("id-ID").format(Number(rawValue));
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        const checked = (e.target as HTMLInputElement).checked;
+
+        let finalValue: string | boolean = type === 'checkbox' ? checked : value;
+
+        if (name === "nik" || name === "postalCode") {
+            finalValue = value.replace(/[^0-9]/g, "");
+        } else if (name === "monthlyIncome") {
+            finalValue = formatSalary(value);
+        }
+        
+        setFormData(prev => ({ ...prev, [name]: finalValue }));
         if (errors[name]) {
-            // setErrors(prev => ({ ...prev, [name]: null }));
-            setErrors((prev: { [key: string]: string }) => ({ ...prev, [name]: '' }));
+            setErrors(prev => ({ ...prev, [name]: "" }));
         }
     };
 
-    const validateStep1 = () => {
-        const newErrors: any = {};
-        if (!formData.fullName) newErrors.fullName = "Nama Lengkap wajib diisi.";
-        if (!formData.email) newErrors.email = "Email wajib diisi.";
-        // ... tambahkan validasi lain untuk step 1
+    const validateStep = (step: number) => {
+        const newErrors: { [key: string]: string } = {};
+        
+        if (step === 1) {
+            if (!formData.fullName) newErrors.fullName = "Nama lengkap wajib diisi.";
+            if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Format email tidak valid.";
+            if (!formData.nik || formData.nik.length !== 16) newErrors.nik = "NIK harus 16 digit.";
+            if (!formData.phone) newErrors.phone = "Nomor telepon wajib diisi.";
+        }
+        if (step === 2) {
+            if (!formData.address) newErrors.address = "Alamat wajib diisi.";
+            if (!formData.city) newErrors.city = "Kota/Kabupaten wajib diisi.";
+            if (!formData.province) newErrors.province = "Provinsi wajib diisi.";
+            if (!formData.postalCode) newErrors.postalCode = "Kode Pos wajib diisi.";
+        }
+        if (step === 3) {
+            if (!formData.occupation) newErrors.occupation = "Pekerjaan wajib diisi.";
+            if (!formData.companyName) newErrors.companyName = "Nama perusahaan wajib diisi.";
+            if (!formData.monthlyIncome) newErrors.monthlyIncome = "Penghasilan wajib diisi.";
+            if (!formData.workExperience) newErrors.workExperience = "Pengalaman kerja wajib diisi.";
+        }
+        if (step === 4) {
+            if (!formData.propertyType) newErrors.propertyType = "Jenis properti wajib diisi.";
+            if (!formData.tenor) newErrors.tenor = "Tenor wajib diisi.";
+        }
+        if (step === 5) {
+            if (!formData.password || formData.password.length < 8) newErrors.password = "Password minimal 8 karakter.";
+            if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Konfirmasi password tidak cocok.";
+            if (!formData.agreeTerms) newErrors.agreeTerms = "Anda harus menyetujui Syarat & Ketentuan.";
+            if (!formData.agreePrivacy) newErrors.agreePrivacy = "Anda harus menyetujui Kebijakan Privasi.";
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
+
     const handleNext = () => {
-        let isValid = true;
-        if (currentStep === 1) {
-            isValid = validateStep1();
-        }
-        // ... tambahkan validasi untuk step lain di sini
-        
-        if (isValid && currentStep < steps.length) {
+        if (validateStep(currentStep) && currentStep < steps.length) {
             setCurrentStep(currentStep + 1);
         }
     };
@@ -109,116 +166,138 @@ export default function RegisterPage() {
             setCurrentStep(currentStep - 1);
         }
     };
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (validateStep(5)) {
+            console.log("Form Submitted:", formData);
+            alert("Pendaftaran berhasil! (Demo)");
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center py-12 px-4">
             {/* <Header /> */}
             <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
                 className="w-full max-w-4xl bg-white p-8 sm:p-12 rounded-2xl shadow-xl border border-gray-200"
             >
-                {/* Header Section */}
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800">
-                        Daftar Akun KPR BNI
-                    </h1>
-                    <p className="mt-2 text-gray-500">
-                        Lengkapi data Anda untuk mengajukan KPR
-                    </p>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800">Daftar Akun KPR BNI</h1>
+                    <p className="mt-2 text-gray-500">Lengkapi data Anda untuk mengajukan KPR</p>
                 </div>
 
-                {/* Stepper Component */}
-                <div className="flex items-center justify-center mb-10 px-4">
+                <div className="flex items-start justify-center mb-12 px-0 sm:px-4">
                     {steps.map((step, index) => (
                         <div key={step.number} className={`flex items-center ${index < steps.length - 1 ? 'w-full' : ''}`}>
-                            <div className="flex flex-col items-center">
-                                <div
-                                    className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full font-bold transition-all duration-300 ${
-                                        currentStep > step.number ? 'bg-green-500 text-white' : 
-                                        currentStep === step.number ? 'bg-yellow-400 text-gray-800' : 
-                                        'bg-gray-200 text-gray-400'
-                                    }`}
-                                >
+                            <div className="flex flex-col items-center text-center">
+                                <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold transition-all duration-300 ${currentStep > step.number ? 'bg-green-500 text-white' : currentStep === step.number ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
                                     {currentStep > step.number ? '✔' : step.number}
                                 </div>
-                                <p className={`mt-2 text-xs text-center font-semibold transition-colors w-20 ${
-                                    currentStep >= step.number ? 'text-gray-700' : 'text-gray-400'
-                                }`}>
-                                    {step.title}
-                                </p>
+                                <p className={`mt-2 text-xs w-20 font-semibold transition-colors ${currentStep >= step.number ? 'text-gray-700' : 'text-gray-400'}`}>{step.title}</p>
                             </div>
                             {index < steps.length - 1 && (
-                                <div className={`flex-auto border-t-2 transition-all duration-500 mx-2 ${
-                                    currentStep > step.number ? 'border-green-500' : 'border-gray-200'
-                                }`}></div>
+                                <div className={`flex-auto border-t-2 transition-all duration-500 mx-2 ${currentStep > index + 1 ? 'border-green-500' : 'border-gray-200'}`}></div>
                             )}
                         </div>
                     ))}
                 </div>
-
-                {/* Form Section */}
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentStep}
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        {currentStep === 1 && (
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                                    Informasi Data Pribadi
-                                </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                    <InputField label="Nama Lengkap *" name="fullName" placeholder="Nama Lengkap" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
-                                    <InputField label="Email *" name="email" type="email" placeholder="Email" value={formData.email} onChange={handleChange} error={errors.email} />
-                                    <InputField label="Nomor Telepon *" name="phone" type="tel" placeholder="Nomor Telepon" value={formData.phone} onChange={handleChange} error={errors.phone} />
-                                    <InputField label="NIK *" name="nik" placeholder="NIK" value={formData.nik} onChange={handleChange} error={errors.nik} />
-                                    <InputField label="Tempat Lahir *" name="birthPlace" placeholder="Tempat Lahir" value={formData.birthPlace} onChange={handleChange} error={errors.birthPlace} />
-                                    <InputField label="Tanggal Lahir *" name="birthDate" type="date" value={formData.birthDate} onChange={handleChange} error={errors.birthDate} />
-                                    <SelectField label="Jenis Kelamin *" name="gender" value={formData.gender} onChange={handleChange} error={errors.gender}>
-                                        <option value="">Pilih Jenis Kelamin</option>
-                                        <option value="male">Laki-laki</option>
-                                        <option value="female">Perempuan</option>
-                                    </SelectField>
-                                    <SelectField label="Status Pernikahan *" name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} error={errors.maritalStatus}>
-                                        <option value="">Pilih Status</option>
-                                        <option value="single">Belum Menikah</option>
-                                        <option value="married">Menikah</option>
-                                        <option value="divorced">Cerai</option>
-                                    </SelectField>
-                                </div>
-                            </div>
+                
+                <form onSubmit={handleSubmit}>
+                    <AnimatePresence mode="wait">
+                        <motion.div key={currentStep} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
+                            {currentStep === 1 && (
+                                <StepContent title="Informasi Data Pribadi">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                        <InputField label="Nama Lengkap *" name="fullName" placeholder="Sesuai KTP" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
+                                        <InputField label="Email *" name="email" type="email" placeholder="contoh@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
+                                        <InputField label="Nomor Telepon *" name="phone" type="tel" placeholder="08xxxxxxxxxx" value={formData.phone} onChange={handleChange} error={errors.phone} />
+                                        <InputField label="NIK *" name="nik" placeholder="16 digit NIK" value={formData.nik} onChange={handleChange} error={errors.nik} />
+                                        <InputField label="Tempat Lahir *" name="birthPlace" placeholder="Kota Kelahiran" value={formData.birthPlace} onChange={handleChange} error={errors.birthPlace} />
+                                        <InputField label="Tanggal Lahir *" name="birthDate" type="date" value={formData.birthDate} onChange={handleChange} error={errors.birthDate} />
+                                        <SelectField label="Jenis Kelamin *" name="gender" value={formData.gender} onChange={handleChange} error={errors.gender}><option value="">Pilih</option><option value="male">Laki-laki</option><option value="female">Perempuan</option></SelectField>
+                                        <SelectField label="Status Pernikahan *" name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} error={errors.maritalStatus}><option value="">Pilih</option><option value="single">Belum Menikah</option><option value="married">Menikah</option><option value="divorced">Cerai</option></SelectField>
+                                    </div>
+                                </StepContent>
+                            )}
+                            {currentStep === 2 && (
+                                <StepContent title="Informasi Alamat">
+                                    <div className="space-y-6">
+                                        <TextAreaField label="Alamat Lengkap *" name="address" placeholder="Jalan, RT/RW, Kelurahan, Kecamatan" value={formData.address} onChange={handleChange} error={errors.address} />
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
+                                            <InputField label="Kota / Kabupaten *" name="city" placeholder="Kota/Kabupaten" value={formData.city} onChange={handleChange} error={errors.city} />
+                                            <InputField label="Provinsi *" name="province" placeholder="Provinsi" value={formData.province} onChange={handleChange} error={errors.province} />
+                                            <InputField label="Kode Pos *" name="postalCode" placeholder="Kode Pos" value={formData.postalCode} onChange={handleChange} error={errors.postalCode} />
+                                        </div>
+                                    </div>
+                                </StepContent>
+                            )}
+                            {currentStep === 3 && (
+                                <StepContent title="Informasi Pekerjaan">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                        <InputField label="Pekerjaan *" name="occupation" placeholder="Contoh: Karyawan Swasta" value={formData.occupation} onChange={handleChange} error={errors.occupation} />
+                                        <InputField label="Nama Perusahaan *" name="companyName" placeholder="Tempat Bekerja" value={formData.companyName} onChange={handleChange} error={errors.companyName} />
+                                        <InputField label="Penghasilan Bulanan (Rp) *" name="monthlyIncome" placeholder="Contoh: 10.000.000" value={formData.monthlyIncome} onChange={handleChange} error={errors.monthlyIncome} />
+                                        <InputField label="Pengalaman Kerja *" name="workExperience" placeholder="Contoh: 5 Tahun" value={formData.workExperience} onChange={handleChange} error={errors.workExperience} />
+                                    </div>
+                                </StepContent>
+                            )}
+                             {currentStep === 4 && (
+                                <StepContent title="Informasi KPR">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                        <SelectField label="Jenis Properti *" name="propertyType" value={formData.propertyType} onChange={handleChange} error={errors.propertyType}><option value="">Pilih Jenis Properti</option><option value="house">Rumah</option><option value="apartment">Apartemen</option></SelectField>
+                                        <SelectField label="Tenor (Jangka Waktu) *" name="tenor" value={formData.tenor} onChange={handleChange} error={errors.tenor}><option value="">Pilih Tenor</option><option value="10">10 Tahun</option><option value="15">15 Tahun</option><option value="20">20 Tahun</option></SelectField>
+                                    </div>
+                                </StepContent>
+                            )}
+                             {currentStep === 5 && (
+                                <StepContent title="Informasi Akun">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                        <InputField label="Password *" name="password" type="password" placeholder="Minimal 8 karakter" value={formData.password} onChange={handleChange} error={errors.password} />
+                                        <InputField label="Retype Password *" name="confirmPassword" type="password" placeholder="Ulangi password" value={formData.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
+                                    </div>
+                                    <div className="mt-6 space-y-4">
+                                        <label className="flex items-center gap-3 text-sm text-gray-600">
+                                            <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 accent-orange-500"/> 
+                                            Saya menyetujui <Link href="/terms" className="text-blue-600 hover:underline font-medium">Syarat & Ketentuan BNI</Link> *
+                                        </label>
+                                        {errors.agreeTerms && <p className="text-red-500 text-xs">{errors.agreeTerms}</p>}
+                                        <label className="flex items-center gap-3 text-sm text-gray-600">
+                                            <input type="checkbox" name="agreePrivacy" checked={formData.agreePrivacy} onChange={handleChange} className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 accent-orange-500"/> 
+                                            Saya menyetujui <Link href="/privacy" className="text-blue-600 hover:underline font-medium">Kebijakan Privasi BNI</Link> *
+                                        </label>
+                                        {errors.agreePrivacy && <p className="text-red-500 text-xs">{errors.agreePrivacy}</p>}
+                                    </div>
+                                </StepContent>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
+                    
+                    <div className="flex justify-between items-center mt-12">
+                        <button type="button" onClick={handlePrevious} disabled={currentStep === 1} className="px-8 py-3 bg-gray-200 text-gray-800 font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:bg-gray-300">
+                            Sebelumnya
+                        </button>
+                        {currentStep < steps.length ? (
+                            <button type="button" onClick={handleNext} className="px-8 py-3 bg-orange-500 text-white font-bold rounded-lg transition-all hover:bg-orange-600">
+                                Selanjutnya
+                            </button>
+                        ) : (
+                            <button type="submit" className="px-8 py-3 bg-green-500 text-white font-bold rounded-lg transition-all hover:bg-green-600">
+                                Daftar Sekarang
+                            </button>
                         )}
-                        {/* Placeholder untuk step lainnya */}
-                        {currentStep === 2 && <div className="text-center p-8 text-gray-500">Isian untuk Alamat akan muncul di sini.</div>}
-                        {currentStep === 3 && <div className="text-center p-8 text-gray-500">Isian untuk Pekerjaan akan muncul di sini.</div>}
-                        {currentStep === 4 && <div className="text-center p-8 text-gray-500">Isian untuk Informasi KPR akan muncul di sini.</div>}
-                        {currentStep === 5 && <div className="text-center p-8 text-gray-500">Isian untuk Akun akan muncul di sini.</div>}
-                    </motion.div>
-                </AnimatePresence>
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between items-center mt-12">
-                    <button
-                        onClick={handlePrevious}
-                        disabled={currentStep === 1}
-                        className="px-8 py-3 bg-yellow-100 text-yellow-800 font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:bg-yellow-200"
-                    >
-                        Sebelumnya
-                    </button>
-                    <button
-                        onClick={handleNext}
-                        className="px-8 py-3 bg-yellow-400 text-gray-800 font-bold rounded-lg transition-all hover:bg-yellow-500"
-                    >
-                        {currentStep === steps.length ? 'Daftar Sekarang' : 'Selanjutnya'}
-                    </button>
-                </div>
+                    </div>
+                </form>
             </motion.div>
             {/* <Footer /> */}
         </div>
     );
 }
+
+// Komponen Helper untuk judul setiap step
+const StepContent = ({ title, children }: { title: string; children: ReactNode }) => (
+    <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-8">{title}</h2>
+        {children}
+    </div>
+);
