@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
+import { loginApi } from "../../lib/coreApi";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,17 +50,28 @@ export default function LoginPage() {
 
     setStatus({ loading: true, message: "", type: "" });
 
-    // Simulasi validasi backend
-    setTimeout(() => {
-      if (form.email === "user@bni.co.id" && form.password === "12345678") {
-        setStatus({ loading: false, message: "Login berhasil! Mengarahkan ke Dashboard...", type: "success" });
-        setTimeout(() => {
-          router.push("/dashboard"); // Redirect menggunakan useRouter
-        }, 1500);
-      } else {
-        setStatus({ loading: false, message: "Email atau password yang Anda masukkan salah.", type: "error" });
+    try {
+      // Kirim payload sesuai requirement: identifier & password
+      const payload = { identifier: form.email, password: form.password };
+      const res = await loginApi(payload);
+
+      // Response diharapkan: { success, message, data: { token, type, ... } }
+      const token = res?.data?.token || res?.token;
+      const tokenType = res?.data?.type || "Bearer";
+
+      if (token) {
+        localStorage.setItem("access_token", token);
+        localStorage.setItem("token_type", tokenType);
       }
-    }, 2000);
+
+      setStatus({ loading: false, message: "Login berhasil! Mengarahkan ke Dashboard...", type: "success" });
+      setTimeout(() => {
+        router.push("/user/dashboard");
+      }, 1000);
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Email atau password yang Anda masukkan salah.";
+      setStatus({ loading: false, message, type: "error" });
+    }
   };
 
   return (
