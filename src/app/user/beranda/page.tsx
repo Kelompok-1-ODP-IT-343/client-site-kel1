@@ -6,8 +6,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Clock3, Percent, Wallet, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 
-// Tidak perlu lagi import Header dan Footer di sini
-
 /* --------------------------- COLOR CONSTANTS --------------------------- */
 const COLORS = {
   primary: "#FF8500",
