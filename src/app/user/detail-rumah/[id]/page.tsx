@@ -9,8 +9,9 @@ import { useRouter } from "next/navigation";
 import { MapPin, Home, CreditCard, ChevronRight, BedDouble, Bath, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { allHouses } from '@/app/lib/propertyData';
-
-export default function PropertyDetailPage({ params }: { params: { id: string } }) {
+import { use } from 'react'; // 1. Import 'use' from React
+export default function PropertyDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }>}) {
+  const params = use(paramsPromise);
   const router = useRouter();
   const houseId = parseInt(params.id, 10);
   const house = allHouses.find(h => h.id === houseId);
@@ -26,8 +27,8 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
   const handleAjukanKPR = () => {
     const urlParams = new URLSearchParams({
       propertiId: house.id.toString(),
-      propertiNama: house.name,
-      propertiLokasi: house.location,
+      propertiNama: house.title,
+      propertiLokasi: house.address,
       hargaProperti: house.price.toString(),
     });
     router.push(`/user/pengajuan?${urlParams.toString()}`);
@@ -43,15 +44,15 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           <ChevronRight size={16} className="mx-1" />
           <span className="font-semibold text-gray-700">Detail Rumah</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">{house.name}</h1>
-        <p className="mt-1 text-gray-600 flex items-center gap-1.5"><MapPin size={16} /> {house.location}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">{house.title}</h1>
+        <p className="mt-1 text-gray-600 flex items-center gap-1.5"><MapPin size={16} /> {house.address}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 flex flex-col gap-8">
           <Card title="Galeri Properti" icon={<Home />}>
             <div className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden mb-6">
-              <Image src={house.image} alt={house.name} fill className="object-cover" />
+              <Image src={house.image} alt={house.title} fill className="object-cover" />
             </div>
           </Card>
           <Card title="Deskripsi & Spesifikasi" icon={<FileText />}>
@@ -59,10 +60,10 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             <p className="text-gray-600 mb-6">{house.description}</p>
             <h3 className="text-xl font-bold text-gray-800 mb-4">Spesifikasi</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-5 text-sm">
-              <InfoItem label="Kamar Tidur" value={house.specs.bedrooms} icon={<BedDouble size={16} />} />
-              <InfoItem label="Kamar Mandi" value={house.specs.bathrooms} icon={<Bath size={16} />} />
-              <InfoItem label="Luas Tanah" value={`${house.specs.land_area} m²`} />
-              <InfoItem label="Luas Bangunan" value={`${house.specs.building_area} m²`} />
+              <InfoItem label="Kamar Tidur" value={house.bedrooms} icon={<BedDouble size={16} />} />
+              <InfoItem label="Kamar Mandi" value={house.bathrooms} icon={<Bath size={16} />} />
+              <InfoItem label="Luas Tanah" value={`${house.land_area} m²`} />
+              <InfoItem label="Luas Bangunan" value={`${house.building_area} m²`} />
             </div>
           </Card>
         </div>

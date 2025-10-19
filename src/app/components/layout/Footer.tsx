@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image"; // 1. Tambahkan import Image
+import Image from "next/image";
 import { Phone, Mail, MapPin, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
 
 
@@ -11,7 +11,6 @@ const quickLinks = [
   { href: "/user/simulasi", label: "Simulasi" },
 ];
 
-// Data untuk info kontak (tidak berubah)
 const contactInfo = [
   { icon: Phone, text: "1500046" },
   { icon: Mail, text: "kpr@bni.co.id" },

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { MapPin, BedDouble, Bath, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { House } from '@/app/user/cari-rumah/page';
+import type { House } from '@/app/lib/propertyData';
 import Link from 'next/link';
 
 type HouseCardProps = {
