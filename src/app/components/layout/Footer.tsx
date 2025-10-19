@@ -19,10 +19,10 @@ const contactInfo = [
 
 // Data untuk ikon sosial media (tidak berubah)
 const socialLinks = [
-    { href: "#", icon: Facebook },
-    { href: "#", icon: Instagram },
-    { href: "#", icon: Twitter },
-    { href: "#", icon: Linkedin },
+    { href: "https://www.facebook.com/BNI", icon: Facebook },
+    { href: "https://www.instagram.com/bni46/", icon: Instagram },
+    { href: "https://x.com/BNI", icon: Twitter },
+    { href: "https://www.linkedin.com/company/pt-bank-negara-indonesia-persero-tbk-/", icon: Linkedin },
 ];
 
 export default function Footer() {
@@ -37,14 +37,14 @@ export default function Footer() {
             {/* 2. Ganti blok "BNI KPR" dengan logo "satuatap" */}
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="relative w-10 h-10 bg-white rounded-md p-1">
-                <Image src="/logo-satuatap.png" alt="SatuAtap Logo" fill className="object-contain" />
+                <Image src="/logo_footer.png" alt="SatuAtap Logo" fill className="object-contain" />
               </div>
-              <span className="text-3xl font-extrabold text-white">satuatap</span>
+              <span className="text-3xl font-extrabold text-white">About Us</span>
             </Link>
 
             {/* 3. Sesuaikan teks deskripsi */}
-            <p className="leading-relaxed max-w-md mb-6 opacity-90">
-              Wujudkan impian rumah Anda bersama satuatap. Kami berkomitmen memberikan layanan KPR terbaik dengan proses yang mudah dan cepat.
+            <p className="leading-relaxed max-w-md mb-6 !text-white">
+              Wujudkan impian rumah Anda bersama satuatap. Kami berkomitmen memberikan layanan KPR terbaik dengan proses yang aman, mudah dan cepat.
             </p>
             <div className="flex items-center space-x-5">
               {socialLinks.map((social, index) => (
@@ -61,14 +61,15 @@ export default function Footer() {
 
           {/* Tautan Cepat */}
           <div>
-            <h3 className="font-bold mb-5 text-lg tracking-wider text-white">Navigasi</h3>
+            <h3 className="font-bold mb-5 text-lg tracking-wider not-prose !text-white underline !decoration-white decoration-inherit underline-offset-4">
+              Navigasi
+            </h3>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link 
                     href={link.href} 
-                    className="opacity-80 hover:opacity-100 hover:underline transition-opacity duration-300"
-                  >
+                    className="opacity-80 hover:opacity-100 hover:underline transition-opacity duration-300">
                     {link.label}
                   </Link>
                 </li>
@@ -78,7 +79,7 @@ export default function Footer() {
 
           {/* Info Kontak */}
           <div>
-            <h3 className="font-bold mb-5 text-lg tracking-wider text-white">Hubungi Kami</h3>
+            <h3 className="font-bold mb-5 text-lg tracking-wider not-prose !text-white underline !decoration-white decoration-inherit underline-offset-4">Hubungi Kami</h3>
             <ul className="space-y-4">
               {contactInfo.map((item, index) => (
                 <li key={index} className="flex items-start gap-3 opacity-90">
@@ -92,7 +93,7 @@ export default function Footer() {
 
         {/* Garis Bawah & Copyright */}
         <div className="border-t border-white/20 mt-12 pt-8 text-center text-sm opacity-70">
-          <p>© {new Date().getFullYear()} PT Bank Negara Indonesia (Persero) Tbk. Hak Cipta Dilindungi.</p>
+          <p>© {new Date().getFullYear()} Kelompok 1 ODP BNI Batch 343 | Hak Cipta Dilindungi.</p>
         </div>
       </div>
     </footer>
