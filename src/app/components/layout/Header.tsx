@@ -50,10 +50,14 @@ export default function Header() {
           
           {/* 2. Ganti blok logo "BNI KPR" dengan logo "SatuAtap" */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative w-9 h-9">
-              <Image src="/logo-satuatap.png" alt="SatuAtap Logo" fill className="object-contain" />
+            <div className="relative w-[170px] h-[40px]">
+              <Image
+                src="/logo_header.png"
+                alt="SatuAtap Logo"
+                fill
+                className="object-contain"
+              />
             </div>
-            <span className="text-2xl font-extrabold text-bni-orange">satuatap</span>
           </Link>
 
           {/* Navigasi Desktop */}
@@ -69,8 +73,8 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             <Link
               href={USER_ROUTES.LOGIN}
-              className="border border-bni-teal text-bni-teal px-5 py-2 rounded-full font-bold text-sm hover:bg-bni-teal hover:text-white transition-all duration-300"
-            >
+               className="border border-black text-black px-5 py-2 rounded-full font-bold text-sm hover:bg-black hover:text-white transition-all duration-300"
+             >
               Masuk
             </Link>
             <Link
