@@ -2,12 +2,7 @@
 
 import { useState, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, MapPin, Briefcase, FileText, Lock } from 'lucide-react';
-import Link from 'next/link';
-
-// Asumsikan Header & Footer sudah ada
-// import Header from '@/app/components/layout/Header';
-// import Footer from '@/app/components/layout/Footer';
+import { Link } from 'react-router-dom';
 
 // ============================================================================
 // KOMPONEN-KOMPONEN REUSABLE
@@ -187,20 +182,61 @@ export default function RegisterPage() {
                     <p className="mt-2 text-gray-500">Lengkapi data Anda untuk mengajukan KPR</p>
                 </div>
 
-                <div className="flex items-start justify-center mb-12 px-0 sm:px-4">
-                    {steps.map((step, index) => (
-                        <div key={step.number} className={`flex items-center ${index < steps.length - 1 ? 'w-full' : ''}`}>
-                            <div className="flex flex-col items-center text-center">
-                                <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold transition-all duration-300 ${currentStep > step.number ? 'bg-green-500 text-white' : currentStep === step.number ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
-                                    {currentStep > step.number ? '✔' : step.number}
-                                </div>
-                                <p className={`mt-2 text-xs w-20 font-semibold transition-colors ${currentStep >= step.number ? 'text-gray-700' : 'text-gray-400'}`}>{step.title}</p>
+                {/* Symmetrical Progress Bar */}
+                <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-8 mb-12">
+                    {/* Background line */}
+                    <div className="absolute top-5 left-0 right-0 h-[3px] bg-gray-200" 
+                         style={{ 
+                           marginLeft: 'calc(2.5rem)',
+                           marginRight: 'calc(2.5rem)' 
+                         }} 
+                    />
+                    
+                    {/* Progress line */}
+                    <div 
+                        className="absolute top-5 left-0 h-[3px] bg-green-500 transition-all duration-500 ease-out"
+                        style={{ 
+                          width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - ${2.5 * (1 - (currentStep - 1) / (steps.length - 1))}rem)`,
+                          marginLeft: 'calc(2.5rem)'
+                        }}
+                    />
+
+                    {/* Steps */}
+                    <div className="relative flex justify-between items-start">
+                        {steps.map((step) => {
+                          const isComplete = currentStep > step.number;
+                          const isActive = currentStep === step.number;
+                          const isInactive = currentStep < step.number;
+
+                          return (
+                            <div key={step.number} className="flex flex-col items-center" style={{ flex: 1 }}>
+                              {/* Circle */}
+                              <div
+                                className={`
+                                  w-10 h-10 flex items-center justify-center rounded-full font-bold 
+                                  shadow-md transition-all duration-300 relative z-10
+                                  ${isComplete ? "bg-green-500 text-white" : ""}
+                                  ${isActive ? "bg-orange-500 text-white scale-110" : ""}
+                                  ${isInactive ? "bg-gray-200 text-gray-400" : ""}
+                                `}
+                              >
+                                {isComplete ? "✓" : step.number}
+                              </div>
+
+                              {/* Label */}
+                              <p
+                                className={`
+                                  mt-3 text-xs sm:text-sm text-center font-semibold leading-tight
+                                  transition-colors duration-300 px-1
+                                  ${isComplete || isActive ? "text-gray-800" : "text-gray-400"}
+                                `}
+                              >
+                                {step.title}
+                              </p>
                             </div>
-                            {index < steps.length - 1 && (
-                                <div className={`flex-auto border-t-2 transition-all duration-500 mx-2 ${currentStep > index + 1 ? 'border-green-500' : 'border-gray-200'}`}></div>
-                            )}
-                        </div>
-                    ))}
+                          );
+                        })}
+                    </div>
                 </div>
                 
                 <form onSubmit={handleSubmit}>
@@ -259,12 +295,12 @@ export default function RegisterPage() {
                                     <div className="mt-6 space-y-4">
                                         <label className="flex items-center gap-3 text-sm text-gray-600">
                                             <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 accent-orange-500"/> 
-                                            Saya menyetujui <Link href="/terms" className="text-blue-600 hover:underline font-medium">Syarat & Ketentuan BNI</Link> *
+                                            Saya menyetujui <Link to="/terms" className="text-blue-600 hover:underline font-medium">Syarat & Ketentuan BNI</Link> *
                                         </label>
                                         {errors.agreeTerms && <p className="text-red-500 text-xs">{errors.agreeTerms}</p>}
                                         <label className="flex items-center gap-3 text-sm text-gray-600">
                                             <input type="checkbox" name="agreePrivacy" checked={formData.agreePrivacy} onChange={handleChange} className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 accent-orange-500"/> 
-                                            Saya menyetujui <Link href="/privacy" className="text-blue-600 hover:underline font-medium">Kebijakan Privasi BNI</Link> *
+                                            Saya menyetujui <Link to="/privacy" className="text-blue-600 hover:underline font-medium">Kebijakan Privasi BNI</Link> *
                                         </label>
                                         {errors.agreePrivacy && <p className="text-red-500 text-xs">{errors.agreePrivacy}</p>}
                                     </div>
