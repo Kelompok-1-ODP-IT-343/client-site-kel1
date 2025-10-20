@@ -64,9 +64,9 @@ export default function LoginPage() {
         localStorage.setItem("token_type", tokenType);
       }
 
-      setStatus({ loading: false, message: "Login berhasil! Mengarahkan ke Dashboard...", type: "success" });
+      setStatus({ loading: false, message: "Login berhasil! Mengarahkan ke Beranda...", type: "success" });
       setTimeout(() => {
-        router.push("/user/dashboard");
+        router.push("/user/beranda");
       }, 1000);
     } catch (err: any) {
       const message = err?.response?.data?.message || "Email atau password yang Anda masukkan salah.";
