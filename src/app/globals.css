@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --bni-orange: #FF6600;
   --bni-blue: #0066CC;
@@ -13,10 +17,7 @@
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foregro@tailwind base;
-@tailwind components;
-@tailwind utilities;und);
-  --font-sans: var(--font-geist-sans);
+  --color-foreground: var(--font-sans: var(--font-geist-sans));
   --font-mono: var(--font-geist-mono);
   --color-bni-orange: var(--bni-orange);
   --color-bni-blue: var(--bni-blue);

@@ -53,8 +53,7 @@ function HeroSection() {
           transition={{ duration: 0.5, delay: 0.3 }} 
           className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4"
         >
-          <Link href="/user/pengajuan" passHref>
-            {/* PERBAIKAN 1: Tombol "Ajukan KPR" dibuat langsung berwarna hijau (teal) */}
+          <Link href="/user/cari-rumah" passHref>
             <motion.button 
               whileHover={{ scale: 1.05 }} 
               whileTap={{ scale: 0.95 }} 
@@ -109,52 +108,121 @@ function FeatureSection() {
 }
 
 /* --------------------------- EXPLORE SECTION --------------------------- */
+/* --------------------------- EXPLORE SECTION --------------------------- */
 function ExploreSection() {
-    const sliderRef = useRef<HTMLDivElement>(null);
-    const scroll = (direction: 'left' | 'right') => {
-        if (sliderRef.current) {
-            const scrollAmount = direction === 'left' ? -320 : 320;
-            sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-    };
-    
-    const items = [
-        { id: 1, title: "Cluster Green Valley", location: "Serpong, Banten", price: "Rp 456.500.000", image: "/rumah-1.jpg" },
-        { id: 2, title: "Cluster Green Valley", location: "Margonda, Depok", price: "Rp 625.500.000", image: "/rumah-2.jpg" },
-        { id: 3, title: "PONDOK TAKATAKAN", location: "Serang, Banten", price: "Rp 197.000.000", image: "/rumah-3.jpg" },
-        { id: 4, title: "Bukit Permata", location: "Bogor, Jawa Barat", price: "Rp 520.000.000", image: "/rumah-4.jpg" },
-        { id: 5, title: "Citra Garden", location: "Jakarta Barat", price: "Rp 850.000.000", image: "/rumah-1.jpg" },
-    ];
+  const sliderRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (sliderRef.current) {
+      const scrollAmount = direction === "left" ? -340 : 340;
+      sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  const items = [
+    { id: 1, title: "Cluster Green Valley", location: "Serpong, Banten", price: "Rp 456.500.000", image: "/rumah-1.jpg" },
+    { id: 2, title: "Cluster Green Valley", location: "Margonda, Depok", price: "Rp 625.500.000", image: "/rumah-2.jpg" },
+    { id: 3, title: "PONDOK TAKATAKAN", location: "Serang, Banten", price: "Rp 197.000.000", image: "/rumah-3.jpg" },
+    { id: 4, title: "Bukit Permata", location: "Bogor, Jawa Barat", price: "Rp 520.000.000", image: "/rumah-4.jpg" },
+    { id: 5, title: "Citra Garden", location: "Jakarta Barat", price: "Rp 850.000.000", image: "/rumah-1.jpg" },
+  ];
 
   return (
-    <section className="py-20 sm:py-24" style={{backgroundColor: COLORS.bgLime}}>
+    <section className="py-20 sm:py-24" style={{ backgroundColor: "#FFFEEB" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Eksplor Rumah Impian</h2>
-            <p className="mt-3 text-lg text-gray-500">Tersedia rumah dengan kualitas terbaik dari developer pilihan BNI</p>
+        
+        {/* HEADER */}
+        <div className="flex justify-between items-start mb-12">
+          <div>
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900">
+              Eksplor Rumah Impian
+            </h2>
+            <p className="mt-3 text-lg text-gray-600">
+              Tersedia rumah dengan kualitas terbaik dari developer pilihan BNI
+            </p>
+          </div>
+
+          <Link href="/user/cari-rumah" passHref>
+            <button className="hidden sm:block border-2 border-[#FF8500] text-[#FF8500] font-semibold px-6 py-2.5 rounded-xl hover:bg-[#FF8500]/10 transition">
+              Lihat Semua
+            </button>
+          </Link>
         </div>
+
+        {/* SLIDER */}
         <div className="relative">
-            <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition disabled:opacity-50"><ChevronLeft className="w-6 h-6 text-gray-700"/></button>
-            <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition disabled:opacity-50"><ChevronRight className="w-6 h-6 text-gray-700"/></button>
-            <div ref={sliderRef} className="flex gap-8 overflow-x-auto pb-4 scroll-smooth scrollbar-hide">
-                {items.map((it) => (
-                    <div key={it.id} className="flex-shrink-0 w-[300px] sm:w-[340px]"><PropertyCard {...it} /></div>
-                ))}
-            </div>
+          {/* Left Button */}
+          <button
+            onClick={() => scroll("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition"
+          >
+            <ChevronLeft className="w-6 h-6 text-gray-700" />
+          </button>
+
+          {/* Right Button */}
+          <button
+            onClick={() => scroll("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition"
+          >
+            <ChevronRight className="w-6 h-6 text-gray-700" />
+          </button>
+
+          {/* Cards */}
+          <div
+            ref={sliderRef}
+            className="flex gap-8 overflow-x-auto pb-4 scroll-smooth scrollbar-hide px-10"
+          >
+            {items.map((it) => (
+              <div
+                key={it.id}
+                className="flex-shrink-0 w-[300px] sm:w-[340px] snap-center"
+              >
+                <PropertyCard {...it} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function PropertyCard({ title, location, price, image }: {title: string; location: string; price: string; image: string;}) {
+/* --------------------------- PROPERTY CARD --------------------------- */
+function PropertyCard({
+  title,
+  location,
+  price,
+  image,
+}: {
+  title: string;
+  location: string;
+  price: string;
+  image: string;
+}) {
   return (
-    <motion.div whileHover={{ y: -5 }} className="bg-white rounded-2xl shadow-lg border overflow-hidden group h-full">
-      <div className="relative h-56 w-full"><Image src={image} alt={title} fill className="object-cover" /></div>
-      <div className="p-5">
-        <h3 className="font-bold text-gray-900 text-xl truncate">{title}</h3>
-        <p className="flex items-center text-gray-600 mt-1 text-sm"><MapPin size={16} className="mr-1.5" /> {location}</p>
-        <p className="mt-4 text-2xl font-extrabold text-bni-orange">{price}</p>
+    <motion.div
+      whileHover={{ y: -6 }}
+      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden transition-all cursor-pointer"
+    >
+      <div className="relative h-56 w-full flex items-center justify-center bg-white">
+        <Image
+          src={image}
+          alt={title}
+          width={200}
+          height={200}
+          className="object-contain group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
+      <div className="p-6">
+        <h3 className="font-bold text-gray-900 text-lg sm:text-xl truncate">
+          {title}
+        </h3>
+        <p className="flex items-center text-gray-600 mt-2 text-sm">
+          <MapPin size={16} className="mr-1.5 text-gray-500" /> {location}
+        </p>
+        <p className="mt-4 text-2xl font-extrabold text-[#FF8500]">
+          {price}
+        </p>
       </div>
     </motion.div>
   );
