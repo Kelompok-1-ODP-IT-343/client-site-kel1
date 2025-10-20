@@ -6,7 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="c90586dc-ae29-4fe5-bf79-3e7248cfdb10" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/user/pengajuan/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/user/pengajuan/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/propertyData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/propertyData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/user/detail-rumah/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/user/detail-rumah/[id]/page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,5 +80,16 @@
       <updated>1760577073315</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
