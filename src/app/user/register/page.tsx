@@ -1,339 +1,266 @@
 "use client";
 
-import { useState, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { useRouter } from "next/navigation"; // ⬅️ Tambahkan ini
+import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
-// ============================================================================
-// KOMPONEN-KOMPONEN REUSABLE
-// ============================================================================
+const OCCUPATION_KTP = [
+  "BELUM_TIDAK_BEKERJA",
+  "MENGURUS_RUMAH_TANGGA",
+  "PELAJAR_MAHASISWA",
+  "PENSIUNAN",
+  "PNS",
+  "TNI",
+  "POLRI",
+  "KARYAWAN_SWASTA",
+  "KARYAWAN_BUMN",
+  "KARYAWAN_BUMD",
+  "KARYAWAN_HONORER",
+  "WIRASWASTA",
+  "PERDAGANGAN",
+  "PETANI_PEKEBUN",
+  "PETERNAK",
+  "NELAYAN_PERIKANAN",
+  "INDUSTRI",
+  "KONSTRUKSI",
+  "TRANSPORTASI",
+  "BURUH_HARIAN_LEPAS",
+  "BURUH_TANI_PERKEBUNAN",
+  "BURUH_NELAYAN_PERIKANAN",
+  "BURUH_PETERNAKAN",
+  "PEMBANTU_RUMAH_TANGGA",
+];
 
-const InputField = ({ label, name, type = 'text', placeholder, value, onChange, error }: any) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
-        <input
-            type={type}
-            id={name}
-            name={name}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            className={`w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 transition-all duration-300 ${
-                error ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:ring-yellow-400 focus:border-yellow-400'
-            }`}
-        />
-        {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
-    </div>
-);
+export default function RegisterSimple() {
+  const router = useRouter(); // Inisialisasi router
+  const [form, setForm] = useState({
+    email: "",
+    username: "",
+    password: "",
+    retype_password: "",
+    full_name: "",
+    birth_place: "",
+    occupation: "",
+    salary_income: "",
+    agree_terms: false,
+    agree_info: false,
+  });
+  const [birthDate, setBirthDate] = useState<Date>();
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-const SelectField = ({ label, name, value, onChange, error, children }: any) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
-        <select
-            id={name}
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={`w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 appearance-none transition-all duration-300 ${
-                error ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:ring-yellow-400 focus:border-yellow-400'
-            }`}
-        >
-            {children}
-        </select>
-        {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
-    </div>
-);
-
-const TextAreaField = ({ label, name, placeholder, value, onChange, error }: any) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
-        <textarea
-            id={name}
-            name={name}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            rows={4}
-            className={`w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 transition-all duration-300 ${
-                error ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:ring-yellow-400 focus:border-yellow-400'
-            }`}
-        />
-        {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
-    </div>
-);
-
-// ============================================================================
-// KOMPONEN UTAMA HALAMAN REGISTER
-// ============================================================================
-export default function RegisterPage() {
-    const [currentStep, setCurrentStep] = useState(1);
-    const [formData, setFormData] = useState({
-        // Step 1: Data Pribadi
-        fullName: "", email: "", phone: "", nik: "", birthPlace: "", birthDate: "", gender: "", maritalStatus: "",
-        // Step 2: Alamat
-        address: "", city: "", province: "", postalCode: "",
-        // Step 3: Pekerjaan
-        occupation: "", companyName: "", monthlyIncome: "", workExperience: "",
-        // Step 4: Informasi KPR
-        propertyType: "", tenor: "",
-        // Step 5: Akun
-        password: "", confirmPassword: "", agreeTerms: false, agreePrivacy: false,
+  const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
+    setForm({
+      ...form,
+      [name]: type === "checkbox" ? checked : value,
     });
-    
-    // <<< INI PERBAIKANNYA >>>
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    setError("");
+  };
 
-    const steps = [
-        { number: 1, title: 'Data Pribadi' }, { number: 2, title: 'Alamat' },
-        { number: 3, title: 'Pekerjaan' }, { number: 4, title: 'Informasi KPR' },
-        { number: 5, title: 'Buat Akun' },
-    ];
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
 
-    const formatSalary = (value: string): string => {
-        const rawValue = value.replace(/[^0-9]/g, "");
-        if (!rawValue) return "";
-        return new Intl.NumberFormat("id-ID").format(Number(rawValue));
-    };
+    if (!form.email.includes("@")) return setError("Format email tidak valid.");
+    if (form.password.length < 8)
+      return setError("Password minimal 8 karakter.");
+    if (form.password !== form.retype_password)
+      return setError("Konfirmasi password tidak sama.");
+    if (!form.agree_terms)
+      return setError("Anda harus menyetujui syarat & ketentuan.");
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const checked = (e.target as HTMLInputElement).checked;
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, birth_date: birthDate }),
+      });
+      const data = await res.json();
 
-        let finalValue: string | boolean = type === 'checkbox' ? checked : value;
+      if (!res.ok) throw new Error(data.error);
 
-        if (name === "nik" || name === "postalCode") {
-            finalValue = value.replace(/[^0-9]/g, "");
-        } else if (name === "monthlyIncome") {
-            finalValue = formatSalary(value);
-        }
-        
-        setFormData(prev => ({ ...prev, [name]: finalValue }));
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: "" }));
-        }
-    };
+      // ✅ Kalau berhasil, tampilkan pesan dulu
+      setMessage("✅ Registrasi berhasil! Mengarahkan ke halaman login...");
+      
+      // Tunggu 1,5 detik lalu redirect ke login
+      setTimeout(() => {
+        router.push("/user/login"); // Route ke halaman login
+      }, 1500);
+    } catch (err: any) {
+      setError(`❌ ${err.message}`);
+    }
+  };
 
-    const validateStep = (step: number) => {
-        const newErrors: { [key: string]: string } = {};
-        
-        if (step === 1) {
-            if (!formData.fullName) newErrors.fullName = "Nama lengkap wajib diisi.";
-            if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Format email tidak valid.";
-            if (!formData.nik || formData.nik.length !== 16) newErrors.nik = "NIK harus 16 digit.";
-            if (!formData.phone) newErrors.phone = "Nomor telepon wajib diisi.";
-        }
-        if (step === 2) {
-            if (!formData.address) newErrors.address = "Alamat wajib diisi.";
-            if (!formData.city) newErrors.city = "Kota/Kabupaten wajib diisi.";
-            if (!formData.province) newErrors.province = "Provinsi wajib diisi.";
-            if (!formData.postalCode) newErrors.postalCode = "Kode Pos wajib diisi.";
-        }
-        if (step === 3) {
-            if (!formData.occupation) newErrors.occupation = "Pekerjaan wajib diisi.";
-            if (!formData.companyName) newErrors.companyName = "Nama perusahaan wajib diisi.";
-            if (!formData.monthlyIncome) newErrors.monthlyIncome = "Penghasilan wajib diisi.";
-            if (!formData.workExperience) newErrors.workExperience = "Pengalaman kerja wajib diisi.";
-        }
-        if (step === 4) {
-            if (!formData.propertyType) newErrors.propertyType = "Jenis properti wajib diisi.";
-            if (!formData.tenor) newErrors.tenor = "Tenor wajib diisi.";
-        }
-        if (step === 5) {
-            if (!formData.password || formData.password.length < 8) newErrors.password = "Password minimal 8 karakter.";
-            if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Konfirmasi password tidak cocok.";
-            if (!formData.agreeTerms) newErrors.agreeTerms = "Anda harus menyetujui Syarat & Ketentuan.";
-            if (!formData.agreePrivacy) newErrors.agreePrivacy = "Anda harus menyetujui Kebijakan Privasi.";
-        }
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 md:p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-3xl bg-white p-8 md:p-10 rounded-2xl shadow-lg text-sm"
+      >
+        {/* Heading */}
+        <h1 className="text-sm md:text-base font-semibold text-center text-gray-800 mb-1">
+          Daftar Akun Satu Atap
+        </h1>
+        <p className="text-center text-gray-500 text-xs md:text-sm mb-6">
+          Lengkapi data berikut untuk registrasi KPR
+        </p>
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* ========================= SECTION 1: AKUN ========================= */}
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800 border-b pb-2 mb-3">
+              Informasi Akun
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField label="Email *" name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email" />
+              <InputField label="Username *" name="username" type="text" value={form.username} onChange={handleChange} placeholder="Username" />
+              <InputField label="Password *" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" />
+              <InputField label="Konfirmasi Password *" name="retype_password" type="password" value={form.retype_password} onChange={handleChange} placeholder="Konfirmasi Password" />
+            </div>
+          </div>
 
+          {/* ========================= SECTION 2: DATA DIRI ========================= */}
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800 border-b pb-2 mb-3">
+              Data Diri
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField label="Nama Lengkap *" name="full_name" value={form.full_name} onChange={handleChange} placeholder="Nama Lengkap" />
+              <InputField label="Tempat Lahir *" name="birth_place" value={form.birth_place} onChange={handleChange} placeholder="Tempat Lahir" />
 
-    const handleNext = () => {
-        if (validateStep(currentStep) && currentStep < steps.length) {
-            setCurrentStep(currentStep + 1);
-        }
-    };
-
-    const handlePrevious = () => {
-        if (currentStep > 1) {
-            setCurrentStep(currentStep - 1);
-        }
-    };
-    
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (validateStep(5)) {
-            console.log("Form Submitted:", formData);
-            alert("Pendaftaran berhasil! (Demo)");
-        }
-    };
-
-    return (
-        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center py-12 px-4">
-            {/* <Header /> */}
-            <motion.div
-                initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-                className="w-full max-w-4xl bg-white p-8 sm:p-12 rounded-2xl shadow-xl border border-gray-200"
-            >
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800">Daftar Akun KPR BNI</h1>
-                    <p className="mt-2 text-gray-500">Lengkapi data Anda untuk mengajukan KPR</p>
-                </div>
-
-                {/* Symmetrical Progress Bar */}
-                <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-8 mb-12">
-                    {/* Background line */}
-                    <div className="absolute top-5 left-0 right-0 h-[3px] bg-gray-200" 
-                         style={{ 
-                           marginLeft: 'calc(2.5rem)',
-                           marginRight: 'calc(2.5rem)' 
-                         }} 
+              {/* === 📅 Kalender === */}
+              <div className="flex flex-col">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Tanggal Lahir *
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal w-full border rounded-lg px-3 py-2 text-xs bg-white hover:bg-gray-50",
+                        !birthDate && "text-gray-400"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                      {birthDate ? format(birthDate, "dd/MM/yyyy") : "Pilih tanggal"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    side="bottom"
+                    sideOffset={4}
+                    className="p-3 bg-white border border-gray-200 shadow-xl rounded-xl w-[280px]"
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={birthDate}
+                      onSelect={setBirthDate}
+                      className="rounded-md text-xs [&_.rdp-months]:flex [&_.rdp-months]:justify-center [&_.rdp-head_cell]:text-gray-500 [&_.rdp-day]:h-7 [&_.rdp-day]:w-7 [&_.rdp-day_selected]:bg-orange-500 [&_.rdp-day_selected]:text-white"
                     />
-                    
-                    {/* Progress line */}
-                    <div 
-                        className="absolute top-5 left-0 h-[3px] bg-green-500 transition-all duration-500 ease-out"
-                        style={{ 
-                          width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - ${2.5 * (1 - (currentStep - 1) / (steps.length - 1))}rem)`,
-                          marginLeft: 'calc(2.5rem)'
-                        }}
-                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-                    {/* Steps */}
-                    <div className="relative flex justify-between items-start">
-                        {steps.map((step) => {
-                          const isComplete = currentStep > step.number;
-                          const isActive = currentStep === step.number;
-                          const isInactive = currentStep < step.number;
+              {/* Pekerjaan */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Pekerjaan *
+                </label>
+                <select
+                  name="occupation"
+                  value={form.occupation}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 text-xs"
+                >
+                  <option value="">Pilih Jenis Pekerjaan</option>
+                  {OCCUPATION_KTP.map((job) => (
+                    <option key={job} value={job}>
+                      {job.replaceAll("_", " ")}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                          return (
-                            <div key={step.number} className="flex flex-col items-center" style={{ flex: 1 }}>
-                              {/* Circle */}
-                              <div
-                                className={`
-                                  w-10 h-10 flex items-center justify-center rounded-full font-bold 
-                                  shadow-md transition-all duration-300 relative z-10
-                                  ${isComplete ? "bg-green-500 text-white" : ""}
-                                  ${isActive ? "bg-orange-500 text-white scale-110" : ""}
-                                  ${isInactive ? "bg-gray-200 text-gray-400" : ""}
-                                `}
-                              >
-                                {isComplete ? "✓" : step.number}
-                              </div>
+              <InputField label="Pendapatan Bulanan *" name="salary_income" value={form.salary_income} onChange={handleChange} placeholder="Pendapatan Bulanan" />
+            </div>
+          </div>
 
-                              {/* Label */}
-                              <p
-                                className={`
-                                  mt-3 text-xs sm:text-sm text-center font-semibold leading-tight
-                                  transition-colors duration-300 px-1
-                                  ${isComplete || isActive ? "text-gray-800" : "text-gray-400"}
-                                `}
-                              >
-                                {step.title}
-                              </p>
-                            </div>
-                          );
-                        })}
-                    </div>
-                </div>
-                
-                <form onSubmit={handleSubmit}>
-                    <AnimatePresence mode="wait">
-                        <motion.div key={currentStep} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
-                            {currentStep === 1 && (
-                                <StepContent title="Informasi Data Pribadi">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                        <InputField label="Nama Lengkap *" name="fullName" placeholder="Sesuai KTP" value={formData.fullName} onChange={handleChange} error={errors.fullName} />
-                                        <InputField label="Email *" name="email" type="email" placeholder="contoh@email.com" value={formData.email} onChange={handleChange} error={errors.email} />
-                                        <InputField label="Nomor Telepon *" name="phone" type="tel" placeholder="08xxxxxxxxxx" value={formData.phone} onChange={handleChange} error={errors.phone} />
-                                        <InputField label="NIK *" name="nik" placeholder="16 digit NIK" value={formData.nik} onChange={handleChange} error={errors.nik} />
-                                        <InputField label="Tempat Lahir *" name="birthPlace" placeholder="Kota Kelahiran" value={formData.birthPlace} onChange={handleChange} error={errors.birthPlace} />
-                                        <InputField label="Tanggal Lahir *" name="birthDate" type="date" value={formData.birthDate} onChange={handleChange} error={errors.birthDate} />
-                                        <SelectField label="Jenis Kelamin *" name="gender" value={formData.gender} onChange={handleChange} error={errors.gender}><option value="">Pilih</option><option value="male">Laki-laki</option><option value="female">Perempuan</option></SelectField>
-                                        <SelectField label="Status Pernikahan *" name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} error={errors.maritalStatus}><option value="">Pilih</option><option value="single">Belum Menikah</option><option value="married">Menikah</option><option value="divorced">Cerai</option></SelectField>
-                                    </div>
-                                </StepContent>
-                            )}
-                            {currentStep === 2 && (
-                                <StepContent title="Informasi Alamat">
-                                    <div className="space-y-6">
-                                        <TextAreaField label="Alamat Lengkap *" name="address" placeholder="Jalan, RT/RW, Kelurahan, Kecamatan" value={formData.address} onChange={handleChange} error={errors.address} />
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-                                            <InputField label="Kota / Kabupaten *" name="city" placeholder="Kota/Kabupaten" value={formData.city} onChange={handleChange} error={errors.city} />
-                                            <InputField label="Provinsi *" name="province" placeholder="Provinsi" value={formData.province} onChange={handleChange} error={errors.province} />
-                                            <InputField label="Kode Pos *" name="postalCode" placeholder="Kode Pos" value={formData.postalCode} onChange={handleChange} error={errors.postalCode} />
-                                        </div>
-                                    </div>
-                                </StepContent>
-                            )}
-                            {currentStep === 3 && (
-                                <StepContent title="Informasi Pekerjaan">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                        <InputField label="Pekerjaan *" name="occupation" placeholder="Contoh: Karyawan Swasta" value={formData.occupation} onChange={handleChange} error={errors.occupation} />
-                                        <InputField label="Nama Perusahaan *" name="companyName" placeholder="Tempat Bekerja" value={formData.companyName} onChange={handleChange} error={errors.companyName} />
-                                        <InputField label="Penghasilan Bulanan (Rp) *" name="monthlyIncome" placeholder="Contoh: 10.000.000" value={formData.monthlyIncome} onChange={handleChange} error={errors.monthlyIncome} />
-                                        <InputField label="Pengalaman Kerja *" name="workExperience" placeholder="Contoh: 5 Tahun" value={formData.workExperience} onChange={handleChange} error={errors.workExperience} />
-                                    </div>
-                                </StepContent>
-                            )}
-                             {currentStep === 4 && (
-                                <StepContent title="Informasi KPR">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                        <SelectField label="Jenis Properti *" name="propertyType" value={formData.propertyType} onChange={handleChange} error={errors.propertyType}><option value="">Pilih Jenis Properti</option><option value="house">Rumah</option><option value="apartment">Apartemen</option></SelectField>
-                                        <SelectField label="Tenor (Jangka Waktu) *" name="tenor" value={formData.tenor} onChange={handleChange} error={errors.tenor}><option value="">Pilih Tenor</option><option value="10">10 Tahun</option><option value="15">15 Tahun</option><option value="20">20 Tahun</option></SelectField>
-                                    </div>
-                                </StepContent>
-                            )}
-                             {currentStep === 5 && (
-                                <StepContent title="Informasi Akun">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                        <InputField label="Password *" name="password" type="password" placeholder="Minimal 8 karakter" value={formData.password} onChange={handleChange} error={errors.password} />
-                                        <InputField label="Retype Password *" name="confirmPassword" type="password" placeholder="Ulangi password" value={formData.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
-                                    </div>
-                                    <div className="mt-6 space-y-4">
-                                        <label className="flex items-center gap-3 text-sm text-gray-600">
-                                            <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 accent-orange-500"/> 
-                                            Saya menyetujui <Link to="/terms" className="text-blue-600 hover:underline font-medium">Syarat & Ketentuan BNI</Link> *
-                                        </label>
-                                        {errors.agreeTerms && <p className="text-red-500 text-xs">{errors.agreeTerms}</p>}
-                                        <label className="flex items-center gap-3 text-sm text-gray-600">
-                                            <input type="checkbox" name="agreePrivacy" checked={formData.agreePrivacy} onChange={handleChange} className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 accent-orange-500"/> 
-                                            Saya menyetujui <Link to="/privacy" className="text-blue-600 hover:underline font-medium">Kebijakan Privasi BNI</Link> *
-                                        </label>
-                                        {errors.agreePrivacy && <p className="text-red-500 text-xs">{errors.agreePrivacy}</p>}
-                                    </div>
-                                </StepContent>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-                    
-                    <div className="flex justify-between items-center mt-12">
-                        <button type="button" onClick={handlePrevious} disabled={currentStep === 1} className="px-8 py-3 bg-gray-200 text-gray-800 font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:bg-gray-300">
-                            Sebelumnya
-                        </button>
-                        {currentStep < steps.length ? (
-                            <button type="button" onClick={handleNext} className="px-8 py-3 bg-orange-500 text-white font-bold rounded-lg transition-all hover:bg-orange-600">
-                                Selanjutnya
-                            </button>
-                        ) : (
-                            <button type="submit" className="px-8 py-3 bg-green-500 text-white font-bold rounded-lg transition-all hover:bg-green-600">
-                                Daftar Sekarang
-                            </button>
-                        )}
-                    </div>
-                </form>
-            </motion.div>
-            {/* <Footer /> */}
-        </div>
-    );
+          {/* Checklist */}
+          <div className="space-y-1 mt-2 text-xs">
+            <Checkbox
+              name="agree_terms"
+              checked={form.agree_terms}
+              onChange={handleChange}
+              label="Saya menyetujui syarat & ketentuan penggunaan Satu Atap."
+            />
+            <Checkbox
+              name="agree_info"
+              checked={form.agree_info}
+              onChange={handleChange}
+              label="Saya bersedia menerima informasi produk & promo KPR."
+            />
+          </div>
+
+          {/* Error & Success */}
+          {error && <p className="text-red-600 text-xs mt-2">{error}</p>}
+          {message && <p className="text-green-600 text-xs mt-2">{message}</p>}
+
+          <button
+            type="submit"
+            className="w-full mt-5 py-2 bg-orange-500 text-white text-xs font-semibold rounded-md hover:bg-orange-600 transition-all"
+          >
+            Daftar Sekarang
+          </button>
+        </form>
+      </motion.div>
+    </div>
+  );
 }
 
-// Komponen Helper untuk judul setiap step
-const StepContent = ({ title, children }: { title: string; children: ReactNode }) => (
+/* 🔸 Input Field */
+function InputField({ label, name, type = "text", value, onChange, placeholder }: any) {
+  return (
     <div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-8">{title}</h2>
-        {children}
+      <label className="block text-xs font-medium text-gray-700 mb-1.5">{label}</label>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 text-xs"
+      />
     </div>
-);
+  );
+}
+
+/* 🔸 Checkbox */
+function Checkbox({ name, checked, onChange, label }: any) {
+  return (
+    <label className="flex items-center text-gray-700 text-xs">
+      <input
+        type="checkbox"
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="mr-2 accent-orange-500"
+      />
+      {label}
+    </label>
+  );
+}
