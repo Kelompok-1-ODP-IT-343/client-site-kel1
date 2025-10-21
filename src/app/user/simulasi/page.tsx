@@ -1,4 +1,3 @@
-// src/app/user/simulasi/page.tsx
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
