@@ -19,7 +19,7 @@ import {
 
 /* ==================== TYPES & CONSTANTS ==================== */
 type Section = "profil" | "notifikasi" | "pengajuan" | "wishlist";
-type AppStatus = "Menunggu Verifikasi" | "Verifikasi Dokumen" | "Analisa Kredit" | "Disetujui" | "Ditolak" | "Akad";
+type AppStatus = "Dokumen Terkirim" | "Peninjauan 1" | "Peninjauan 2" | "Peninjauan 3";
 type Application = {
   id: number;
   cluster: string;
@@ -391,10 +391,10 @@ function FileUpload({ name, label, onChange }: any) {
 /* ==================== PENGAJUAN KPR / DASHBOARD ==================== */
 function PengajuanKPRContent() {
    const router = useRouter();
-  const [applications] = useState<Application[]>([
-    { id: 1, cluster: "Cluster Green Valley", city: "Serpong, Banten", status: "Disetujui", loanAmount: 1500000000, date: "15 Juli 2025", image: "/rumah-1.jpg" },
-    { id: 2, cluster: "Rumah Klasik Menteng", city: "Jakarta Pusat", status: "Analisa Kredit", loanAmount: 25000000000, date: "18 Juli 2025", image: "/rumah-2.jpg" },
-  ]);
+    const [applications] = useState<Application[]>([
+      { id: 1, cluster: "Cluster Green Valley", city: "Serpong, Banten", status: "Dokumen Terkirim", loanAmount: 1500000000, date: "15 Juli 2025", image: "/rumah-1.jpg" },
+      { id: 2, cluster: "Rumah Klasik Menteng", city: "Jakarta Pusat", status: "Peninjauan 1", loanAmount: 25000000000, date: "18 Juli 2025", image: "/rumah-2.jpg" },
+    ]);
 
   const goToDetail = (id: number) => {
     router.push(`/user/detail-pengajuan?loanId=${id}`);
@@ -407,15 +407,15 @@ function PengajuanKPRContent() {
   const totalLoan = useMemo(() => applications.reduce((s, a) => s + a.loanAmount, 0), [applications]);
   const formatIDR = (n: number) => n.toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
 
-  const statusStyle = (status: AppStatus) =>
-    ({
-      Disetujui: { chip: "text-green-700 border-green-600", dot: "bg-green-600" },
-      "Analisa Kredit": { chip: "text-orange-700 border-orange-600", dot: "bg-orange-500" },
-      "Verifikasi Dokumen": { chip: "text-blue-700 border-blue-600", dot: "bg-blue-600" },
-      "Menunggu Verifikasi": { chip: "text-gray-700 border-gray-500", dot: "bg-gray-500" },
-      Ditolak: { chip: "text-red-700 border-red-600", dot: "bg-red-600" },
-      Akad: { chip: "text-indigo-700 border-indigo-600", dot: "bg-indigo-600" },
-    }[status]);
+  const statusStyle = (status: AppStatus) => {
+  const map: Record<AppStatus, { chip: string; dot: string }> = {
+    "Dokumen Terkirim": { chip: "text-blue-700 border-blue-600", dot: "bg-blue-600" },
+    "Peninjauan 1": { chip: "text-yellow-700 border-yellow-600", dot: "bg-yellow-500" },
+    "Peninjauan 2": { chip: "text-orange-700 border-orange-600", dot: "bg-orange-600" },
+    "Peninjauan 3": { chip: "text-teal-700 border-teal-600", dot: "bg-teal-600" },
+  };
+  return map[status];
+};
 
   return (
     <div>
@@ -423,7 +423,7 @@ function PengajuanKPRContent() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <SummaryCard icon={<FileText size={24} />} title="Total Aplikasi" value={String(totalApps)} accent="#3FD8D4" />
-        <SummaryCard icon={<CheckCircle2 size={24} />} title="Disetujui" value={String(applications.filter(a => a.status === "Disetujui").length)} accent="#16a34a" />
+        <SummaryCard icon={<CheckCircle2 size={24} />} title="Disetujui (Tahap Akhir)" value={String(applications.filter(a => a.status === "Peninjauan 3").length)} accent="#16a34a" />
         <SummaryCard icon={<RefreshCcw size={24} />} title="Total Pinjaman" value={formatIDR(totalLoan)} accent="#4f46e5" isMoney />
       </div>
 
@@ -460,12 +460,13 @@ function PengajuanKPRContent() {
 
                                   <div className="flex items-center justify-end">
                   <button
-                    onClick={() => goToDetail(app.id)}
-                    className="rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-transform hover:scale-105"
-                    style={{ background: `linear-gradient(90deg, ${COLORS.teal}, ${COLORS.lime})` }}
-                  >
-                    Lihat Detail
-                  </button>
+                  onClick={() => goToDetail(app.id)}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-transform hover:scale-105"
+                  style={{ backgroundColor: '#0066CC' }}
+                >
+                  Lihat Detail
+                </button>
+
                 </div>
 
                 </div>
