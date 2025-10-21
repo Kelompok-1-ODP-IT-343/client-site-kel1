@@ -24,28 +24,23 @@ import {
   Calendar,
   Wallet,
   Building2,
+  MessageCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { allHouses } from "@/app/lib/propertyData";
 
-// --------------------------
-// Helpers (formatting values)
-// --------------------------
 const fmtNum = (v: unknown) =>
   (v !== null && v !== undefined && String(v).trim() !== "") ? String(v) : "-";
 
 const fmtArea = (v: unknown) =>
   (v !== null && v !== undefined && String(v).trim() !== "") ? `${v} m²` : "-";
 
-// Deterministic, aman untuk SSR/CSR (hindari NBSP):
 export const fmtIDR = (v: unknown, withSpace: boolean = true): string => {
-  // Bersihkan input ringan (angka dalam string tetap masuk)
   const raw = typeof v === 'string' ? v.replace(/[^0-9.-]/g, '') : v;
   const n = Number(raw);
 
   if (!Number.isFinite(n)) return '-';
 
-  // Format ANGKA saja → hindari style: 'currency' (sumber NBSP)
   const num = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(Math.trunc(n));
   return withSpace ? `Rp ${num}` : `Rp${num}`;
 };
@@ -55,8 +50,6 @@ export default function PropertyDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // NOTE: kamu memang pakai pattern Promise di params,
-  // maka gunakan React.use (experimental) untuk unwrap.
   const params = usePromise(paramsPromise);
   const router = useRouter();
 
@@ -282,6 +275,7 @@ export default function PropertyDetailPage({
               </div>
             </Card>
 
+            {/* Ajukan KPR */}
             <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
               <h3 className="font-bold text-lg text-gray-800 text-center">
                 Siap Mengajukan KPR?
@@ -295,6 +289,26 @@ export default function PropertyDetailPage({
               >
                 Ajukan KPR Sekarang
               </button>
+
+              {/* ✅ Ingin konsultasi (versi sudah benar & rapi) */}
+              <div className="mt-6 bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
+                <h4 className="font-semibold text-gray-800 mb-1 flex items-center justify-center gap-1.5">
+                  <MessageCircle size={18} className="text-green-600" />
+                  Ingin konsultasi?
+                </h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Hubungi kami melalui WhatsApp untuk konsultasi KPR.
+                </p>
+                <Link
+                  href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20terkait%20KPR%20properti%20ini."
+                  target="_blank"
+                  className="inline-flex items-center justify-center gap-2 w-full bg-[#DFF7F4] hover:bg-[#C8EFEA] text-[#006654] font-semibold py-2 rounded-lg border border-[#A9E3DD] transition-all shadow-sm"
+                >
+                  <MessageCircle size={18} className="text-[#006654]" />
+                  Hubungi via WhatsApp
+                </Link>
+
+              </div>
             </div>
           </div>
         </div>
