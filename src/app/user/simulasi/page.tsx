@@ -1,7 +1,8 @@
+// src/app/user/simulasi/page.tsx
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { Plus, Trash2, SlidersHorizontal } from 'lucide-react'
+import { Plus, Trash2, SlidersHorizontal, FileText, BarChart3, Settings2 } from 'lucide-react'
+import React, { JSX, useMemo, useState, useEffect } from "react";
 
 // ====== Types ======
 type AmortizationRow = {
@@ -144,9 +145,154 @@ function buildMultiSegmentSchedule(
 
   const pageSize = 12
   const [page, setPage] = useState(1)
-  const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize)
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize)
+  // const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize)
   const maxPage = Math.ceil(rows.length / pageSize)
   const cicilanPerBulan = rows[0]?.payment ?? 0
+  // === State baru ===
+  const [developerType, setDeveloperType] = useState<"A" | "B">("A")
+  const [schemeType, setSchemeType] = useState<"single_fixed" | "tiered">("single_fixed")
+  const [selectedRates, setSelectedRates] = useState<Record<string, number>>({})
+
+  type RateTable = Record<string, number>
+  type DeveloperRates = Record<string, RateTable>
+  // tambahan type baru
+  type RateSegment = {
+    start: number;
+    end: number;
+    rate: number;
+    label?: string
+  };
+  type RateScheme = Record<"A" | "B", DeveloperRates>
+  const colors = {
+    blue: "#3FD8D4",
+    gray: "#757575",
+    orange: "#FF8500",
+  } as const;
+  function roundIDR(n: number): number {
+    return Math.round(n);
+  }
+  // === Data referensi ===
+  const rateData: Record<
+    "single_fixed" | "tiered",
+    Record<"A" | "B", Record<string, Record<string, number>>>
+  > = {
+    single_fixed: {
+      A: {
+        "1":  { "Bunga Tetap 1 Tahun": 7.75 },
+        "2":  { "Bunga Tetap 2 Tahun": 7.75 },
+        "3":  { "Bunga Tetap 1 Tahun": 2.75, "Bunga Tetap 3 Tahun": 7.75 },
+        "4":  { "Bunga Tetap 4 Tahun": 8.00 },
+        "5":  { "Bunga Tetap 3 Tahun": 6.75, "Bunga Tetap 5 Tahun": 8.00 },
+        "6":  { "Bunga Tetap 6 Tahun": 8.00 },
+        "7":  { "Bunga Tetap 7 Tahun": 8.00 },
+        "8":  { "Bunga Tetap 8 Tahun": 8.00 },
+        "9":  { "Bunga Tetap 9 Tahun": 8.25 },
+        "10": { "Bunga Tetap 3 Tahun": 3.75, "Bunga Tetap 5 Tahun": 5.75, "Bunga Tetap 10 Tahun": 8.25 },
+        "12": { "Bunga Tetap 5 Tahun": 4.75 },
+        "15": { "Bunga Tetap 3 Tahun": 2.75, "Bunga Tetap 5 Tahun": 3.75 },
+        "20": { "Bunga Tetap 3 Tahun": 4.00, "Bunga Tetap 5 Tahun": 6.00, "Bunga Tetap 10 Tahun": 8.50 },
+        "25": { "Bunga Tetap 3 Tahun": 4.25, "Bunga Tetap 5 Tahun": 6.25, "Bunga Tetap 10 Tahun": 8.75 },
+        "30": { "Bunga Tetap 3 Tahun": 4.50, "Bunga Tetap 5 Tahun": 6.50, "Bunga Tetap 10 Tahun": 9.00 }
+      },
+      B: {
+        "1":  { "Bunga Tetap 1 Tahun": 8.00 },
+        "2":  { "Bunga Tetap 2 Tahun": 8.00 },
+        "3":  { "Bunga Tetap 1 Tahun": 3.25, "Bunga Tetap 3 Tahun": 8.00 },
+        "4":  { "Bunga Tetap 4 Tahun": 8.25 },
+        "5":  { "Bunga Tetap 3 Tahun": 7.25, "Bunga Tetap 5 Tahun": 8.25 },
+        "6":  { "Bunga Tetap 6 Tahun": 8.25 },
+        "7":  { "Bunga Tetap 7 Tahun": 8.25 },
+        "8":  { "Bunga Tetap 8 Tahun": 8.25 },
+        "9":  { "Bunga Tetap 9 Tahun": 8.75 },
+        "10": { "Bunga Tetap 3 Tahun": 4.25, "Bunga Tetap 5 Tahun": 6.25, "Bunga Tetap 10 Tahun": 8.75 },
+        "12": { "Bunga Tetap 5 Tahun": 5.25 },
+        "15": { "Bunga Tetap 3 Tahun": 3.25, "Bunga Tetap 5 Tahun": 4.25 },
+        "20": { "Bunga Tetap 3 Tahun": 4.75, "Bunga Tetap 5 Tahun": 6.75, "Bunga Tetap 10 Tahun": 9.25 },
+        "25": { "Bunga Tetap 3 Tahun": 5.25, "Bunga Tetap 5 Tahun": 7.25, "Bunga Tetap 10 Tahun": 9.75 },
+        "30": { "Bunga Tetap 3 Tahun": 5.75, "Bunga Tetap 5 Tahun": 7.75, "Bunga Tetap 10 Tahun": 10.25 }
+      },
+    },
+
+    tiered: {
+      A: {
+        "10": { "Tahun ke 1": 2.75, "Tahun ke 2": 4.75, "Tahun ke 3": 6.75, "Tahun ke 4": 8.75, "Tahun ke 5-10": 10.75 },
+        "15": { "Tahun ke 1": 2.75, "Tahun ke 2-3": 4.75, "Tahun ke 4-5": 6.75, "Tahun ke 6-7": 8.75, "Tahun ke 8-10": 10.75 },
+        "20": { "Tahun ke 1": 3.00, "Tahun ke 2-3": 5.00, "Tahun ke 4-5": 7.00, "Tahun ke 6-10": 9.00, "Tahun ke 11-15": 10.50, "Tahun ke 16-20": 11.00 },
+        "25": { "Tahun ke 1": 3.25, "Tahun ke 2-3": 5.25, "Tahun ke 4-5": 7.25, "Tahun ke 6-10": 9.25, "Tahun ke 11-15": 10.75, "Tahun ke 16-20": 11.25, "Tahun ke 21-25": 11.75 },
+        "30": { "Tahun ke 1": 3.50, "Tahun ke 2-3": 5.50, "Tahun ke 4-5": 7.50, "Tahun ke 6-10": 9.50, "Tahun ke 11-15": 11.00, "Tahun ke 16-20": 11.50, "Tahun ke 21-25": 12.00, "Tahun ke 26-30": 12.50 }
+      },
+      B: {
+        "10": { "Tahun ke 1": 3.25, "Tahun ke 2": 5.25, "Tahun ke 3": 7.25, "Tahun ke 4": 9.25, "Tahun ke 5-10": 11.25 },
+        "15": { "Tahun ke 1": 3.25, "Tahun ke 2-3": 5.25, "Tahun ke 4-5": 7.25, "Tahun ke 6-7": 9.25, "Tahun ke 8-10": 11.25 },
+        "20": { "Tahun ke 1": 3.50, "Tahun ke 2-3": 5.50, "Tahun ke 4-5": 7.50, "Tahun ke 6-10": 9.50, "Tahun ke 11-15": 11.50, "Tahun ke 16-20": 12.00 },
+        "25": { "Tahun ke 1": 3.75, "Tahun ke 2-3": 5.75, "Tahun ke 4-5": 7.75, "Tahun ke 6-10": 9.75, "Tahun ke 11-15": 11.75, "Tahun ke 16-20": 12.25, "Tahun ke 21-25": 12.75 },
+        "30": { "Tahun ke 1": 4.25, "Tahun ke 2-3": 6.25, "Tahun ke 4-5": 8.25, "Tahun ke 6-10": 10.25, "Tahun ke 11-15": 12.25, "Tahun ke 16-20": 12.75, "Tahun ke 21-25": 13.25, "Tahun ke 26-30": 13.75 }
+      },
+    },
+  } 
+
+  React.useEffect(() => {
+    const data = rateData[schemeType]?.[developerType]?.[String(jangkaWaktu)];
+    if (!data) {
+      setSelectedRates({});
+      setRateSegments([]);
+      return;
+    }
+
+    setSelectedRates(data);
+
+    // 🔹 SINGLE FIXED → manual pilih segmen
+    if (schemeType === "single_fixed") {
+      const segments: RateSegment[] = [];
+      let totalYears = 0;
+
+      Object.entries(data).forEach(([label, rate]) => {
+        const match = label.match(/(\d+)/);
+        const years = match ? parseInt(match[1]) : 0;
+        const start = totalYears * 12 + 1;
+        const end = (totalYears + years) * 12;
+        segments.push({ start, end, rate: rate as number, label });
+        totalYears += years;
+      });
+
+      if (totalYears < jangkaWaktu) {
+        segments.push({
+          start: totalYears * 12 + 1,
+          end: jangkaWaktu * 12,
+          rate: 0,
+          label: "Bunga Floating",
+        });
+      }
+
+      setRateSegments(segments);
+    }
+
+    // 🔹 TIERED → otomatis parse "Tahun ke X" dan "Tahun ke X-Y"
+    if (schemeType === "tiered") {
+      const segments: RateSegment[] = [];
+
+      Object.entries(data).forEach(([label, rate]) => {
+        // Contoh label: "Tahun ke 1", "Tahun ke 2-3", "Tahun ke 4-5", "Tahun ke 6-10"
+        const match = label.match(/Tahun ke (\d+)(?:-(\d+))?/i);
+        if (match) {
+          const startYear = parseInt(match[1]);
+          const endYear = match[2] ? parseInt(match[2]) : startYear;
+          const start = (startYear - 1) * 12 + 1;
+          const end = endYear * 12;
+          segments.push({
+            start,
+            end,
+            rate: rate as number,
+            label,
+          });
+        }
+      });
+
+      setRateSegments(segments);
+    }
+
+  }, [developerType, schemeType, jangkaWaktu]);
 
   // ========================================================================
   return (
@@ -159,7 +305,7 @@ function buildMultiSegmentSchedule(
             {/* === HASIL SIMULASI === */}
             <div className="bg-white rounded-2xl p-8 shadow-sm border">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <SlidersHorizontal className="h-6 w-6 text-bni-teal" />
+                <BarChart3 className="h-6 w-6 text-bni-orange" />
                 Hasil Simulasi
               </h2>
 
@@ -196,9 +342,10 @@ function buildMultiSegmentSchedule(
 
             {/* === PENGATURAN + MULTI RATE === */}
             <div className="bg-white rounded-2xl p-8 shadow-sm border">
-              <h3 className="text-lg font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Settings2 className="h-6 w-6 text-bni-orange" />
                 Pengaturan KPR
-              </h3>
+              </h2>
 
               <div className="space-y-8">
                 <SliderInput
@@ -219,7 +366,7 @@ function buildMultiSegmentSchedule(
                   onChange={setPersenDP}
                   formatValue={(val) => `${val}% (${formatCurrency(hargaProperti * (val / 100))})`}
                 />
-                <SliderInput
+                {/* <SliderInput
                   label="Jangka Waktu (tahun)"
                   value={jangkaWaktu}
                   min={1}
@@ -227,156 +374,198 @@ function buildMultiSegmentSchedule(
                   step={1}
                   onChange={setJangkaWaktu}
                   formatValue={(val) => `${val} tahun (${val * 12} bulan)`}
-                />
+                /> */}
 
                 {/* === PENYESUAIAN MULTI-RATE === */}
-                <div className="border rounded-lg p-4">
-                  <p className="text-sm font-medium mb-3 text-gray-700">
-                    Penyesuaian Multi-Rate
-                  </p>
-                  {rateSegments.map((seg, idx) => (
-                    <div key={idx} className="grid grid-cols-4 gap-2 mb-2 items-end">
-                      <label className="text-xs">
-                        Mulai
-                        <input
-                          type="number"
-                          className="w-full border rounded px-2 py-1 mt-1 bg-white text-gray-900"
-                          value={seg.start}
-                          min={1}
-                          max={tenor}
-                          onChange={(e) => {
-                            const val = Math.max(1, Math.min(+e.target.value, tenor))
-                            setRateSegments((prev) =>
-                              prev.map((s, i) => (i === idx ? { ...s, start: val } : s))
-                            )
-                          }}
-                        />
-                      </label>
-                      <label className="text-xs">
-                        Selesai
-                        <input
-                          type="number"
-                          className="w-full border rounded px-2 py-1 mt-1 bg-white text-gray-900"
-                          value={seg.end}
-                          min={seg.start}
-                          max={tenor}
-                          onChange={(e) => {
-                            const val = Math.max(seg.start, Math.min(+e.target.value, tenor))
-                            setRateSegments((prev) =>
-                              prev.map((s, i) => (i === idx ? { ...s, end: val } : s))
-                            )
-                          }}
-                        />
-                      </label>
-                      <label className="text-xs">
-                        Rate (%)
-                        <input
-                          type="number"
-                          step="0.01"
-                          className="w-full border rounded px-2 py-1 mt-1 bg-white text-gray-900"
-                          value={seg.rate}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value || '0')
-                            setRateSegments((prev) =>
-                              prev.map((s, i) => (i === idx ? { ...s, rate: val } : s))
-                            )
-                          }}
-                        />
-                      </label>
-                      <button
-                        onClick={() =>
-                          setRateSegments((prev) => prev.filter((_, i) => i !== idx))
-                        }
-                        className="text-red-500 hover:text-red-600 flex items-center gap-1 justify-center"
-                      >
-                        <Trash2 className="h-4 w-4" /> Hapus
-                      </button>
-                    </div>
-                  ))}
-                    <button
-                    disabled={
-                        rateSegments.length > 0 &&
-                        rateSegments[rateSegments.length - 1].end >= tenor
-                    }
-                    className={`mt-2 flex items-center gap-2 text-sm rounded-lg px-3 py-1 border transition 
-                        ${
-                        rateSegments.length > 0 &&
-                        rateSegments[rateSegments.length - 1].end >= tenor
-                            ? 'opacity-50 cursor-not-allowed bg-gray-200 border-gray-300 text-gray-500'
-                            : 'text-white bg-[#FF8500] border-[#FF8500] hover:bg-[#e67300]'
-                        }`}
+                <div
+                  className="mb-4 border rounded-lg p-3"
+                  style={{ borderColor: colors.gray + "33" }}
+                >
+                  <p className="text-sm font-medium mb-3 text-gray-700">Penyesuaian Bunga Otomatis</p>
+
+                  {/* Pilihan Developer */}
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-gray-600">Pilih Tipe Developer</label>
+                    <select
+                      className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-white text-gray-900"
+                      value={developerType}
+                      onChange={(e) => setDeveloperType(e.target.value as "A" | "B")}
                     >
-                    <Plus className="h-4 w-4" /> Tambah Segmen
-                    </button>
+                      <option value="A">🏠 Top Selected Developer</option>
+                      <option value="B">🏗️ Developer Kerjasama</option>
+                    </select>
+                  </div>
+
+                  {/* Pilihan Jenis Bunga */}
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-gray-600">Jenis Skema Bunga</label>
+                    <select
+                      className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-white text-gray-900"
+                      value={schemeType}
+                      onChange={(e) => setSchemeType(e.target.value as "single_fixed" | "tiered")}
+                    >
+                      <option value="single_fixed">🔒 Single Fixed</option>
+                      <option value="tiered">🪜 Tiered Rate</option>
+                    </select>
+                  </div>
+
+                  {/* TENOR */}
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-gray-600">Pilih Tenor (tahun)</label>
+                    <select
+                      className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-white text-gray-900"
+                      value={jangkaWaktu}
+                      onChange={(e) => {
+                        const val = Number(e.target.value)
+                        setJangkaWaktu(val)
+                        const data = rateData[schemeType]?.[developerType]?.[String(val)]
+                        if (data) setSelectedRates(data)
+                        else {
+                          setSelectedRates({})
+                          setRateSegments([])
+                        }
+                      }}
+                    >
+                      <option value="">-- Pilih Tenor --</option>
+                      {Object.keys(rateData[schemeType]?.[developerType] || {}).map((key) => (
+                        <option key={key} value={key}>
+                          {key} tahun
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Pilihan Segmen Bunga (khusus single_fixed saja) */}
+                  {schemeType === "single_fixed" && Object.keys(selectedRates).length > 0 && (
+                    <div className="mb-3">
+                      <label className="text-xs font-medium text-gray-600">Pilih Segmen Bunga</label>
+                      <select
+                        className="w-full mt-1 border rounded-lg px-3 py-2 text-sm bg-white text-gray-900"
+                        onChange={(e) => {
+                          const label = e.target.value
+                          const rate = selectedRates[label]
+                          if (rate) {
+                            const match = label.match(/(\d+)/)
+                            const years = match ? parseInt(match[1]) : 0
+                            const end = years * 12
+                            const totalMonths = jangkaWaktu * 12
+                            const segments: RateSegment[] = [
+                              { start: 1, end, rate, label },
+                            ]
+
+                            if (end < totalMonths) {
+                              segments.push({
+                                start: end + 1,
+                                end: totalMonths,
+                                rate: 0,
+                                label: "Bunga Floating",
+                              })
+                            }
+                            setRateSegments(segments)
+                          }
+                        }}
+                      >
+                        <option value="">-- Pilih Segmen --</option>
+                        {Object.entries(selectedRates).map(([label, value]) => (
+                          <option key={label} value={label}>
+                            {label} ({value}%)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
 
+
+                  {/* Preview bunga terpilih */}
+                  <div className="mt-4 bg-gray-50 border rounded-lg p-3 text-sm space-y-1">
+                    <p className="font-medium text-gray-800">Bunga Berlaku:</p>
+                    {Object.entries(selectedRates).map(([label, value]) => (
+                      <div key={label} className="flex justify-between border-b last:border-none pb-1">
+                        <span className="text-gray-600">{label}</span>
+                        <span className="font-semibold text-gray-900">{value}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* === KANAN: TABEL ANGSURAN === */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm border overflow-hidden">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Rincian Angsuran
-            </h2>
-            {rows.length === 0 ? (
-              <p className="text-gray-500">Tidak ada data angsuran.</p>
-            ) : (
-              <>
-                <div className="overflow-x-auto border rounded-lg">
-                  <table className="min-w-full text-sm text-left">
-                    <thead className="bg-gray-100">
-                      <tr className="text-gray-900 text-sm font-semibold">
-                        <th className="px-4 py-3">Bulan</th>
-                        <th className="px-4 py-3">Rate (%)</th>
-                        <th className="px-4 py-3">Pokok</th>
-                        <th className="px-4 py-3">Bunga</th>
-                        <th className="px-4 py-3">Total</th>
-                        <th className="px-4 py-3">Sisa Pinjaman</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pagedRows.map((r) => (
-                        <tr key={r.month} className="border-t hover:bg-gray-100 transition">
-                          <td className="px-4 py-2 text-gray-900">{r.month}</td>
-                          <td className="px-4 py-2 text-gray-900 font-semibold">{r.rateApplied.toFixed(2)}</td>
-                          <td className="px-4 py-2 text-gray-800">{formatCurrency(r.principalComponent)}</td>
-                          <td className="px-4 py-2 text-gray-800">{formatCurrency(r.interestComponent)}</td>
-                          <td className="px-4 py-2 font-bold text-gray-900">{formatCurrency(r.payment)}</td>
-                          <td className="px-4 py-2 text-gray-800">{formatCurrency(r.balance)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="flex justify-between items-center mt-6 text-sm">
-                  <span className="text-gray-600">
-                    Menampilkan {pagedRows.length} dari {rows.length} baris
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                    disabled={page === 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="px-4 py-2 rounded-lg border border-[#3FD8D4] bg-[#3FD8D4] text-white
-                                hover:bg-[#34beb9] disabled:opacity-50 disabled:bg-gray-300"
-                    >
-                    Sebelumnya
-                    </button>
+          <div className="rounded-2xl bg-white p-5" style={{ borderColor: colors.gray + "33" }}>
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <FileText className="h-6 w-6 text-bni-orange" />
+                  Rincian Angsuran
+                </h2>
+              </div>
+            </div>
+            <div className="overflow-x-auto border rounded-lg text-gray-600" style={{ borderColor: colors.gray + "45" }}>
+              <table className="min-w-full text-sm ">
+                <thead style={{ background: colors.orange + "11", color: colors.gray  }}>
+                  <tr>
+                    <th className="px-4 py-2">Bulan</th>
+                    <th className="px-4 py-2">Pokok</th>
+                    <th className="px-4 py-2">Bunga</th>
+                    <th className="px-4 py-2">Angsuran</th>
+                    <th className="px-4 py-2">Sisa</th>
+                    <th className="px-4 py-2">Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paged.map((r) => (
+                    <tr key={r.month} className="border-t" style={{ borderColor: colors.gray + "33" }}>
+                      <td className="px-4 py-2">{r.month}</td>
 
-                    <button
-                    disabled={page === maxPage}
-                    onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-                    className="px-4 py-2 rounded-lg border border-[#3FD8D4] bg-[#3FD8D4] text-white
-                                hover:bg-[#34beb9] disabled:opacity-50 disabled:bg-gray-300"
-                    >
-                    Berikutnya
-                    </button>
+                      {r.rateApplied === 0 ? (
+                        <>
+                          <td className="px-4 py-2 italic text-gray-400">-</td>
+                          <td className="px-4 py-2 italic text-gray-400">-</td>
+                          <td className="px-4 py-2 italic text-gray-400">-</td>
+                          <td className="px-4 py-2 italic text-gray-400">-</td>
+                          <td className="px-4 py-2 font-medium text-[#FF8500]">Bunga Floating</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-4 py-2">Rp{roundIDR(r.principalComponent).toLocaleString("id-ID")}</td>
+                          <td className="px-4 py-2">Rp{roundIDR(r.interestComponent).toLocaleString("id-ID")}</td>
+                          <td className="px-4 py-2 font-medium text-black">
+                            Rp{roundIDR(r.payment).toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-4 py-2">Rp{roundIDR(r.balance).toLocaleString("id-ID")}</td>
+                          <td className="px-4 py-2">{r.rateApplied.toFixed(2)}%</td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
 
-                  </div>
-                </div>
-              </>
-            )}
+              </table>
+            </div>
+
+            <div className="flex justify-between items-center mt-4 text-sm text-gray-500">
+              <span>Halaman {page} / {maxPage}</span>
+              <div className="flex gap-2">
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1 rounded border disabled:opacity-40"
+                  style={{ borderColor: colors.orange, color: colors.orange }}
+                >
+                  Prev
+                </button>
+                <button
+                  disabled={page === maxPage}
+                  onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
+                  className="px-3 py-1 rounded border disabled:opacity-40"
+                  style={{ borderColor: colors.orange, color: colors.orange }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

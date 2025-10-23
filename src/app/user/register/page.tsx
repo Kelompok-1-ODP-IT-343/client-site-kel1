@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // ⬅️ Tambahkan ini
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { registerUser } from "./../../lib/coreApi";
 import {
   Popover,
   PopoverContent,
@@ -42,19 +43,21 @@ const OCCUPATION_KTP = [
 ];
 
 export default function RegisterSimple() {
-  const router = useRouter(); // Inisialisasi router
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
+    full_name: "",
+    birth_place: "",
     email: "",
     username: "",
     password: "",
     retype_password: "",
-    full_name: "",
-    birth_place: "",
     occupation: "",
     salary_income: "",
     agree_terms: false,
     agree_info: false,
   });
+
+  const router = useRouter();
   const [birthDate, setBirthDate] = useState<Date>();
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -74,32 +77,75 @@ export default function RegisterSimple() {
     setMessage("");
 
     if (!form.email.includes("@")) return setError("Format email tidak valid.");
-    if (form.password.length < 8)
+    if (form.password.length < 8) {
       return setError("Password minimal 8 karakter.");
-    if (form.password !== form.retype_password)
+    }
+
+    if (!/[A-Z]/.test(form.password)) {
+      return setError("Password harus mengandung minimal satu huruf besar.");
+    }
+
+    if (!/[a-z]/.test(form.password)) {
+      return setError("Password harus mengandung minimal satu huruf kecil.");
+    }
+    if (!/\d/.test(form.password)) {
+      return setError("Password harus mengandung minimal satu angka.");
+    }
+
+    if (!/[^A-Za-z0-9]/.test(form.password)) {
+      return setError("Password harus mengandung minimal satu karakter spesial.");
+    }
+
+    if (form.password !== form.retype_password) {
       return setError("Konfirmasi password tidak sama.");
+    } 
     if (!form.agree_terms)
       return setError("Anda harus menyetujui syarat & ketentuan.");
+    if (!birthDate) return setError("Tanggal lahir harus diisi.");
+    if (!form.full_name || !form.birth_place || !form.occupation || !form.salary_income)
+      return setError("Semua data diri (*) harus diisi.");
 
+    setLoading(true);
+
+    const payload = {
+      fullName: form.full_name,
+      birthPlace: form.birth_place,
+      birthDate: format(birthDate, "yyyy-MM-dd"), // Format date to string
+      phone: "08123455678", // no need
+      nik:"1212121212121312",// no need
+      npwp:"1212121212123212",// no need
+      email: form.email,
+      username: form.username,
+      password: form.password,
+      confirmPassword: form.retype_password,
+      gender:"MALE",
+      maritalStatus:"SINGLE",
+      address:"Kemang",
+      city: "Jakarta",
+      province: "Jakarta Selatan",
+      postalCode: "12741",
+      companyName: "Kuburan Band",
+      occupation: form.occupation,
+      workExperience:"5",
+      monthlyIncome: form.salary_income,
+      consentAt: new Date().toISOString(), //no need
+
+    };
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, birth_date: birthDate }),
-      });
-      const data = await res.json();
+      const result = await registerUser(payload);
 
-      if (!res.ok) throw new Error(data.error);
-
-      // ✅ Kalau berhasil, tampilkan pesan dulu
-      setMessage("✅ Registrasi berhasil! Mengarahkan ke halaman login...");
-      
-      // Tunggu 1,5 detik lalu redirect ke login
-      setTimeout(() => {
-        router.push("/user/login"); // Route ke halaman login
-      }, 1500);
+      if (result.success) {
+        setMessage(`✅ ${result.message}\nUsername: ${result.data?.user.username}. Mengarahkan ke login...`);
+        setTimeout(() => {
+          router.push("/user/login");
+        }, 2000);
+      } else {
+        setError(`${result.message || "Registrasi gagal."}`);
+      }
     } catch (err: any) {
-      setError(`❌ ${err.message}`);
+      setError(`${err.message || "Terjadi kesalahan koneksi."}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,7 +157,6 @@ export default function RegisterSimple() {
         transition={{ duration: 0.4 }}
         className="w-full max-w-3xl bg-white p-8 md:p-10 rounded-2xl shadow-lg text-sm"
       >
-        {/* Heading */}
         <h1 className="text-sm md:text-base font-semibold text-center text-gray-800 mb-1">
           Daftar Akun Satu Atap
         </h1>
@@ -120,29 +165,26 @@ export default function RegisterSimple() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ========================= SECTION 1: AKUN ========================= */}
           <div>
             <h2 className="text-sm font-semibold text-gray-800 border-b pb-2 mb-3">
               Informasi Akun
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField label="Email *" name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email" />
-              <InputField label="Username *" name="username" type="text" value={form.username} onChange={handleChange} placeholder="Username" />
-              <InputField label="Password *" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" />
-              <InputField label="Konfirmasi Password *" name="retype_password" type="password" value={form.retype_password} onChange={handleChange} placeholder="Konfirmasi Password" />
+              <InputField required label="Email *" name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email" />
+              <InputField required label="Username *" name="username" type="text" value={form.username} onChange={handleChange} placeholder="Username" />
+              <InputField required label="Password *" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" />
+              <InputField required label="Konfirmasi Password *" name="retype_password" type="password" value={form.retype_password} onChange={handleChange} placeholder="Konfirmasi Password" />
             </div>
           </div>
 
-          {/* ========================= SECTION 2: DATA DIRI ========================= */}
           <div>
             <h2 className="text-sm font-semibold text-gray-800 border-b pb-2 mb-3">
               Data Diri
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField label="Nama Lengkap *" name="full_name" value={form.full_name} onChange={handleChange} placeholder="Nama Lengkap" />
-              <InputField label="Tempat Lahir *" name="birth_place" value={form.birth_place} onChange={handleChange} placeholder="Tempat Lahir" />
+              <InputField required label="Nama Lengkap *" name="full_name" value={form.full_name} onChange={handleChange} placeholder="Nama Lengkap" />
+              <InputField required label="Tempat Lahir *" name="birth_place" value={form.birth_place} onChange={handleChange} placeholder="Tempat Lahir" />
 
-              {/* === 📅 Kalender === */}
               <div className="flex flex-col">
                 <label className="block text-xs font-medium text-gray-700 mb-2">
                   Tanggal Lahir *
@@ -171,12 +213,14 @@ export default function RegisterSimple() {
                       selected={birthDate}
                       onSelect={setBirthDate}
                       className="rounded-md text-xs [&_.rdp-months]:flex [&_.rdp-months]:justify-center [&_.rdp-head_cell]:text-gray-500 [&_.rdp-day]:h-7 [&_.rdp-day]:w-7 [&_.rdp-day_selected]:bg-orange-500 [&_.rdp-day_selected]:text-white"
-                    />
+                      // Optional: Add range limits for birth date
+                      fromYear={1950}
+                      toYear={new Date().getFullYear() - 17} // Example: min 17 years old
+                      captionLayout="dropdown"                    />
                   </PopoverContent>
                 </Popover>
               </div>
 
-              {/* Pekerjaan */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-2">
                   Pekerjaan *
@@ -185,6 +229,7 @@ export default function RegisterSimple() {
                   name="occupation"
                   value={form.occupation}
                   onChange={handleChange}
+                  required
                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 text-xs"
                 >
                   <option value="">Pilih Jenis Pekerjaan</option>
@@ -196,11 +241,10 @@ export default function RegisterSimple() {
                 </select>
               </div>
 
-              <InputField label="Pendapatan Bulanan *" name="salary_income" value={form.salary_income} onChange={handleChange} placeholder="Pendapatan Bulanan" />
+              <InputField required label="Pendapatan Bulanan *" name="salary_income" value={form.salary_income} onChange={handleChange} placeholder="Pendapatan Bulanan" type="number" />
             </div>
           </div>
 
-          {/* Checklist */}
           <div className="space-y-1 mt-2 text-xs">
             <Checkbox
               name="agree_terms"
@@ -216,15 +260,20 @@ export default function RegisterSimple() {
             />
           </div>
 
-          {/* Error & Success */}
-          {error && <p className="text-red-600 text-xs mt-2">{error}</p>}
-          {message && <p className="text-green-600 text-xs mt-2">{message}</p>}
+          {error && <p className="text-red-600 text-xs mt-2 whitespace-pre-wrap">{error}</p>}
+          {message && <p className="text-green-600 text-xs mt-2 whitespace-pre-wrap">{message}</p>}
 
           <button
             type="submit"
-            className="w-full mt-5 py-2 bg-orange-500 text-white text-xs font-semibold rounded-md hover:bg-orange-600 transition-all"
+            disabled={loading}
+            className={`w-full mt-5 py-2 text-white text-xs font-semibold rounded-md transition-all ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-orange-500 hover:bg-orange-600"
+            }`}
+            
           >
-            Daftar Sekarang
+            {loading ? "Mendaftar..." : "Daftar Sekarang"}
           </button>
         </form>
       </motion.div>
@@ -232,8 +281,7 @@ export default function RegisterSimple() {
   );
 }
 
-/* 🔸 Input Field */
-function InputField({ label, name, type = "text", value, onChange, placeholder }: any) {
+function InputField({ label, name, type = "text", value, onChange, placeholder, required = false }: any) {
   return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1.5">{label}</label>
@@ -243,13 +291,13 @@ function InputField({ label, name, type = "text", value, onChange, placeholder }
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        required={required}
         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 text-xs"
       />
     </div>
   );
 }
 
-/* 🔸 Checkbox */
 function Checkbox({ name, checked, onChange, label }: any) {
   return (
     <label className="flex items-center text-gray-700 text-xs">

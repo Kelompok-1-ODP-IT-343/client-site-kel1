@@ -4,16 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { X, Menu } from "lucide-react";
-import Image from "next/image"; // 1. Tambahkan import Image
+import Image from "next/image"; 
 
-// Asumsi path ini sudah benar
 import { USER_ROUTES } from "@/app/routes/userRoutes";
 
-// Daftar item navigasi
 const navItems = [
   { href: USER_ROUTES.BERANDA, label: "Beranda" },
   { href: USER_ROUTES.CARI_RUMAH, label: "Cari Rumah" },
   { href: USER_ROUTES.SIMULASI, label: "Simulasi" },
+  { href: USER_ROUTES.TENTANG_KAMI, label: "Tentang Kami" },
 ];
 
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {

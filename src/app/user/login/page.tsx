@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
-import { loginApi } from "../../lib/coreApi";
+import { loginApi } from "./../../lib/coreApi";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +15,6 @@ export default function LoginPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
-    // Hapus error saat pengguna mulai mengetik
     if (errors[name as keyof typeof errors]) {
       setErrors({ ...errors, [name]: "" });
     }
@@ -45,32 +44,32 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus({ loading: false, message: "", type: "" }); // Reset status
+    setStatus({ loading: false, message: "", type: "" });
+    
     if (!validateForm()) return;
 
     setStatus({ loading: true, message: "", type: "" });
 
     try {
-      // Kirim payload sesuai requirement: identifier & password
       const payload = { identifier: form.email, password: form.password };
+      console.log(payload,"tess")
       const res = await loginApi(payload);
-
-      // Response diharapkan: { success, message, data: { token, type, ... } }
-      const token = res?.data?.token || res?.token;
-      const tokenType = res?.data?.type || "Bearer";
-
-      if (token) {
-        localStorage.setItem("access_token", token);
-        localStorage.setItem("token_type", tokenType);
+      if (res.success && res.data) {
+        const { token, type, refreshToken } = res.data;
+        const expiry = 5 * 60; 
+        document.cookie = `token=${token}; path=/; max-age=${expiry}; SameSite=Lax`;
+        document.cookie = `token_type=${type || "Bearer"}; path=/; max-age=${expiry}; SameSite=Lax`;
+        const refreshExpiry = 24 * 60 * 60;
+        document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${refreshExpiry}; SameSite=Lax`;
+        setStatus({ loading: false, message: "Login berhasil! Mengarahkan ke Beranda...", type: "success" });
+        setTimeout(() => {
+          router.push("/user/beranda");
+        }, 1000);
+      } else {
+        setStatus({ loading: false, message: res.message || "Email atau password salah.", type: "error" });
       }
-
-      setStatus({ loading: false, message: "Login berhasil! Mengarahkan ke Beranda...", type: "success" });
-      setTimeout(() => {
-        router.push("/user/beranda");
-      }, 1000);
     } catch (err: any) {
-      const message = err?.response?.data?.message || "Email atau password yang Anda masukkan salah.";
-      setStatus({ loading: false, message, type: "error" });
+      setStatus({ loading: false, message: err.message || "Gagal terhubung ke server.", type: "error" });
     }
   };
 
@@ -85,7 +84,6 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
           <div>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -102,7 +100,6 @@ export default function LoginPage() {
             {errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email}</p>}
           </div>
 
-          {/* Password */}
           <div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -119,7 +116,6 @@ export default function LoginPage() {
              {errors.password && <p className="text-red-500 text-xs mt-1 ml-1">{errors.password}</p>}
           </div>
 
-          {/* Button */}
           <button
             type="submit"
             disabled={status.loading || !form.email || !form.password}
@@ -130,19 +126,17 @@ export default function LoginPage() {
             }`}
           >
             {status.loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : "Masuk"}
           </button>
         </form>
 
-        {/* Pesan Sistem */}
         {status.message && (
           <div className={`text-center text-sm p-3 rounded-lg mt-6 ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
             {status.message}
           </div>
         )}
 
-        {/* Register Link */}
         <p className="text-center text-sm text-gray-600 mt-6">
           Belum punya akun?{" "}
           <Link href="/user/register" className="text-bni-teal hover:underline font-bold">

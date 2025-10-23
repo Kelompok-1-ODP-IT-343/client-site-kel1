@@ -8,4 +8,5 @@ export const USER_ROUTES = {
   LOGIN: "/user/login",
   REGISTER: "/user/register",
   SIMULASI: "/user/simulasi",
+  TENTANG_KAMI: "/user/tentang-kami",
 };

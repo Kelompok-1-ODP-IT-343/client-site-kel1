@@ -1,49 +1,52 @@
-import axios, { AxiosHeaders } from "axios";
+import { API_BASE_URL, API_ENDPOINTS } from "./apiConfig";
+export async function registerUser(payload: any) { 
+  const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
 
-// Axios instance untuk seluruh request ke API Satu Atap
-const coreApi = axios.create({
-  baseURL: "https://satuatap.my.id/api",
-  timeout: 15000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Interceptor: sisipkan Authorization jika ada token di localStorage
-coreApi.interceptors.request.use((config) => {
   try {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("access_token");
-      const tokenType = localStorage.getItem("token_type") || "Bearer";
-      if (token) {
-        if (config.headers instanceof AxiosHeaders) {
-          config.headers.set("Authorization", `${tokenType} ${token}`);
-        } else {
-          config.headers = new AxiosHeaders(config.headers as any);
-          config.headers.set("Authorization", `${tokenType} ${token}`);
-        }
-      }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload), 
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      return { success: true, message: result.message, data: result.data };
+    } else {
+      return { success: false, message: result.message || "Registrasi gagal." };
     }
-  } catch (_) {
-    // abaikan jika localStorage tidak tersedia
+  } catch (error) {
+    console.error("Error:", error);
+    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
   }
-  return config;
-});
-
-// Interceptor response: kembalikan response apa adanya, propagasi error
-coreApi.interceptors.response.use(
-  (response) => response,
-  (error) => Promise.reject(error)
-);
-
-// Call API: Login (Strapi style payload: identifier & password)
-// Returns JWT token and user data. We store token into localStorage as 'access_token'
-export async function loginApi(payload: {
-  identifier: string;
-  password: string;
-}) {
-  const res = await coreApi.post("/v1/auth/login", payload);
-  return res.data;
 }
+export async function loginApi(payload:any){
+  const url = `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`;
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload), 
+    });
 
-export default coreApi;
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      return { success: true, message: result.message, data: result.data };
+    } else {
+      return { success: false, message: result.message || "Login gagal." };
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+  }
+}
+// ADD THIS FOR ADDING NEW IMPLEMENTATION INTEGRATION
+export async function cariRumah(){
+
+}
