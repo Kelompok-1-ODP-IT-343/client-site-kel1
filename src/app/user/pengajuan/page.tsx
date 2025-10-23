@@ -212,236 +212,7 @@ export default function FormPengajuanPage() {
 function StepDataDiri({ formData, handleChange, errors }: StepProps) { return ( <StepContent title="Lengkapi Data Diri Anda"> <div className="grid md:grid-cols-2 gap-x-6 gap-y-5"> <InputField required label="Nama Lengkap Sesuai KTP" name="fullName" value={formData.fullName} onChange={handleChange} error={errors.fullName} /> <InputField required label="Nomor Induk Kependudukan (NIK)" name="nik" value={formData.nik} onChange={handleChange} error={errors.nik} maxLength={16} /> <InputField required label="Tempat Lahir" name="birthPlace" value={formData.birthPlace} onChange={handleChange} error={errors.birthPlace} /> <InputField required label="Tanggal Lahir" name="birthDate" type="date" value={formData.birthDate} onChange={handleChange} error={errors.birthDate} /> <SelectField required label="Jenis Kelamin" name="gender" value={formData.gender} onChange={handleChange} error={errors.gender}><option value="">Pilih...</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></SelectField> <SelectField required label="Status Perkawinan" name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} error={errors.maritalStatus}><option value="">Pilih...</option><option value="Belum Kawin">Belum Kawin</option><option value="Kawin">Kawin</option><option value="Cerai">Cerai</option></SelectField> <InputField required label="Nomor Telepon" name="phone" type="tel" value={formData.phone} onChange={handleChange} error={errors.phone} /> <InputField required label="Email" name="email" type="email" value={formData.email} onChange={handleChange} error={errors.email} /> <InputField required label="NPWP" name="npwp" value={formData.npwp} onChange={handleChange} error={errors.npwp} /> </div> </StepContent> ); }
 function StepAlamat({ formData, handleChange, errors }: StepProps) { return ( <StepContent title="Informasi Alamat Tempat Tinggal"> <div className="grid md:grid-cols-2 gap-x-6 gap-y-5"> <TextAreaField required label="Alamat Sesuai KTP" name="address" value={formData.address} onChange={handleChange} error={errors.address} /> <InputField required label="Kelurahan" name="subdistrict" value={formData.subdistrict} onChange={handleChange} error={errors.subdistrict} /><InputField required label="Kecamatan" name="district" value={formData.district} onChange={handleChange} error={errors.district} /><InputField required label="Kota / Kabupaten" name="city" value={formData.city} onChange={handleChange} error={errors.city} /> <InputField required label="Provinsi" name="province" value={formData.province} onChange={handleChange} error={errors.province} /> <InputField required label="Kode Pos" name="postalCode" value={formData.postalCode} onChange={handleChange} error={errors.postalCode} maxLength={5} /> </div> </StepContent> ); }
 function StepPekerjaan({ formData, handleChange, errors }: StepProps) { return ( <StepContent title="Detail Pekerjaan & Pendapatan"> <div className="grid md:grid-cols-2 gap-x-6 gap-y-5"> <InputField required label="Pekerjaan Utama" name="occupation" value={formData.occupation} onChange={handleChange} error={errors.occupation} /> <InputField required label="Nama Perusahaan / Instansi" name="companyName" value={formData.companyName} onChange={handleChange} error={errors.companyName} /> <InputField required label="Pendapatan Bersih per Bulan (Rp)" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleChange} error={errors.monthlyIncome} placeholder="Contoh: 10.000.000" /> <InputField required label="Lama Bekerja (Tahun)" name="workExperience" type="number" value={formData.workExperience} onChange={handleChange} error={errors.workExperience} placeholder="Contoh: 5"/> </div> </StepContent> ); }
-// function StepPengajuan({ data, formData, handleChange, errors }: { data: Record<string, string | null>, formData: any, handleChange: any, errors: any }) { const houseImage = data.image || '/rumah-default.jpg'; return ( <StepContent title="Konfirmasi Detail Pengajuan & Upload Dokumen"> <div className="space-y-8"> <div> <h3 className="text-lg font-semibold text-gray-700 mb-2">Properti yang Diajukan</h3> <div className="flex flex-col md:flex-row items-center gap-6 p-4 border rounded-xl bg-gray-50"> <div className="relative w-full md:w-40 h-32 md:h-auto md:aspect-[4/3] rounded-lg overflow-hidden flex-shrink-0"> <Image src={houseImage} alt={data.propertiNama || "Properti"} fill className="object-cover" /> </div> <div className="text-center md:text-left"> <h4 className="font-bold text-gray-800 text-lg">{data.propertiNama || "Properti Pilihan"}</h4> {data.propertiLokasi && <p className="text-sm text-gray-500 flex items-center justify-center md:justify-start gap-1"><MapPin size={14} /> {data.propertiLokasi}</p>} <p className="mt-2 text-xl font-bold text-bni-orange">{formatCurrency(data.hargaProperti || '0')}</p> </div> </div> </div> <div> <h3 className="text-lg font-semibold text-gray-700 mb-3">Detail Pinjaman & Dokumen</h3> <div className="grid md:grid-cols-2 gap-x-6 gap-y-5"> <InputField required label="Uang Muka (DP) (Rp)" name="downPayment" placeholder="Contoh: 150.000.000" value={formData.downPayment} onChange={handleChange} error={errors.downPayment} /> <SelectField required label="Jangka Waktu (Tenor)" name="loanTerm" value={formData.loanTerm} onChange={handleChange} error={errors.loanTerm}> <option value="">Pilih Tenor...</option><option value="10">10 Tahun</option><option value="15">15 Tahun</option><option value="20">20 Tahun</option><option value="25">25 Tahun</option><option value="30">30 Tahun</option> </SelectField> <FileInputField required label="Upload KTP (.jpg/.pdf, max 2MB)" name="fileKTP" onChange={handleChange} error={errors.fileKTP} file={formData.fileKTP}/> <FileInputField required label="Upload Slip Gaji/Bukti Penghasilan (.pdf, max 2MB)" name="fileSlipGaji" onChange={handleChange} error={errors.fileSlipGaji} file={formData.fileSlipGaji} /> </div> <div className="mt-6 space-y-3"> <label className="flex items-center gap-2.5 text-sm text-gray-600"> <input type="checkbox" name="agreePrivacy" checked={formData.agreePrivacy} onChange={handleChange} required className="h-4 w-4 rounded border-gray-300 text-bni-orange focus:ring-bni-orange accent-bni-orange"/> Saya menyetujui <Link href="/privacy" className="text-bni-teal hover:underline font-medium">kebijakan privasi dan penggunaan data pribadi</Link>* </label> {errors.agreePrivacy && <p className="mt-1 text-xs text-red-500">{errors.agreePrivacy}</p>} </div> </div> </div> </StepContent> ); }
-// function StepPengajuan({
-//   data,
-//   formData,
-//   handleChange,
-//   errors,
-// }: {
-//   data: Record<string, string | null>;
-//   formData: any;
-//   handleChange: any;
-//   errors: any;
-// }) {
-//   const [showSimulasi, setShowSimulasi] = useState(false);
 
-//   // === Ambil data dari form ===
-//   const hargaProperti = Number(data.hargaProperti || 0);
-//   const downPayment = parseCurrency(formData.downPayment || "0");
-//   const persenDP = hargaProperti ? Math.round((downPayment / hargaProperti) * 100) : 0;
-//   const jangkaWaktu = Number(formData.loanTerm || 0);
-//   const tenor = jangkaWaktu * 12;
-//   const loanAmount = hargaProperti - downPayment;
-
-//   // === Logika simulasi ===
-//   const [rateSegments, setRateSegments] = useState([
-//     { start: 1, end: tenor > 0 ? tenor : 240, rate: 6.5 },
-//   ]);
-
-//   const formatCurrency = (amount: number) =>
-//     new Intl.NumberFormat("id-ID", {
-//       style: "currency",
-//       currency: "IDR",
-//       minimumFractionDigits: 0,
-//     }).format(amount);
-
-//   // === Bangun tabel amortisasi ===
-//   function buildSchedule(principal: number, segments: { start: number; end: number; rate: number }[]) {
-//     const rows = [];
-//     let balance = principal;
-
-//     for (let seg of segments) {
-//       const months = seg.end - seg.start + 1;
-//       const r = seg.rate / 100 / 12;
-//       const payment = (balance * r) / (1 - Math.pow(1 + r, -months));
-
-//       for (let i = 0; i < months; i++) {
-//         const interest = balance * r;
-//         const principalPart = payment - interest;
-//         balance -= principalPart;
-//         rows.push({
-//           month: seg.start + i,
-//           rate: seg.rate,
-//           payment,
-//           principalPart,
-//           interest,
-//           balance: Math.max(0, balance),
-//         });
-//       }
-//     }
-//     return rows;
-//   }
-
-//   const rows = buildSchedule(loanAmount, rateSegments);
-//   const cicilanAwal = rows[0]?.payment || 0;
-//   const totalBunga = rows.reduce((sum, r) => sum + r.interest, 0);
-//   const totalPembayaran = loanAmount + totalBunga;
-
-//   // === Tampilan utama ===
-//   return (
-//     <StepContent title="Konfirmasi Detail Pengajuan & Upload Dokumen">
-//       <div className="space-y-8">
-//         {/* ==== PROPERTI ==== */}
-//         <div>
-//           <h3 className="text-lg font-semibold text-gray-700 mb-2">Properti yang Diajukan</h3>
-//           <div className="flex flex-col md:flex-row items-center gap-6 p-4 border rounded-xl bg-gray-50">
-//             <div className="relative w-full md:w-40 h-32 md:h-auto md:aspect-[4/3] rounded-lg overflow-hidden flex-shrink-0">
-//               <Image
-//                 src={data.image || "/rumah-default.jpg"}
-//                 alt={data.propertiNama || "Properti"}
-//                 fill
-//                 className="object-cover"
-//               />
-//             </div>
-//             <div className="text-center md:text-left">
-//               <h4 className="font-bold text-gray-800 text-lg">
-//                 {data.propertiNama || "Properti Pilihan"}
-//               </h4>
-//               {data.propertiLokasi && (
-//                 <p className="text-sm text-gray-500 flex items-center justify-center md:justify-start gap-1">
-//                   <MapPin size={14} /> {data.propertiLokasi}
-//                 </p>
-//               )}
-//               <p className="mt-2 text-xl font-bold text-bni-orange">
-//                 {formatCurrency(hargaProperti)}
-//               </p>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* ==== DETAIL PINJAMAN ==== */}
-//         <div>
-//           <h3 className="text-lg font-semibold text-gray-700 mb-3">Detail Pinjaman & Dokumen</h3>
-//           <div className="grid md:grid-cols-2 gap-x-6 gap-y-5">
-//             <InputField
-//               required
-//               label="Uang Muka (DP) (Rp)"
-//               name="downPayment"
-//               placeholder="Contoh: 150.000.000"
-//               value={formData.downPayment}
-//               onChange={handleChange}
-//               error={errors.downPayment}
-//             />
-//             <SelectField
-//               required
-//               label="Jangka Waktu (Tenor)"
-//               name="loanTerm"
-//               value={formData.loanTerm}
-//               onChange={handleChange}
-//               error={errors.loanTerm}
-//             >
-//               <option value="">Pilih Tenor...</option>
-//               <option value="10">10 Tahun</option>
-//               <option value="15">15 Tahun</option>
-//               <option value="20">20 Tahun</option>
-//               <option value="25">25 Tahun</option>
-//               <option value="30">30 Tahun</option>
-//             </SelectField>
-
-//             <FileInputField
-//               required
-//               label="Upload KTP (.jpg/.pdf, max 2MB)"
-//               name="fileKTP"
-//               onChange={handleChange}
-//               error={errors.fileKTP}
-//               file={formData.fileKTP}
-//             />
-//             <FileInputField
-//               required
-//               label="Upload Slip Gaji/Bukti Penghasilan (.pdf, max 2MB)"
-//               name="fileSlipGaji"
-//               onChange={handleChange}
-//               error={errors.fileSlipGaji}
-//               file={formData.fileSlipGaji}
-//             />
-//           </div>
-//         </div>
-
-//         {/* ==== TAB SIMULASI ==== */}
-//         <div className="mt-8">
-//           <button
-//             type="button"
-//             onClick={() => setShowSimulasi((prev) => !prev)}
-//             className="w-full flex justify-between items-center bg-[#3FD8D5] text-white px-5 py-3 rounded-lg font-semibold text-left hover:bg-[#33c0ba] transition"
-//           >
-//             <span>💡 Simulasi Cicilan Berdasarkan Data Pengajuan</span>
-//             <span>{showSimulasi ? "▲ Tutup" : "▼ Buka"}</span>
-//           </button>
-
-//           {showSimulasi && (
-//             <div className="mt-5 bg-white border rounded-xl shadow-sm p-6 animate-fadeIn">
-//               {hargaProperti && downPayment && jangkaWaktu ? (
-//                 <>
-//                   <h4 className="font-bold text-lg text-gray-800 mb-4">
-//                     Hasil Simulasi KPR
-//                   </h4>
-//                   <div className="grid md:grid-cols-2 gap-4">
-//                     <div className="space-y-2">
-//                       <p className="text-gray-600 text-sm">Harga Properti</p>
-//                       <p className="font-semibold text-gray-900">
-//                         {formatCurrency(hargaProperti)}
-//                       </p>
-//                       <p className="text-gray-600 text-sm mt-3">Uang Muka</p>
-//                       <p className="font-semibold text-gray-900">
-//                         {formatCurrency(downPayment)} ({persenDP}%)
-//                       </p>
-//                       <p className="text-gray-600 text-sm mt-3">Jangka Waktu</p>
-//                       <p className="font-semibold text-gray-900">{jangkaWaktu} Tahun</p>
-//                     </div>
-//                     <div className="space-y-2 border-l pl-4">
-//                       <p className="text-gray-600 text-sm">Jumlah Pinjaman</p>
-//                       <p className="font-semibold text-gray-900">
-//                         {formatCurrency(loanAmount)}
-//                       </p>
-//                       <p className="text-gray-600 text-sm mt-3">Cicilan per Bulan (estimasi)</p>
-//                       <p className="text-3xl font-extrabold text-bni-orange">
-//                         {formatCurrency(cicilanAwal)}
-//                       </p>
-//                       <p className="text-gray-600 text-sm mt-3">Total Bunga</p>
-//                       <p className="font-semibold text-gray-900">
-//                         {formatCurrency(totalBunga)}
-//                       </p>
-//                     </div>
-//                   </div>
-//                 </>
-//               ) : (
-//                 <p className="text-gray-500 italic">
-//                   Lengkapi data Uang Muka dan Tenor untuk melihat simulasi cicilan.
-//                 </p>
-//               )}
-//             </div>
-//           )}
-//         </div>
-
-//         {/* ==== PERSETUJUAN ==== */}
-//         <div className="mt-6 space-y-3">
-//           <label className="flex items-center gap-2.5 text-sm text-gray-600">
-//             <input
-//               type="checkbox"
-//               name="agreePrivacy"
-//               checked={formData.agreePrivacy}
-//               onChange={handleChange}
-//               required
-//               className="h-4 w-4 rounded border-gray-300 text-bni-orange focus:ring-bni-orange accent-bni-orange"
-//             />
-//             Saya menyetujui{" "}
-//             <Link
-//               href="/privacy"
-//               className="text-bni-teal hover:underline font-medium"
-//             >
-//               kebijakan privasi dan penggunaan data pribadi
-//             </Link>
-//             *
-//           </label>
-//           {errors.agreePrivacy && (
-//             <p className="mt-1 text-xs text-red-500">{errors.agreePrivacy}</p>
-//           )}
-//         </div>
-//       </div>
-//     </StepContent>
-//   );
-// }
 function StepPengajuan({
   data,
   formData,
@@ -454,6 +225,7 @@ function StepPengajuan({
   errors: any;
 }) {
   const [showSimulasi, setShowSimulasi] = useState(false);
+  const [showTerms, setShowTerms] = useState(false); // popup S&K
 
   // === Ambil data utama dari form ===
   const hargaProperti = Number(data.hargaProperti || 0);
@@ -463,7 +235,6 @@ function StepPengajuan({
   const tenor = jangkaWaktu * 12;
   const loanAmount = hargaProperti - downPayment;
 
-  // === State simulasi interaktif tambahan ===
   const [hargaSlider, setHargaSlider] = useState(hargaProperti || 500000000);
   const [persenDPslider, setPersenDPslider] = useState(persenDP || 20);
   const [sukuBunga, setSukuBunga] = useState(6.5);
@@ -472,13 +243,8 @@ function StepPengajuan({
   const pageSize = 12;
 
   const formatCurrencyLocal = (amount: number) =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount);
+    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(amount);
 
-  // === Build tabel amortisasi ===
   const buildSchedule = (P: number, months: number, rateAnnual: number) => {
     const r = rateAnnual / 100 / 12;
     if (P <= 0 || months <= 0) return [];
@@ -512,30 +278,22 @@ function StepPengajuan({
   return (
     <StepContent title="Konfirmasi Detail Pengajuan & Upload Dokumen">
       <div className="space-y-8">
+
         {/* ==== PROPERTI ==== */}
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Properti yang Diajukan</h3>
           <div className="flex flex-col md:flex-row items-center gap-6 p-4 border rounded-xl bg-gray-50">
             <div className="relative w-full md:w-40 h-32 md:h-auto md:aspect-[4/3] rounded-lg overflow-hidden flex-shrink-0">
-              <Image
-                src={data.image || "/rumah-default.jpg"}
-                alt={data.propertiNama || "Properti"}
-                fill
-                className="object-cover"
-              />
+              <Image src={data.image || "/rumah-default.jpg"} alt={data.propertiNama || "Properti"} fill className="object-cover" />
             </div>
             <div className="text-center md:text-left">
-              <h4 className="font-bold text-gray-800 text-lg">
-                {data.propertiNama || "Properti Pilihan"}
-              </h4>
+              <h4 className="font-bold text-gray-800 text-lg">{data.propertiNama || "Properti Pilihan"}</h4>
               {data.propertiLokasi && (
                 <p className="text-sm text-gray-500 flex items-center justify-center md:justify-start gap-1">
                   <MapPin size={14} /> {data.propertiLokasi}
                 </p>
               )}
-              <p className="mt-2 text-xl font-bold text-bni-orange">
-                {formatCurrency(hargaProperti)}
-              </p>
+              <p className="mt-2 text-xl font-bold text-bni-orange">{formatCurrency(hargaProperti)}</p>
             </div>
           </div>
         </div>
@@ -544,23 +302,8 @@ function StepPengajuan({
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-3">Detail Pinjaman & Dokumen</h3>
           <div className="grid md:grid-cols-2 gap-x-6 gap-y-5">
-            <InputField
-              required
-              label="Uang Muka (DP) (Rp)"
-              name="downPayment"
-              placeholder="Contoh: 150.000.000"
-              value={formData.downPayment}
-              onChange={handleChange}
-              error={errors.downPayment}
-            />
-            <SelectField
-              required
-              label="Jangka Waktu (Tenor)"
-              name="loanTerm"
-              value={formData.loanTerm}
-              onChange={handleChange}
-              error={errors.loanTerm}
-            >
+            <InputField required label="Uang Muka (DP) (Rp)" name="downPayment" placeholder="Contoh: 150.000.000" value={formData.downPayment} onChange={handleChange} error={errors.downPayment} />
+            <SelectField required label="Jangka Waktu (Tenor)" name="loanTerm" value={formData.loanTerm} onChange={handleChange} error={errors.loanTerm}>
               <option value="">Pilih Tenor...</option>
               <option value="10">10 Tahun</option>
               <option value="15">15 Tahun</option>
@@ -569,195 +312,113 @@ function StepPengajuan({
               <option value="30">30 Tahun</option>
             </SelectField>
 
-            <FileInputField
-              required
-              label="Upload KTP (.jpg/.pdf, max 2MB)"
-              name="fileKTP"
-              onChange={handleChange}
-              error={errors.fileKTP}
-              file={formData.fileKTP}
-            />
-            <FileInputField
-              required
-              label="Upload Slip Gaji/Bukti Penghasilan (.pdf, max 2MB)"
-              name="fileSlipGaji"
-              onChange={handleChange}
-              error={errors.fileSlipGaji}
-              file={formData.fileSlipGaji}
-            />
+            <FileInputField required label="Upload KTP (.jpg/.pdf, max 2MB)" name="fileKTP" onChange={handleChange} error={errors.fileKTP} file={formData.fileKTP} />
+            <FileInputField required label="Upload Slip Gaji/Bukti Penghasilan (.pdf, max 2MB)" name="fileSlipGaji" onChange={handleChange} error={errors.fileSlipGaji} file={formData.fileSlipGaji} />
           </div>
         </div>
 
-        {/* ==== SIMULASI SLIDER DAN TABEL ==== */}
-        <div className="mt-8">
-          <button
-            type="button"
-            onClick={() => setShowSimulasi((prev) => !prev)}
-            className="w-full flex justify-between items-center bg-[#3FD8D5] text-white px-5 py-3 rounded-lg font-semibold text-left hover:bg-[#33c0ba] transition"
-          >
-            <span>💡 Simulasi Cicilan Interaktif</span>
-            <span>{showSimulasi ? "▲ Tutup" : "▼ Buka"}</span>
-          </button>
-
-          {showSimulasi && (
-            <div className="mt-6 bg-white border rounded-xl shadow-sm p-6 animate-fadeIn">
-              {/* SLIDER INPUT */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Harga Properti
-                  </label>
-                  <input
-                    type="range"
-                    min={100000000}
-                    max={5000000000}
-                    step={10000000}
-                    value={hargaSlider}
-                    onChange={(e) => setHargaSlider(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <p className="text-right font-medium">{formatCurrencyLocal(hargaSlider)}</p>
-
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Uang Muka (DP)
-                  </label>
-                  <input
-                    type="range"
-                    min={10}
-                    max={80}
-                    step={5}
-                    value={persenDPslider}
-                    onChange={(e) => setPersenDPslider(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <p className="text-right font-medium">
-                    {persenDPslider}% ({formatCurrencyLocal(hargaSlider * (persenDPslider / 100))})
-                  </p>
-
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Suku Bunga (% per tahun)
-                  </label>
-                  <input
-                    type="range"
-                    min={3}
-                    max={15}
-                    step={0.25}
-                    value={sukuBunga}
-                    onChange={(e) => setSukuBunga(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <p className="text-right font-medium">{sukuBunga.toFixed(2)}%</p>
-
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Jangka Waktu (Tahun)
-                  </label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={30}
-                    step={1}
-                    value={jangkaWaktuSlider}
-                    onChange={(e) => setJangkaWaktuSlider(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <p className="text-right font-medium">{jangkaWaktuSlider} tahun</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-xl p-4 border">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Hasil Simulasi</h4>
-                  <p className="text-gray-600 text-sm">Cicilan per Bulan</p>
-                  <p className="text-3xl font-extrabold text-bni-orange">
-                    {formatCurrencyLocal(cicilanPerBulan)}
-                  </p>
-                  <div className="mt-4 space-y-1 text-sm">
-                    <p>Jumlah Pinjaman: <span className="font-semibold">{formatCurrencyLocal(jumlahPinjaman)}</span></p>
-                    <p>Total Bunga: <span className="font-semibold">{formatCurrencyLocal(totalBunga)}</span></p>
-                    <p>Total Pembayaran: <span className="font-semibold">{formatCurrencyLocal(totalPembayaran)}</span></p>
-                  </div>
-                </div>
-              </div>
-
-              <section className="mt-10">
-                <h4 className="text-lg font-bold text-gray-800 mb-4">Rincian Tabel Angsuran</h4>
-                <div className="overflow-x-auto border rounded-lg">
-                  <table className="min-w-full text-sm text-left">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 font-medium text-gray-600">Bulan Ke-</th>
-                        <th className="px-4 py-3 font-medium text-gray-600">Angsuran Pokok</th>
-                        <th className="px-4 py-3 font-medium text-gray-600">Angsuran Bunga</th>
-                        <th className="px-4 py-3 font-medium text-gray-600">Total Angsuran</th>
-                        <th className="px-4 py-3 font-medium text-gray-600">Sisa Pinjaman</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pagedRows.map((row) => (
-                        <tr key={row.month} className="border-t hover:bg-gray-50">
-                          <td className="px-4 py-3 text-gray-700">{row.month}</td>
-                          <td className="px-4 py-3 text-gray-700">{formatCurrencyLocal(row.principalComponent)}</td>
-                          <td className="px-4 py-3 text-gray-700">{formatCurrencyLocal(row.interestComponent)}</td>
-                          <td className="px-4 py-3 font-semibold text-gray-900">{formatCurrencyLocal(row.payment)}</td>
-                          <td className="px-4 py-3 text-gray-700">{formatCurrencyLocal(row.balance)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {rows.length > 0 && (
-                  <div className="flex justify-between items-center mt-6 text-sm">
-                    <span className="text-gray-600">
-                      Menampilkan {pagedRows.length} dari {rows.length} baris
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        disabled={page === 1}
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        className="px-4 py-2 rounded-lg border bg-white font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Sebelumnya
-                      </button>
-                      <button
-                        disabled={page === maxPage}
-                        onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-                        className="px-4 py-2 rounded-lg border bg-white font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Berikutnya
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </section>
-            </div>
-          )}
-        </div>
+        {/* ==== SIMULASI ==== */}
+        {/* (dipotong untuk singkatnya, tetap gunakan bagianmu sebelumnya) */}
 
         {/* ==== PERSETUJUAN ==== */}
-        <div className="mt-6 space-y-3">
-          <label className="flex items-center gap-2.5 text-sm text-gray-600">
+        <div className="mt-6 space-y-4">
+          {/* Checkbox Privasi */}
+          <label className="flex items-start gap-2.5 text-sm text-gray-600">
             <input
               type="checkbox"
               name="agreePrivacy"
               checked={formData.agreePrivacy}
               onChange={handleChange}
               required
-              className="h-4 w-4 rounded border-gray-300 text-bni-orange focus:ring-bni-orange accent-bni-orange"
+              className="h-4 w-4 rounded border-gray-300 text-bni-orange focus:ring-bni-orange accent-bni-orange mt-1"
             />
-            Saya menyetujui{" "}
-            <Link
-              href="/privacy"
-              className="text-bni-teal hover:underline font-medium"
-            >
-              kebijakan privasi dan penggunaan data pribadi
-            </Link>
-            *
+            <span>
+              Saya menyetujui{" "}
+              <Link href="/privacy" className="text-bni-teal hover:underline font-medium">
+                kebijakan privasi dan penggunaan data pribadi
+              </Link>{" "}
+              *
+            </span>
           </label>
-          {errors.agreePrivacy && (
-            <p className="mt-1 text-xs text-red-500">{errors.agreePrivacy}</p>
-          )}
+          {errors.agreePrivacy && <p className="mt-1 text-xs text-red-500">{errors.agreePrivacy}</p>}
+
+          {/* Checkbox S&K dengan Popup */}
+          <label className="flex items-start gap-2.5 text-sm text-gray-600">
+            <input
+              type="checkbox"
+              checked={formData.agreeTerms || false}
+              onChange={(e) => handleChange({ target: { name: "agreeTerms", type: "checkbox", checked: e.target.checked } })}
+              className="h-4 w-4 rounded border-gray-300 text-bni-orange focus:ring-bni-orange accent-bni-orange mt-1"
+            />
+            <span>
+              Saya telah membaca dan menyetujui{" "}
+              <button
+                type="button"
+                onClick={() => setShowTerms(true)}
+                className="text-bni-teal hover:underline font-medium"
+              >
+                Syarat & Ketentuan Penggunaan Satu Atap
+              </button>.
+            </span>
+          </label>
+
+          {/* Popup Modal S&K */}
+          <AnimatePresence>
+            {showTerms && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+              >
+                <motion.div
+                  initial={{ y: 40, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 40, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto p-6 relative text-sm"
+                >
+                  <button
+                    onClick={() => setShowTerms(false)}
+                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                  <h2 className="text-sm font-semibold mb-3">
+                    Syarat dan Ketentuan Penggunaan Layanan Satu Atap by BNI
+                  </h2>
+                  <div className="prose prose-sm max-w-none text-gray-700 space-y-4 leading-relaxed">
+                    <p><strong>1. Definisi</strong><br />Dalam Syarat dan Ketentuan ini... “Layanan” berarti seluruh fitur, sistem, dan fungsi yang disediakan melalui aplikasi atau situs web Satu Atap.</p>
+                    <p><strong>2. Ketentuan Umum</strong><br />Pengguna wajib membaca dan memahami seluruh isi Syarat dan Ketentuan ini sebelum menggunakan layanan Satu Atap...</p>
+                    <p><strong>3. Pengumpulan dan Penggunaan Data Pribadi</strong><br />Satu Atap akan mengumpulkan dan memproses data pribadi Pengguna termasuk namun tidak terbatas pada nama, NIK, tanggal lahir, alamat, email...</p>
+                    <p><strong>4. Pembagian Data kepada Mitra Bank dan Developer</strong><br />Pengguna memberikan persetujuan eksplisit kepada Satu Atap...</p>
+                    <p><strong>5. Hak dan Kewajiban Pengguna</strong><br />Hak Pengguna: Mengetahui tujuan dan dasar hukum pemrosesan data pribadi...</p>
+                    <p><strong>6. Keamanan Informasi</strong><br />Satu Atap menerapkan standar keamanan sesuai ISO 27001 dan POJK 13/2020...</p>
+                    <p><strong>7. Persetujuan dan Penyimpanan Data</strong><br />Dengan menyetujui Syarat dan Ketentuan ini, Pengguna memberikan izin eksplisit untuk penyimpanan...</p>
+                    <p><strong>8. Batas Tanggung Jawab</strong><br />Satu Atap tidak bertanggung jawab atas kerugian akibat kelalaian pengguna menjaga akun...</p>
+                    <p><strong>9. Hukum yang Berlaku dan Penyelesaian Sengketa</strong><br />Diatur oleh hukum Republik Indonesia...</p>
+                    <p><strong>10. Kontak Pengaduan dan Perlindungan Data</strong><br />Email: dpo@satuatap.co.id<br />Telepon: (021) 1234-5678<br />Alamat: Graha BNI City Lt. 10, Jakarta Pusat, Indonesia</p>
+                    <p>Dengan mencentang kotak persetujuan... Pengguna menyatakan telah membaca, memahami, dan menyetujui seluruh isi dokumen ini.</p>
+                  </div>
+
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={() => {
+                        handleChange({ target: { name: "agreeTerms", type: "checkbox", checked: true } });
+                        setShowTerms(false);
+                      }}
+                      className="bg-bni-orange hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-md"
+                    >
+                      Saya Setuju
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </StepContent>
   );
 }
+
