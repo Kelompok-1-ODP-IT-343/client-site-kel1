@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-/* ============== TYPE DEFINISI ============== */
 type User = {
   fullName: string;
   photoUrl?: string;
@@ -14,14 +13,12 @@ type AuthContextType = {
   logout: () => void;
 };
 
-/* ============== CONTEXT ============== */
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /* ============== PROVIDER ============== */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // ambil data user dari localStorage saat awal load
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {

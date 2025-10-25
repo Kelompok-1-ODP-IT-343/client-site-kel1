@@ -7,24 +7,18 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, MapPin, BedDouble, Bath, Home as HomeIcon, Heart } from "lucide-react";
 import { motion } from 'framer-motion';
 
-// Impor data terpusat (Pastikan path ini benar)
 import { allHouses, House } from "@/app/lib/propertyData";
-// HAPUS import Header dan Footer dari sini
-// import Header from '@/app/components/layout/Header';
-// import Footer from '@/app/components/layout/Footer';
 
 const ITEMS_PER_PAGE = 9;
 
-// Definisikan warna di sini jika belum ada atau import dari file terpusat
 const COLORS = {
     lime: "#DDEE59",
     orange: "#FF8500",
     teal: "#3FD8D4",
-    // Tambahkan warna lain jika perlu (misal: bni-orange, bni-teal, bni-dark-blue)
     'bni-orange': '#FF8500',
     'bni-teal': '#3FD8D4',
-    'bni-dark-blue': '#003366', // Contoh
-    'bni-gray': '#6B7280', // Contoh
+    'bni-dark-blue': '#003366', 
+    'bni-gray': '#6B7280', 
 };
 
 export default function CariRumahPage() {
@@ -43,7 +37,6 @@ export default function CariRumahPage() {
   const handleToggleFavorite = (houseId: number) => {
     if (!isLoggedIn) {
       alert('Silakan login untuk menyimpan favorit.');
-      // router.push('/login');
       return;
     }
     setFavorites(prev =>
@@ -97,7 +90,6 @@ export default function CariRumahPage() {
   );
 
   return (
-    // Konten utama dimulai di sini, tanpa div pembungkus luar atau <main> jika layout sudah punya
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <section className="mb-12 bg-white p-6 rounded-xl shadow-md border border-gray-100">
         <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-6">Eksplor Rumah Impian</h1>
@@ -172,8 +164,6 @@ export default function CariRumahPage() {
   );
 }
 
-// Komponen Card Rumah (Diperbarui dengan onAjukan)
-// Komponen Card Rumah (Diperbarui dengan onAjukan + Image responsif)
 function HouseCard({ house, isFavorite, onToggleFavorite, onAjukan }: {
   house: House;
   isFavorite: boolean;
@@ -191,7 +181,6 @@ function HouseCard({ house, isFavorite, onToggleFavorite, onAjukan }: {
       whileHover={{ y: -5 }}
       className="bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg flex flex-col"
     >
-      {/* 🖼️ Responsive Image Container */}
       <div
         className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[180px] lg:min-h-[220px] max-h-[260px]"
       >
@@ -216,7 +205,6 @@ function HouseCard({ house, isFavorite, onToggleFavorite, onAjukan }: {
         </button>
       </div>
 
-      {/* 🏠 Detail Rumah */}
       <div className="p-4 flex flex-col flex-grow">
         <p className="text-xs font-semibold text-bni-orange uppercase tracking-wider">
           {house.property_type}

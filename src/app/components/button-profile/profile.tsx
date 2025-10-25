@@ -15,7 +15,6 @@ export default function UserMenu() {
 
   if (!user) return null;
 
-  // Tutup dropdown jika klik di luar
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {

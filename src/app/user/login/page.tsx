@@ -67,14 +67,12 @@ export default function LoginPage() {
       if (res.success && res.data) {
         const { token, type, refreshToken, fullName, photoUrl } = res.data;
 
-        // Simpan cookies
         const expiry = 5 * 60;
         document.cookie = `token=${token}; path=/; max-age=${expiry}; SameSite=Lax`;
         document.cookie = `token_type=${type || "Bearer"}; path=/; max-age=${expiry}; SameSite=Lax`;
         const refreshExpiry = 24 * 60 * 60;
         document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${refreshExpiry}; SameSite=Lax`;
 
-        // Simpan data user ke context global
         login({
           fullName: fullName || "Pengguna",
           photoUrl: photoUrl || "/default-avatar.png",
