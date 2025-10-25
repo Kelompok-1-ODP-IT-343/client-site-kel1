@@ -4,7 +4,7 @@ import { useState, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MapPin, ArrowRight, User, Briefcase, FileText, Home } from "lucide-react";
+import { MapPin, ChevronDown, ChevronUp,Settings2,ArrowRight, BarChart3,User, Briefcase, FileText, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { allHouses } from '@/app/lib/propertyData';
 
@@ -36,7 +36,7 @@ export default function FormPengajuanPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [step, setStep] = useState(0); // Current step index (0-based)
+  const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -226,6 +226,7 @@ function StepPengajuan({
 }) {
   const [showSimulasi, setShowSimulasi] = useState(false);
   const [showTerms, setShowTerms] = useState(false); // popup S&K
+  const [agreeTerms, setAgreeTerms] = useState(false)
 
   // === Ambil data utama dari form ===
   const hargaProperti = Number(data.hargaProperti || 0);
@@ -234,6 +235,9 @@ function StepPengajuan({
   const jangkaWaktu = Number(formData.loanTerm || 0);
   const tenor = jangkaWaktu * 12;
   const loanAmount = hargaProperti - downPayment;
+  const [developerType, setDeveloperType] = useState<"A" | "B">("A")
+  const [schemeType, setSchemeType] = useState<"single_fixed" | "tiered">("single_fixed")
+  const [loanTerm, setLoanTerm] = useState(15)
 
   const [hargaSlider, setHargaSlider] = useState(hargaProperti || 500000000);
   const [persenDPslider, setPersenDPslider] = useState(persenDP || 20);
@@ -261,6 +265,7 @@ function StepPengajuan({
         interestComponent: interest,
         payment: pay,
         balance: Math.max(0, balance),
+        rateApplied: r
       });
     }
     return rows;
@@ -272,8 +277,8 @@ function StepPengajuan({
   const cicilanPerBulan = rows[0]?.payment || 0;
   const totalBunga = rows.reduce((sum, r) => sum + r.interestComponent, 0);
   const totalPembayaran = rows.reduce((sum, r) => sum + r.payment, 0);
-  const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize);
   const maxPage = Math.ceil(rows.length / pageSize);
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <StepContent title="Konfirmasi Detail Pengajuan & Upload Dokumen">
@@ -317,31 +322,98 @@ function StepPengajuan({
           </div>
         </div>
 
-        {/* ==== SIMULASI ==== */}
-        {/* (dipotong untuk singkatnya, tetap gunakan bagianmu sebelumnya) */}
+                  {/* === Terms & Simulasi Toggle === */}
+          <div className="space-y-3 border-t pt-4">
+
+            <button
+              type="button"
+              onClick={() => setShowSimulasi((p) => !p)}
+              className="mt-3 flex items-center gap-2 text-bni-orange font-semibold"
+            >
+              {showSimulasi ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {showSimulasi ? "Tutup Simulasi KPR" : "Lihat Simulasi KPR"}
+            </button>
+
+            {showSimulasi && (
+              <div className="mt-6 border rounded-xl p-5 bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2 mb-3"><Settings2 size={18} /> Simulasi Multi-Rate</h3>
+
+                {/* Pilihan developer & skema bunga */}
+                <div className="grid md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="text-xs font-medium">Tipe Developer</label>
+                    <select value={developerType} onChange={(e) => setDeveloperType(e.target.value as "A" | "B")} className="w-full border rounded-lg px-2 py-1 text-sm">
+                      <option value="A">Developer A</option>
+                      <option value="B">Developer B</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Jenis Skema</label>
+                    <select value={schemeType} onChange={(e) => setSchemeType(e.target.value as any)} className="w-full border rounded-lg px-2 py-1 text-sm">
+                      <option value="single_fixed">Single Fixed</option>
+                      <option value="tiered">Tiered</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Tenor (tahun)</label>
+                    <select value={loanTerm} onChange={(e) => setLoanTerm(Number(e.target.value))} className="w-full border rounded-lg px-2 py-1 text-sm">
+                      {[10, 15, 20, 25, 30].map((y) => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Hasil simulasi */}
+                <div className="bg-white border rounded-lg p-4 mb-4">
+                  <p className="text-gray-600 text-sm">Cicilan per bulan (awal)</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(cicilanPerBulan)}</p>
+                  <div className="mt-3 text-sm text-gray-700 space-y-1">
+                    <p>Jumlah Pinjaman: <span className="font-semibold">{formatCurrency(loanAmount)}</span></p>
+                    <p>Total Bunga: <span className="font-semibold">{formatCurrency(totalBunga)}</span></p>
+                    <p>Total Pembayaran: <span className="font-semibold">{formatCurrency(totalPembayaran)}</span></p>
+                  </div>
+                </div>
+
+                {/* Tabel hasil */}
+                <div className="overflow-x-auto border rounded-lg bg-white">
+                  <table className="min-w-full text-sm text-gray-600">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-3 py-2">Bulan</th>
+                        <th className="px-3 py-2">Pokok</th>
+                        <th className="px-3 py-2">Bunga</th>
+                        <th className="px-3 py-2">Total</th>
+                        <th className="px-3 py-2">Sisa</th>
+                        <th className="px-3 py-2">Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paged.map((r) => (
+                        <tr key={r.month} className="border-t">
+                          <td className="px-3 py-2">{r.month}</td>
+                          <td className="px-3 py-2">{formatCurrency(r.principalComponent)}</td>
+                          <td className="px-3 py-2">{formatCurrency(r.interestComponent)}</td>
+                          <td className="px-3 py-2">{formatCurrency(r.payment)}</td>
+                          <td className="px-3 py-2">{formatCurrency(r.balance)}</td>
+                          <td className="px-3 py-2">{r.rateApplied}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex justify-between mt-3 text-xs text-gray-500">
+                  <span>Halaman {page} / {maxPage}</span>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-2 py-1 border rounded">Prev</button>
+                    <button type="button" onClick={() => setPage((p) => Math.min(maxPage, p + 1))} disabled={page === maxPage} className="px-2 py-1 border rounded">Next</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
         {/* ==== PERSETUJUAN ==== */}
         <div className="mt-6 space-y-4">
-          {/* Checkbox Privasi */}
-          <label className="flex items-start gap-2.5 text-sm text-gray-600">
-            <input
-              type="checkbox"
-              name="agreePrivacy"
-              checked={formData.agreePrivacy}
-              onChange={handleChange}
-              required
-              className="h-4 w-4 rounded border-gray-300 text-bni-orange focus:ring-bni-orange accent-bni-orange mt-1"
-            />
-            <span>
-              Saya menyetujui{" "}
-              <Link href="/privacy" className="text-bni-teal hover:underline font-medium">
-                kebijakan privasi dan penggunaan data pribadi
-              </Link>{" "}
-              *
-            </span>
-          </label>
-          {errors.agreePrivacy && <p className="mt-1 text-xs text-red-500">{errors.agreePrivacy}</p>}
-
           {/* Checkbox S&K dengan Popup */}
           <label className="flex items-start gap-2.5 text-sm text-gray-600">
             <input
@@ -361,6 +433,8 @@ function StepPengajuan({
               </button>.
             </span>
           </label>
+         {errors.agreePrivacy && <p className="mt-1 text-xs text-red-500">{errors.agreePrivacy}</p>}
+
 
           {/* Popup Modal S&K */}
           <AnimatePresence>

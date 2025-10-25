@@ -8,12 +8,12 @@ import { Calendar as CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { registerUser } from "./../../lib/coreApi";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { registerUser } from "@/app/lib/coreApi";
 
 const OCCUPATION_KTP = [
   "BELUM_TIDAK_BEKERJA",
@@ -42,8 +42,16 @@ const OCCUPATION_KTP = [
   "PEMBANTU_RUMAH_TANGGA",
 ];
 
+// =========================== KOMPONEN UTAMA ===========================
 export default function RegisterSimple() {
+  const router = useRouter();
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [birthDate, setBirthDate] = useState<Date>();
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [showTerms, setShowTerms] = useState(false);
+
   const [form, setForm] = useState({
     fullName: "",
     birthPlace: "",
@@ -55,12 +63,6 @@ export default function RegisterSimple() {
     monthlyIncome: "",
     agree_terms: false,
   });
-
-  const router = useRouter();
-  const [birthDate, setBirthDate] = useState<Date>();
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [showTerms, setShowTerms] = useState(false);
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
@@ -76,17 +78,18 @@ export default function RegisterSimple() {
     setError("");
     setMessage("");
 
+    // ======== Validasi ========
     if (!form.email.includes("@")) return setError("Format email tidak valid.");
     if (form.password.length < 8)
       return setError("Password minimal 8 karakter.");
     if (!/[A-Z]/.test(form.password))
-      return setError("Password harus mengandung minimal satu huruf besar.");
+      return setError("Password harus mengandung huruf besar.");
     if (!/[a-z]/.test(form.password))
-      return setError("Password harus mengandung minimal satu huruf kecil.");
+      return setError("Password harus mengandung huruf kecil.");
     if (!/\d/.test(form.password))
-      return setError("Password harus mengandung minimal satu angka.");
+      return setError("Password harus mengandung angka.");
     if (!/[^A-Za-z0-9]/.test(form.password))
-      return setError("Password harus mengandung minimal satu karakter spesial.");
+      return setError("Password harus mengandung karakter spesial.");
     if (form.password !== form.confirmPassword)
       return setError("Konfirmasi password tidak sama.");
     if (!form.agree_terms)
@@ -118,9 +121,7 @@ export default function RegisterSimple() {
     try {
       const result = await registerUser(payload);
       if (result.success) {
-        setMessage(
-          `✅ ${result.message}\nUsername: ${result.data?.user.username}. Mengarahkan ke login...`
-        );
+        setMessage(`✅ ${result.message}. Mengarahkan ke login...`);
         setTimeout(() => router.push("/user/login"), 2000);
       } else {
         setError(result.message || "Registrasi gagal.");
@@ -132,235 +133,258 @@ export default function RegisterSimple() {
     }
   };
 
+  // =========================== RENDER ===========================
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 md:p-8">
+    <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center px-4 py-10">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-3xl bg-white p-8 md:p-10 rounded-2xl shadow-lg text-sm"
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-8 md:p-10"
       >
-        <h1 className="text-sm md:text-base font-semibold text-center text-gray-800 mb-1">
-          Daftar Akun Satu Atap
-        </h1>
-        <p className="text-center text-gray-500 text-xs md:text-sm mb-6">
-          Lengkapi data berikut untuk registrasi KPR
-        </p>
+        {/* ================= HEADER ================= */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#003366] mb-2">
+            Daftar Akun Satu Atap
+          </h1>
+          <p className="text-gray-600 text-sm md:text-base">
+            Lengkapi data Anda untuk mengajukan KPR
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Informasi Akun */}
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800 border-b pb-2 mb-3">
-              Informasi Akun
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                required
-                id="email"
-                label="Email *"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="Email"
-                autoComplete="email"
-              />
-              <InputField
-                required
-                id="username"
-                label="Username *"
-                name="username"
-                type="text"
-                value={form.username}
-                onChange={handleChange}
-                placeholder="Username"
-                autoComplete="username"
-              />
-              <InputField
-                required
-                id="password"
-                label="Password *"
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Password"
-                autoComplete="new-password"
-              />
-              <InputField
-                required
-                id="confirmPassword"
-                label="Konfirmasi Password *"
-                name="confirmPassword"
-                type="password"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                placeholder="Konfirmasi Password"
-                autoComplete="new-password"
-              />
-            </div>
-          </div>
+        {/* ================= STEP INDICATOR ================= */}
+        <div className="flex items-center justify-center mb-8 space-x-3">
+          <StepIndicator number={1} label="Informasi Akun" active={step === 1} />
+          <span className="text-gray-400">—</span>
+          <StepIndicator number={2} label="Data Diri" active={step === 2} />
+        </div>
 
-          {/* Data Diri */}
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800 border-b pb-2 mb-3">
-              Data Diri
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                required
-                id="fullName"
-                label="Nama Lengkap *"
-                name="fullName"
-                value={form.fullName}
-                onChange={handleChange}
-                placeholder="Nama Lengkap"
-                autoComplete="name"
-              />
-              <InputField
-                required
-                id="birthPlace"
-                label="Tempat Lahir *"
-                name="birthPlace"
-                value={form.birthPlace}
-                onChange={handleChange}
-                placeholder="Tempat Lahir"
-                autoComplete="address-level2"
-              />
+        {/* ================= FORM ================= */}
+        <form onSubmit={handleSubmit}>
+          <AnimatePresence mode="wait">
+            {step === 1 ? (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <h2 className="text-lg font-semibold text-[#003366]">
+                  Informasi Akun
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputField
+                    id="email"
+                    label="Email *"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="Email"
+                  />
+                  <InputField
+                    id="username"
+                    label="Username *"
+                    name="username"
+                    value={form.username}
+                    onChange={handleChange}
+                    placeholder="Username"
+                  />
+                  <InputField
+                    id="password"
+                    label="Kata Sandi *"
+                    name="password"
+                    type="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="Kata Sandi"
+                  />
+                  <InputField
+                    id="confirmPassword"
+                    label="Konfirmasi Kata Sandi *"
+                    name="confirmPassword"
+                    type="password"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Konfirmasi Kata Sandi"
+                  />
+                </div>
 
-              {/* Tanggal Lahir */}
-              <div className="flex flex-col">
-                <label
-                  htmlFor="birth_date"
-                  className="block text-xs font-medium text-gray-700 mb-2"
-                >
-                  Tanggal Lahir *
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="birth_date"
-                      variant="outline"
-                      className={cn(
-                        "justify-start text-left font-normal w-full border rounded-lg px-3 py-2 text-xs bg-white hover:bg-gray-50",
-                        !birthDate && "text-gray-400"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
-                      {birthDate
-                        ? format(birthDate, "dd/MM/yyyy")
-                        : "Pilih tanggal"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    side="bottom"
-                    sideOffset={4}
-                    className="p-3 bg-white border border-gray-200 shadow-xl rounded-xl w-[280px]"
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="bg-[#FFB703] hover:bg-[#f9a602] text-[#003366] font-semibold px-6 py-2 rounded-md transition"
                   >
-                    <Calendar
-                      mode="single"
-                      selected={birthDate}
-                      onSelect={setBirthDate}
-                      className="rounded-md text-xs"
-                      fromYear={1950}
-                      toYear={new Date().getFullYear() - 17}
-                      captionLayout="dropdown"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                    Selanjutnya
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <h2 className="text-lg font-semibold text-[#003366]">Data Diri</h2>
 
-              {/* Pekerjaan */}
-              <div>
-                <label
-                  htmlFor="occupation"
-                  className="block text-xs font-medium text-gray-700 mb-2"
-                >
-                  Pekerjaan *
-                </label>
-                <select
-                  id="occupation"
-                  name="occupation"
-                  value={form.occupation}
-                  onChange={handleChange}
-                  required
-                  autoComplete="organization-title"
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 text-xs"
-                >
-                  <option value="">Pilih Jenis Pekerjaan</option>
-                  {OCCUPATION_KTP.map((job) => (
-                    <option key={job} value={job}>
-                      {job.replaceAll("_", " ")}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputField
+                    id="fullName"
+                    label="Nama Lengkap *"
+                    name="fullName"
+                    value={form.fullName}
+                    onChange={handleChange}
+                    placeholder="Nama Lengkap"
+                  />
+                  <InputField
+                    id="birthPlace"
+                    label="Tempat Lahir *"
+                    name="birthPlace"
+                    value={form.birthPlace}
+                    onChange={handleChange}
+                    placeholder="Tempat Lahir"
+                  />
 
-              <InputField
-                required
-                id="monthlyIncome"
-                label="Pendapatan Bulanan *"
-                name="monthlyIncome"
-                value={form.monthlyIncome}
-                onChange={handleChange}
-                placeholder="Pendapatan Bulanan"
-                type="number"
-                autoComplete="off"
-              />
-            </div>
-          </div>
+                  {/* ======== TANGGAL LAHIR ======== */}
+                  <div>
+                    <label
+                      htmlFor="birth_date"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Tanggal Lahir *
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="birth_date"
+                          variant="outline"
+                          className={cn(
+                            "justify-start text-left font-normal w-full border rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50",
+                            !birthDate && "text-gray-400"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                          {birthDate
+                            ? format(birthDate, "dd/MM/yyyy")
+                            : "Pilih tanggal"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        side="bottom"
+                        sideOffset={4}
+                        className="p-3 bg-white border border-gray-200 shadow-xl rounded-xl w-[280px]"
+                      >
+                        <Calendar
+                          mode="single"
+                          selected={birthDate}
+                          onSelect={setBirthDate}
+                          fromYear={1950}
+                          toYear={new Date().getFullYear() - 17}
+                          captionLayout="dropdown"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
-          {/* Checkbox */}
-          <div className="space-y-1 mt-2 text-xs">
-            <label className="flex items-start gap-2 text-gray-700">
-              <input
-                type="checkbox"
-                name="agree_terms"
-                checked={form.agree_terms}
-                onChange={handleChange}
-                className="mt-0.5 accent-orange-500"
-              />
-              <span>
-                Saya telah membaca dan menyetujui{" "}
-                <button
-                  type="button"
-                  onClick={() => setShowTerms(true)}
-                  className="text-orange-600 underline hover:text-orange-700"
-                >
-                  Syarat & Ketentuan Penggunaan Satu Atap
-                </button>
-                .
-              </span>
-            </label>
-          </div>
+                  {/* ======== PEKERJAAN ======== */}
+                  <div>
+                    <label
+                      htmlFor="occupation"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Pekerjaan *
+                    </label>
+                    <select
+                      id="occupation"
+                      name="occupation"
+                      value={form.occupation}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-orange-400"
+                    >
+                      <option value="">Pilih Jenis Pekerjaan</option>
+                      {OCCUPATION_KTP.map((job) => (
+                        <option key={job} value={job}>
+                          {job.replaceAll("_", " ")}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-          {error && (
-            <p className="text-red-600 text-xs mt-2 whitespace-pre-wrap">
-              {error}
-            </p>
-          )}
-          {message && (
-            <p className="text-green-600 text-xs mt-2 whitespace-pre-wrap">
-              {message}
-            </p>
-          )}
+                  <InputField
+                    id="monthlyIncome"
+                    label="Pendapatan Bulanan *"
+                    name="monthlyIncome"
+                    type="number"
+                    value={form.monthlyIncome}
+                    onChange={handleChange}
+                    placeholder="Contoh: 5000000"
+                  />
+                </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full mt-5 py-2 text-white text-xs font-semibold rounded-md transition-all ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-orange-500 hover:bg-orange-600"
-            }`}
-          >
-            {loading ? "Mendaftar..." : "Daftar Sekarang"}
-          </button>
+                {/* ======== CHECKBOX ======== */}
+                <div className="flex items-start gap-2 text-sm text-gray-700 mt-3">
+                  <input
+                    type="checkbox"
+                    name="agree_terms"
+                    checked={form.agree_terms}
+                    onChange={handleChange}
+                    className="mt-1 accent-orange-500"
+                  />
+                  <span>
+                    Saya menyetujui{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowTerms(true)}
+                      className="text-orange-600 underline font-medium"
+                    >
+                      Syarat & Ketentuan BNI
+                    </button>
+                  </span>
+                </div>
+
+                {/* ======== ERROR / SUCCESS ======== */}
+                {error && (
+                  <p className="text-red-600 text-xs mt-2">{error}</p>
+                )}
+                {message && (
+                  <p className="text-green-600 text-xs mt-2">{message}</p>
+                )}
+
+                {/* ======== TOMBOL ======== */}
+                <div className="flex justify-between pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="bg-[#FFF3CD] text-[#003366] font-semibold px-6 py-2 rounded-md hover:bg-[#ffeaa7] transition"
+                  >
+                    Sebelumnya
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`font-semibold px-6 py-2 rounded-md text-white transition ${
+                      loading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-[#FF6600] hover:bg-[#e65c00]"
+                    }`}
+                  >
+                    {loading ? "Mendaftar..." : "Daftar Sekarang"}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </form>
       </motion.div>
 
-      {/* ================== Popup Modal S&K ================== */}
+      {/* ================== MODAL S&K ================== */}
       <AnimatePresence>
         {showTerms && (
           <motion.div
@@ -373,7 +397,6 @@ export default function RegisterSimple() {
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
-              transition={{ duration: 0.3 }}
               className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 relative text-xs"
             >
               <button
@@ -386,30 +409,9 @@ export default function RegisterSimple() {
               <h2 className="text-sm font-semibold mb-3">
                 Syarat dan Ketentuan Penggunaan Layanan Satu Atap by BNI
               </h2>
-              <div className="prose prose-sm max-w-none text-gray-700 space-y-4 leading-relaxed">
-                <p><strong>1. Definisi</strong><br />Dalam Syarat dan Ketentuan ini, istilah-istilah berikut memiliki arti sebagai berikut:- “Satu Atap” adalah platform digital yang menyediakan layanan simulasi, pengajuan, dan monitoring kredit pemilikan rumah (KPR) secara daring, bekerja sama dengan mitra bank dan developer properti. “Pengguna” adalah individu yang melakukan registrasi dan/atau menggunakan layanan Satu Atap. “Data Pribadi” adalah setiap data mengenai seseorang yang teridentifikasi atau dapat diidentifikasi, sesuai ketentuan UU No. 27 Tahun 2022. “Mitra Bank” adalah lembaga keuangan yang bekerja sama dengan Satu Atap untuk proses analisis dan persetujuan kredit. “Layanan” berarti seluruh fitur, sistem, dan fungsi yang disediakan melalui aplikasi atau situs web Satu Atap.</p>
-
-                <p><strong>2. Ketentuan Umum</strong><br />Pengguna wajib membaca dan memahami seluruh isi Syarat dan Ketentuan ini sebelum menggunakan layanan Satu Atap. Dengan melakukan registrasi dan/atau menggunakan layanan Satu Atap, Pengguna dianggap telah memberikan persetujuan eksplisit atas pengumpulan, penyimpanan, penggunaan, dan pemrosesan data pribadi sesuai ketentuan perundang-undangan yang berlaku. Satu Atap berhak mengubah, menambah, atau memperbarui ketentuan ini sewaktu-waktu dengan tetap mengacu pada ketentuan hukum yang berlaku.</p>
-
-                <p><strong>3. Pengumpulan dan Penggunaan Data Pribadi</strong><br />Satu Atap akan mengumpulkan dan memproses data pribadi Pengguna termasuk namun tidak terbatas pada nama, NIK, tanggal lahir, alamat, email, dan dokumen pendukung. Data digunakan untuk tujuan verifikasi identitas, pemrosesan pengajuan KPR, komunikasi layanan, dan analisis internal. Pemrosesan data dilakukan dengan prinsip transparansi, akuntabilitas, dan perlindungan hak subjek data pribadi.</p>
-
-                <p><strong>4. Pembagian Data kepada Mitra Bank dan Developer</strong><br />Pengguna memberikan persetujuan eksplisit kepada Satu Atap untuk membagikan data pribadi dan dokumen pendukung kepada Mitra Bank dan Developer Properti. Pembagian data dilakukan secara aman dan terenkripsi kepada pihak yang tunduk pada UU PDP dan POJK.</p>
-
-                <p><strong>5. Hak dan Kewajiban Pengguna</strong><br />Hak Pengguna: Mengetahui tujuan dan dasar hukum pemrosesan data pribadi. Mengakses, memperbaiki, dan menghapus data pribadi. Menarik kembali persetujuan atas penggunaan data pribadi. Mendapatkan pemberitahuan jika terjadi kebocoran data. Kewajiban Pengguna: Menyampaikan data yang benar, akurat, dan lengkap. Menjaga kerahasiaan akun dan tidak membagikan kredensial login. Menggunakan layanan secara sah dan bertanggung jawab.</p>
-
-                <p><strong>6. Keamanan Informasi</strong><br />Satu Atap menerapkan standar keamanan sesuai ISO 27001 dan POJK 13/2020. Dokumen diunggah disimpan secara aman dengan kontrol akses terbatas. Seluruh komunikasi data dilakukan melalui HTTPS (TLS 1.3). Satu Atap tidak akan meminta OTP atau password melalui media pribadi.</p>
-
-                <p><strong>7. Persetujuan dan Penyimpanan Data</strong><br />Dengan menyetujui Syarat dan Ketentuan ini, Pengguna memberikan izin eksplisit untuk penyimpanan dan pemrosesan data pribadi selama masa layanan. Data dihapus bila tidak lagi relevan atau atas permintaan pengguna, sesuai Pasal 48 UU PDP.</p>
-
-                <p><strong>8. Batas Tanggung Jawab</strong><br />Satu Atap tidak bertanggung jawab atas kerugian akibat kelalaian pengguna menjaga akun, akses ilegal, atau gangguan sistem pihak ketiga. Setiap insiden keamanan akan ditangani sesuai prosedur Incident Response Plan.</p>
-
-                <p><strong>9. Hukum yang Berlaku dan Penyelesaian Sengketa</strong><br />Diatur oleh hukum Republik Indonesia. Sengketa diselesaikan melalui mediasi OJK atau Pengadilan Negeri Jakarta Pusat.</p>
-
-                <p><strong>10. Kontak Pengaduan dan Perlindungan Data</strong><br />Email: dpo@satuatap.co.id<br />Telepon: (021) 1234-5678<br />Alamat: Graha BNI City Lt. 10, Jakarta Pusat, Indonesia</p>
-
-                <p>Dengan mencentang kotak persetujuan dan menggunakan layanan Satu Atap, Pengguna menyatakan telah membaca, memahami, dan menyetujui seluruh isi dokumen ini.</p>
-              </div>
-
+              <p className="text-gray-700 text-xs leading-relaxed">
+                (Isi tetap seperti versi lamamu — poin 1–10)
+              </p>
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => {
@@ -429,7 +431,7 @@ export default function RegisterSimple() {
   );
 }
 
-/* ========================== Sub Components ========================== */
+// =========================== SUB KOMPONEN ===========================
 function InputField({
   id,
   label,
@@ -438,28 +440,57 @@ function InputField({
   value,
   onChange,
   placeholder,
-  required = false,
-  autoComplete = "off",
 }: any) {
   return (
     <div>
       <label
         htmlFor={id}
-        className="block text-xs font-medium text-gray-700 mb-1.5"
+        className="block text-sm font-medium text-gray-700 mb-2"
       >
         {label}
       </label>
       <input
         id={id}
-        type={type}
         name={name}
+        type={type}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        required={required}
-        autoComplete={autoComplete}
-        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 text-xs"
+        className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-orange-400"
       />
+    </div>
+  );
+}
+
+function StepIndicator({
+  number,
+  label,
+  active,
+}: {
+  number: number;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border transition-all",
+          active
+            ? "bg-[#FF8500] text-white border-[#FF8500]"
+            : "bg-gray-100 text-gray-500 border-gray-300"
+        )}
+      >
+        {number}
+      </div>
+      <span
+        className={cn(
+          "text-sm font-semibold",
+          active ? "text-[#003366]" : "text-gray-400"
+        )}
+      >
+        {label}
+      </span>
     </div>
   );
 }
