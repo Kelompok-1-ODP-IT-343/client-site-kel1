@@ -173,74 +173,92 @@ export default function CariRumahPage() {
 }
 
 // Komponen Card Rumah (Diperbarui dengan onAjukan)
+// Komponen Card Rumah (Diperbarui dengan onAjukan + Image responsif)
 function HouseCard({ house, isFavorite, onToggleFavorite, onAjukan }: {
   house: House;
   isFavorite: boolean;
   onToggleFavorite: (id: number) => void;
   onAjukan: () => void;
 }) {
-  const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(house.price);
+  const formattedPrice = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(house.price);
 
   return (
     <motion.div
       whileHover={{ y: -5 }}
       className="bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg flex flex-col"
     >
-      <div className="relative h-48 w-full">
-        <Image src={house.image} alt={house.title} fill className="object-cover" />
+      {/* 🖼️ Responsive Image Container */}
+      <div
+        className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[180px] lg:min-h-[220px] max-h-[260px]"
+      >
+        <Image
+          src={house.image}
+          alt={house.title}
+          fill
+          priority={false}
+          className="object-cover rounded-t-xl"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        />
         <button
           onClick={() => onToggleFavorite(house.id)}
           className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
           aria-label="Toggle Favorite"
         >
-           <Heart
-             size={20}
-             className={isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-600 fill-transparent'}
-             strokeWidth={isFavorite ? 2 : 1.5}
-           />
+          <Heart
+            size={20}
+            className={isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-600 fill-transparent'}
+            strokeWidth={isFavorite ? 2 : 1.5}
+          />
         </button>
       </div>
+
+      {/* 🏠 Detail Rumah */}
       <div className="p-4 flex flex-col flex-grow">
-        <p className="text-xs font-semibold text-bni-orange uppercase tracking-wider">{house.property_type}</p>
-        <h3 className="font-bold text-gray-800 text-lg truncate mt-1">{house.title}</h3>
-        <p className="text-sm text-gray-500 flex items-center mt-1"><MapPin size={14} className="mr-1 flex-shrink-0"/>{house.city}, {house.province}</p>
+        <p className="text-xs font-semibold text-bni-orange uppercase tracking-wider">
+          {house.property_type}
+        </p>
+        <h3 className="font-bold text-gray-800 text-lg truncate mt-1">
+          {house.title}
+        </h3>
+        <p className="text-sm text-gray-500 flex items-center mt-1">
+          <MapPin size={14} className="mr-1 flex-shrink-0" />
+          {house.city}, {house.province}
+        </p>
+
         <div className="flex items-center justify-between text-xs text-gray-600 mt-3 border-t pt-3">
-            <div className="flex items-center gap-1"><BedDouble size={14}/> {house.bedrooms} KT</div>
-            <div className="flex items-center gap-1"><Bath size={14}/> {house.bathrooms} KM</div>
-            <div className="flex items-center gap-1"><HomeIcon size={14}/> {house.building_area} m²</div>
+          <div className="flex items-center gap-1"><BedDouble size={14} /> {house.bedrooms} KT</div>
+          <div className="flex items-center gap-1"><Bath size={14} /> {house.bathrooms} KM</div>
+          <div className="flex items-center gap-1"><HomeIcon size={14} /> {house.building_area} m²</div>
         </div>
+
         <div className="mt-4">
           <p className="text-sm text-gray-500">Harga mulai</p>
-          <p className="text-xl font-bold text-bni-orange">
-            {formattedPrice}
-          </p>
+          <p className="text-xl font-bold text-bni-orange">{formattedPrice}</p>
         </div>
+
         <div className="mt-5 pt-4 border-t border-gray-100 flex-grow flex items-end">
-            <div className="grid grid-cols-2 gap-3 w-full">
-                <button
-                    onClick={onAjukan}
-                    className="py-2.5 rounded-lg font-semibold text-sm text-white shadow transition hover:opacity-90"
-                    style={{ backgroundColor: COLORS.orange }}
-                >
-                    Ajukan
-                </button>
-                <Link
-                    href={`/user/detail-rumah/${house.id}`}
-                    className="py-2.5 rounded-lg font-semibold text-sm text-center text-gray-900 shadow transition hover:opacity-90"
-                    style={{ backgroundColor: COLORS.lime }}
-                >
-                    Detail
-                </Link>
-            </div>
+          <div className="grid grid-cols-2 gap-3 w-full">
+            <button
+              onClick={onAjukan}
+              className="py-2.5 rounded-lg font-semibold text-sm text-white shadow transition hover:opacity-90"
+              style={{ backgroundColor: "#FF8500" }}
+            >
+              Ajukan
+            </button>
+            <Link
+              href={`/user/detail-rumah/${house.id}`}
+              className="py-2.5 rounded-lg font-semibold text-sm text-center text-gray-900 shadow transition hover:opacity-90"
+              style={{ backgroundColor: "#DDEE59" }}
+            >
+              Detail
+            </Link>
+          </div>
         </div>
       </div>
     </motion.div>
   );
 }
-
-// Tambahkan kelas `pagination-button` di globals.css
-// @layer components {
-//   .pagination-button {
-//     @apply px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition;
-//   }
-// }

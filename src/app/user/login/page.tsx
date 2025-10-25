@@ -5,12 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
 import { loginApi } from "./../../lib/coreApi";
+import { useAuth } from "@/app/lib/authContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
+
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
-  const [status, setStatus] = useState({ loading: false, message: "", type: "" });
+  const [status, setStatus] = useState({
+    loading: false,
+    message: "",
+    type: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,6 +30,7 @@ export default function LoginPage() {
   const validateForm = (): boolean => {
     const newErrors = { email: "", password: "" };
     let isValid = true;
+
     if (!form.email) {
       newErrors.email = "Email wajib diisi.";
       isValid = false;
@@ -38,6 +46,7 @@ export default function LoginPage() {
       newErrors.password = "Password minimal 8 karakter.";
       isValid = false;
     }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -45,31 +54,54 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus({ loading: false, message: "", type: "" });
-    
-    if (!validateForm()) return;
 
+    if (!validateForm()) return;
     setStatus({ loading: true, message: "", type: "" });
 
     try {
       const payload = { identifier: form.email, password: form.password };
-      console.log(payload,"tess")
-      const res = await loginApi(payload);
+      console.log("Payload login:", payload);
+
+      const res = await loginApi(payload); 
+
       if (res.success && res.data) {
-        const { token, type, refreshToken } = res.data;
-        const expiry = 5 * 60; 
+        const { token, type, refreshToken, fullName, photoUrl } = res.data;
+
+        // Simpan cookies
+        const expiry = 5 * 60;
         document.cookie = `token=${token}; path=/; max-age=${expiry}; SameSite=Lax`;
         document.cookie = `token_type=${type || "Bearer"}; path=/; max-age=${expiry}; SameSite=Lax`;
         const refreshExpiry = 24 * 60 * 60;
         document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${refreshExpiry}; SameSite=Lax`;
-        setStatus({ loading: false, message: "Login berhasil! Mengarahkan ke Beranda...", type: "success" });
+
+        // Simpan data user ke context global
+        login({
+          fullName: fullName || "Pengguna",
+          photoUrl: photoUrl || "/default-avatar.png",
+        });
+
+        setStatus({
+          loading: false,
+          message: "Login berhasil! Mengarahkan ke Beranda...",
+          type: "success",
+        });
+
         setTimeout(() => {
           router.push("/user/beranda");
         }, 1000);
       } else {
-        setStatus({ loading: false, message: res.message || "Email atau password salah.", type: "error" });
+        setStatus({
+          loading: false,
+          message: res.message || "Email atau password salah.",
+          type: "error",
+        });
       }
     } catch (err: any) {
-      setStatus({ loading: false, message: err.message || "Gagal terhubung ke server.", type: "error" });
+      setStatus({
+        loading: false,
+        message: err.message || "Gagal terhubung ke server.",
+        type: "error",
+      });
     }
   };
 
@@ -93,11 +125,17 @@ export default function LoginPage() {
                 placeholder="Alamat Email"
                 value={form.email}
                 onChange={handleChange}
-                className={`w-full pl-11 pr-4 py-2.5 text-gray-800 border rounded-lg focus:ring-2 focus:outline-none transition-all duration-300 ${errors.email ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:border-bni-teal focus:ring-bni-teal/50'}`}
+                className={`w-full pl-11 pr-4 py-2.5 text-gray-800 border rounded-lg focus:ring-2 focus:outline-none transition-all duration-300 ${
+                  errors.email
+                    ? "border-red-500 ring-red-200"
+                    : "border-gray-300 focus:border-bni-teal focus:ring-bni-teal/50"
+                }`}
                 required
               />
             </div>
-            {errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1 ml-1">{errors.email}</p>
+            )}
           </div>
 
           <div>
@@ -109,11 +147,17 @@ export default function LoginPage() {
                 placeholder="Password"
                 value={form.password}
                 onChange={handleChange}
-                className={`w-full pl-11 pr-4 py-2.5 text-gray-800 border rounded-lg focus:ring-2 focus:outline-none transition-all duration-300 ${errors.password ? 'border-red-500 ring-red-200' : 'border-gray-300 focus:border-bni-teal focus:ring-bni-teal/50'}`}
+                className={`w-full pl-11 pr-4 py-2.5 text-gray-800 border rounded-lg focus:ring-2 focus:outline-none transition-all duration-300 ${
+                  errors.password
+                    ? "border-red-500 ring-red-200"
+                    : "border-gray-300 focus:border-bni-teal focus:ring-bni-teal/50"
+                }`}
                 required
               />
             </div>
-             {errors.password && <p className="text-red-500 text-xs mt-1 ml-1">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1 ml-1">{errors.password}</p>
+            )}
           </div>
 
           <button
@@ -127,19 +171,30 @@ export default function LoginPage() {
           >
             {status.loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : "Masuk"}
+            ) : (
+              "Masuk"
+            )}
           </button>
         </form>
 
         {status.message && (
-          <div className={`text-center text-sm p-3 rounded-lg mt-6 ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          <div
+            className={`text-center text-sm p-3 rounded-lg mt-6 ${
+              status.type === "success"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
             {status.message}
           </div>
         )}
 
         <p className="text-center text-sm text-gray-600 mt-6">
           Belum punya akun?{" "}
-          <Link href="/user/register" className="text-bni-teal hover:underline font-bold">
+          <Link
+            href="/user/register"
+            className="text-bni-teal hover:underline font-bold"
+          >
             Daftar di sini
           </Link>
         </p>

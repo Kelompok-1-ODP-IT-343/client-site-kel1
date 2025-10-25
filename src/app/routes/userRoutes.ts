@@ -9,4 +9,5 @@ export const USER_ROUTES = {
   REGISTER: "/user/register",
   SIMULASI: "/user/simulasi",
   TENTANG_KAMI: "/user/tentang-kami",
+  AKUN: "/user/akun",
 };

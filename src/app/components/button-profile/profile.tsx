@@ -1,105 +1,126 @@
-'use client';
+"use client";
 
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { Bell, Heart, FileText, User as UserIcon, LogOut } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { User, Bell, FileText, Heart, LogOut } from "lucide-react";
+import { USER_ROUTES } from "@/app/routes/userRoutes";
+import { useAuth } from "@/app/lib/authContext";
 
-type SectionKey = "profil" | "notifikasi" | "pengajuan" | "wishlist";
-
-type UserMenuProps = {
-  name: string;
-  avatarUrl?: string;
-};
-
-export default function UserMenu({ name, avatarUrl }: UserMenuProps) {
+export default function UserMenu() {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const initial = name?.trim()?.[0]?.toUpperCase() ?? "U";
+  const { user, logout } = useAuth();
 
+  if (!user) return null;
+
+  // Tutup dropdown jika klik di luar
   useEffect(() => {
-    const onClick = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", onClick);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onClick);
-      document.removeEventListener("keydown", onKey);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const logout = () => {
-    router.push("/"); // kembali ke landing
-  };
-
-  const goTo = (key: SectionKey) => {
-    setOpen(false);
-    router.push(`/akun?tab=${key}`); // sinkron dgn halaman /akun
-  };
-
   return (
-    <div className="relative" ref={ref}>
-      {/* Trigger */}
+    <div className="relative" ref={menuRef}>
+      {/* Tombol profil */}
       <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-3 rounded-full px-2 py-1 hover:bg-gray-100 transition"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-50 transition"
       >
-        <div className="relative h-9 w-9 rounded-full overflow-hidden bg-[#FF8500] text-white grid place-items-center font-bold">
-          {avatarUrl ? (
-            <Image src={avatarUrl} alt={name} fill className="object-cover" />
+        <div className="relative w-9 h-9 rounded-full overflow-hidden bg-bni-orange text-white grid place-items-center font-bold">
+          {user.photoUrl ? (
+            <Image
+              src={user.photoUrl}
+              alt="Foto Profil"
+              width={36}
+              height={36}
+              className="rounded-full object-cover"
+            />
           ) : (
-            <span>{initial}</span>
+            <span>{user.fullName?.[0]?.toUpperCase() ?? "U"}</span>
           )}
         </div>
-        <span className="hidden md:inline font-medium text-gray-800">{name}</span>
+        <span className="hidden md:inline font-semibold text-gray-800">
+          {user.fullName}
+        </span>
       </button>
 
-      {/* Dropdown */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 350, damping: 24 }}
-            className="absolute right-0 mt-2 w-56 rounded-2xl bg-white shadow-xl border p-2 z-[60]"
+      {/* Dropdown Menu */}
+      {open && (
+        <div className="absolute right-0 mt-2 w-60 bg-white border rounded-2xl shadow-lg z-50 p-2">
+          <DropdownButton
+            icon={<User size={18} />}
+            label="Profil"
+            onClick={() => {
+              router.push(`${USER_ROUTES.AKUN}?tab=profil`);
+              setOpen(false);
+            }}
+          />
+          <DropdownButton
+            icon={<Bell size={18} />}
+            label="Notifikasi"
+            onClick={() => {
+              router.push(`${USER_ROUTES.AKUN}?tab=notifikasi`);
+              setOpen(false);
+            }}
+          />
+          <DropdownButton
+            icon={<FileText size={18} />}
+            label="Pengajuan KPR"
+            onClick={() => {
+              router.push(`${USER_ROUTES.AKUN}?tab=pengajuan`);
+              setOpen(false);
+            }}
+          />
+          <DropdownButton
+            icon={<Heart size={18} />}
+            label="Wishlist"
+            onClick={() => {
+              router.push(`${USER_ROUTES.AKUN}?tab=wishlist`);
+              setOpen(false);
+            }}
+          />
+
+          <hr className="my-2" />
+
+          <button
+            onClick={() => {
+              logout();
+              router.push(USER_ROUTES.BERANDA);
+            }}
+            className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-gray-100 rounded-xl text-red-600 font-medium"
           >
-            {/* Arrow */}
-            <div className="absolute -top-2 right-8 h-4 w-4 rotate-45 bg-white border-l border-t" />
-
-            <MenuButton onClick={() => goTo("profil")}     icon={<UserIcon className="h-4 w-4" />}>Profil</MenuButton>
-            <MenuButton onClick={() => goTo("notifikasi")} icon={<Bell className="h-4 w-4" />}>Notifikasi</MenuButton>
-            <MenuButton onClick={() => goTo("pengajuan")}  icon={<FileText className="h-4 w-4" />}>Pengajuan KPR</MenuButton>
-            <MenuButton onClick={() => goTo("wishlist")}   icon={<Heart className="h-4 w-4" />}>Wishlist</MenuButton>
-
-            <div className="my-1 h-px bg-gray-100" />
-
-            <button
-              onClick={logout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-gray-700 hover:bg-gray-50 active:bg-gray-100"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Keluar</span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <LogOut size={18} /> Keluar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-function MenuButton({
-  onClick, icon, children,
-}: { onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
+/* Tombol Reusable di Dropdown */
+function DropdownButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100"
+      className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-gray-100 rounded-xl text-gray-800"
     >
       {icon}
-      <span className="font-medium">{children}</span>
+      <span className="font-medium">{label}</span>
     </button>
   );
 }
