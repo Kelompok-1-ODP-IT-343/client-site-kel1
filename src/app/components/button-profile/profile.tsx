@@ -1,11 +1,42 @@
+// src/app/components/button-profile/profile.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User, Bell, FileText, Heart, LogOut } from "lucide-react";
 import { USER_ROUTES } from "@/app/routes/userRoutes";
 import { useAuth } from "@/app/lib/authContext";
+import { API_BASE_URL } from "@/app/lib/apiConfig";
+
+function getOriginFromBase(base?: string) {
+  try {
+    return base ? new URL(base).origin : "";
+  } catch {
+    return "";
+  }
+}
+
+function normalizePhotoUrl(src?: string | null) {
+  if (!src) return null;
+  const s = src.trim();
+  if (!s) return null;
+
+  if (/^(https?:)?\/\//i.test(s) || s.startsWith("data:")) return s;
+
+  if (s.startsWith("/")) return s;
+
+  const apiOrigin = getOriginFromBase(API_BASE_URL);
+  return `/${s}`;
+}
+
+function getInitials(fullName?: string) {
+  if (!fullName) return "U";
+  const parts = fullName.trim().split(/\s+/);
+  const a = parts[0]?.[0] ?? "";
+  const b = parts[1]?.[0] ?? "";
+  return (a + b).toUpperCase() || "U";
+}
 
 export default function UserMenu() {
   const [open, setOpen] = useState(false);
@@ -25,24 +56,32 @@ export default function UserMenu() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const safePhoto = useMemo(
+    () => normalizePhotoUrl(user.photoUrl),
+    [user?.photoUrl]
+  );
+  const [imgOk, setImgOk] = useState(true);
+  useEffect(() => setImgOk(true), [safePhoto]);
+
   return (
     <div className="relative" ref={menuRef}>
-      {/* Tombol profil */}
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-50 transition"
       >
         <div className="relative w-9 h-9 rounded-full overflow-hidden bg-bni-orange text-white grid place-items-center font-bold">
-          {user.photoUrl ? (
+          {safePhoto && imgOk ? (
             <Image
-              src={user.photoUrl}
+              src={safePhoto}
               alt="Foto Profil"
               width={36}
               height={36}
-              className="rounded-full object-cover"
+              className="rounded-full object-cover w-full h-full"
+              onError={() => setImgOk(false)}
+              priority={false}
             />
           ) : (
-            <span>{user.fullName?.[0]?.toUpperCase() ?? "U"}</span>
+            <span>{getInitials(user.fullName)}</span>
           )}
         </div>
         <span className="hidden md:inline font-semibold text-gray-800">
@@ -50,7 +89,6 @@ export default function UserMenu() {
         </span>
       </button>
 
-      {/* Dropdown Menu */}
       {open && (
         <div className="absolute right-0 mt-2 w-60 bg-white border rounded-2xl shadow-lg z-50 p-2">
           <DropdownButton
@@ -103,7 +141,6 @@ export default function UserMenu() {
   );
 }
 
-/* Tombol Reusable di Dropdown */
 function DropdownButton({
   icon,
   label,

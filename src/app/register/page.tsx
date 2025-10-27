@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/app/lib/util";
+import { Button } from "@/app/components/Ui/Button";
+import { Calendar } from "@/app/components/Ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/app/components/Ui/popover";
 import { registerUser } from "@/app/lib/coreApi";
 
 const OCCUPATION_KTP = [
@@ -42,7 +42,6 @@ const OCCUPATION_KTP = [
   "PEMBANTU_RUMAH_TANGGA",
 ];
 
-// =========================== KOMPONEN UTAMA ===========================
 export default function RegisterSimple() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -78,7 +77,6 @@ export default function RegisterSimple() {
     setError("");
     setMessage("");
 
-    // ======== Validasi ========
     if (!form.email.includes("@")) return setError("Format email tidak valid.");
     if (form.password.length < 8)
       return setError("Password minimal 8 karakter.");
@@ -133,7 +131,6 @@ export default function RegisterSimple() {
     }
   };
 
-  // =========================== RENDER ===========================
   return (
     <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center px-4 py-10">
       <motion.div
@@ -142,7 +139,6 @@ export default function RegisterSimple() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-8 md:p-10"
       >
-        {/* ================= HEADER ================= */}
         <div className="text-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-[#003366] mb-2">
             Daftar Akun Satu Atap
@@ -152,14 +148,15 @@ export default function RegisterSimple() {
           </p>
         </div>
 
-        {/* ================= STEP INDICATOR ================= */}
         <div className="flex items-center justify-center mb-8 space-x-3">
-          <StepIndicator number={1} label="Informasi Akun" active={step === 1} />
+          <StepIndicator
+            number={1}
+            label="Informasi Akun"
+            active={step === 1}
+          />
           <span className="text-gray-400">—</span>
           <StepIndicator number={2} label="Data Diri" active={step === 2} />
         </div>
-
-        {/* ================= FORM ================= */}
         <form onSubmit={handleSubmit}>
           <AnimatePresence mode="wait">
             {step === 1 ? (
@@ -231,7 +228,9 @@ export default function RegisterSimple() {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
-                <h2 className="text-lg font-semibold text-[#003366]">Data Diri</h2>
+                <h2 className="text-lg font-semibold text-[#003366]">
+                  Data Diri
+                </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputField
@@ -251,7 +250,6 @@ export default function RegisterSimple() {
                     placeholder="Tempat Lahir"
                   />
 
-                  {/* ======== TANGGAL LAHIR ======== */}
                   <div>
                     <label
                       htmlFor="birth_date"
@@ -293,7 +291,6 @@ export default function RegisterSimple() {
                     </Popover>
                   </div>
 
-                  {/* ======== PEKERJAAN ======== */}
                   <div>
                     <label
                       htmlFor="occupation"
@@ -328,7 +325,6 @@ export default function RegisterSimple() {
                   />
                 </div>
 
-                {/* ======== CHECKBOX ======== */}
                 <div className="flex items-start gap-2 text-sm text-gray-700 mt-3">
                   <input
                     type="checkbox"
@@ -349,15 +345,11 @@ export default function RegisterSimple() {
                   </span>
                 </div>
 
-                {/* ======== ERROR / SUCCESS ======== */}
-                {error && (
-                  <p className="text-red-600 text-xs mt-2">{error}</p>
-                )}
+                {error && <p className="text-red-600 text-xs mt-2">{error}</p>}
                 {message && (
                   <p className="text-green-600 text-xs mt-2">{message}</p>
                 )}
 
-                {/* ======== TOMBOL ======== */}
                 <div className="flex justify-between pt-4">
                   <button
                     type="button"
@@ -384,7 +376,6 @@ export default function RegisterSimple() {
         </form>
       </motion.div>
 
-      {/* ================== MODAL S&K ================== */}
       <AnimatePresence>
         {showTerms && (
           <motion.div
@@ -431,7 +422,6 @@ export default function RegisterSimple() {
   );
 }
 
-// =========================== SUB KOMPONEN ===========================
 function InputField({
   id,
   label,

@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { deleteCookie } from "@/app/lib/cookie";
 
 type User = {
   fullName: string;
@@ -15,15 +22,12 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/* ============== PROVIDER ============== */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    if (savedUser) setUser(JSON.parse(savedUser));
   }, []);
 
   const login = (userData: User) => {
@@ -34,6 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    deleteCookie("token");
+    deleteCookie("token_type");
+    deleteCookie("refreshToken");
   };
 
   return (
@@ -43,11 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/* ============== HOOK ============== */
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth harus digunakan di dalam <AuthProvider>");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth harus digunakan di dalam <AuthProvider>");
+  return ctx;
 }

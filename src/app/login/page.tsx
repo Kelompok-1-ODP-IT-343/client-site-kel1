@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
-import { loginApi } from "./../../lib/coreApi";
+import { loginApi } from "@/app/lib/coreApi";
 import { useAuth } from "@/app/lib/authContext";
-
+import { setCookie } from "@/app/lib/cookie";
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextAfterLogin = searchParams.get("next") || "/beranda";
   const { login } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -16,77 +18,83 @@ export default function LoginPage() {
   const [status, setStatus] = useState({
     loading: false,
     message: "",
-    type: "",
+    type: "" as "success" | "error" | "",
   });
+
+  useEffect(() => {
+    const hasToken = document.cookie
+      .split("; ")
+      .some((c) => c.startsWith("token="));
+    if (hasToken) router.replace("/user/beranda");
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-    if (errors[name as keyof typeof errors]) {
-      setErrors({ ...errors, [name]: "" });
-    }
+    setForm((s) => ({ ...s, [name]: value }));
+    if (errors[name as keyof typeof errors])
+      setErrors((s) => ({ ...s, [name]: "" }));
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = () => {
     const newErrors = { email: "", password: "" };
-    let isValid = true;
+    let ok = true;
 
     if (!form.email) {
       newErrors.email = "Email wajib diisi.";
-      isValid = false;
+      ok = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       newErrors.email = "Format email tidak valid.";
-      isValid = false;
+      ok = false;
     }
 
     if (!form.password) {
       newErrors.password = "Password wajib diisi.";
-      isValid = false;
+      ok = false;
     } else if (form.password.length < 8) {
       newErrors.password = "Password minimal 8 karakter.";
-      isValid = false;
+      ok = false;
     }
 
     setErrors(newErrors);
-    return isValid;
+    return ok;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus({ loading: false, message: "", type: "" });
-
     if (!validateForm()) return;
-    setStatus({ loading: true, message: "", type: "" });
 
+    setStatus({ loading: true, message: "", type: "" });
     try {
       const payload = { identifier: form.email, password: form.password };
-      console.log("Payload login:", payload);
-
-      const res = await loginApi(payload); 
+      const res = await loginApi(payload);
 
       if (res.success && res.data) {
-        const { token, type, refreshToken, fullName, photoUrl } = res.data;
+        const {
+          token,
+          type,
+          refreshToken,
+          fullName,
+          photoUrl,
+          expiresInSec = 300,
+          refreshExpiresInSec = 86400,
+        } = res.data;
 
-        const expiry = 5 * 60;
-        document.cookie = `token=${token}; path=/; max-age=${expiry}; SameSite=Lax`;
-        document.cookie = `token_type=${type || "Bearer"}; path=/; max-age=${expiry}; SameSite=Lax`;
-        const refreshExpiry = 24 * 60 * 60;
-        document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${refreshExpiry}; SameSite=Lax`;
+        setCookie("token", token, expiresInSec);
+        setCookie("token_type", type || "Bearer", expiresInSec);
+        setCookie("refreshToken", refreshToken, refreshExpiresInSec);
 
         login({
           fullName: fullName || "Pengguna",
-          photoUrl: photoUrl || "/default-avatar.png",
+          photoUrl: photoUrl || "/profile.png",
         });
 
         setStatus({
           loading: false,
-          message: "Login berhasil! Mengarahkan ke Beranda...",
+          message: "Login berhasil! Mengarahkan…",
           type: "success",
         });
-
-        setTimeout(() => {
-          router.push("/user/beranda");
-        }, 1000);
+        setTimeout(() => router.replace(nextAfterLogin), 400);
       } else {
         setStatus({
           loading: false,
@@ -154,7 +162,9 @@ export default function LoginPage() {
               />
             </div>
             {errors.password && (
-              <p className="text-red-500 text-xs mt-1 ml-1">{errors.password}</p>
+              <p className="text-red-500 text-xs mt-1 ml-1">
+                {errors.password}
+              </p>
             )}
           </div>
 
@@ -168,7 +178,7 @@ export default function LoginPage() {
             }`}
           >
             {status.loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               "Masuk"
             )}
@@ -190,7 +200,7 @@ export default function LoginPage() {
         <p className="text-center text-sm text-gray-600 mt-6">
           Belum punya akun?{" "}
           <Link
-            href="/user/register"
+            href="/register"
             className="text-bni-teal hover:underline font-bold"
           >
             Daftar di sini

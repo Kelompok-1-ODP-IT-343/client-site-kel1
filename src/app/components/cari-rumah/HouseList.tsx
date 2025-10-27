@@ -1,5 +1,5 @@
-import HouseCard from './HouseCard';
-import type { House } from '@/app/user/cari-rumah/page';
+import HouseCard from "./HouseCard";
+import type { House } from "@/app/cari-rumah/page";
 
 type HouseListProps = {
   houses: House[];
@@ -7,11 +7,17 @@ type HouseListProps = {
   onToggleFavorite: (id: number) => void;
 };
 
-export default function HouseList({ houses, favorites, onToggleFavorite }: HouseListProps) {
+export default function HouseList({
+  houses,
+  favorites,
+  onToggleFavorite,
+}: HouseListProps) {
   if (houses.length === 0) {
     return (
       <div className="text-center py-20">
-        <h3 className="text-2xl font-bold text-bni-dark-blue">Tidak Ada Hasil Ditemukan</h3>
+        <h3 className="text-2xl font-bold text-bni-dark-blue">
+          Tidak Ada Hasil Ditemukan
+        </h3>
         <p className="mt-2 text-bni-gray">Coba ubah kriteria pencarian Anda.</p>
       </div>
     );
