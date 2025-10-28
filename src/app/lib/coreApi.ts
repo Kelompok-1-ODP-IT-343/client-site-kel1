@@ -1,5 +1,6 @@
 import { API_BASE_URL, API_ENDPOINTS } from "./apiConfig";
 import type { PropertyDetail, PropertyListItem } from "./types";
+import { getCookie } from "./cookie";
 
 export async function registerUser(payload: any) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
@@ -129,11 +130,21 @@ export async function submitKprApplication(
       multipartData.append("otherDocument", files.fileOther);
     }
 
+    const token = getCookie("token") || "";
+    const tokenType = getCookie("token_type") || "Bearer";
+
+    console.log("Debug KPR Submit - Token:", token);
+    console.log("Debug KPR Submit - Token Type:", tokenType);
+    console.log(
+      "Debug KPR Submit - Authorization Header:",
+      `${tokenType} ${token}`
+    );
+
     const res = await fetch(url, {
       method: "POST",
       headers: {
         // Don't set Content-Type for FormData, let browser set it with boundary
-        Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+        Authorization: token ? `${tokenType} ${token}` : "",
       },
       body: multipartData,
     });
@@ -270,4 +281,43 @@ export async function fetchPropertyDetail(
   };
 
   return result;
+}
+
+export async function fetchKprHistory() {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_HISTORY}`;
+
+  try {
+    const token = getCookie("token") || "";
+    const tokenType = getCookie("token_type") || "Bearer";
+
+    console.log("Debug - Token:", token);
+    console.log("Debug - Token Type:", tokenType);
+    console.log("Debug - Authorization Header:", `${tokenType} ${token}`);
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `${tokenType} ${token}` : "",
+      },
+    });
+
+    const json = await res.json();
+
+    if (res.ok && json.success) {
+      return { success: true, data: json.data || [], message: json.message };
+    }
+    return {
+      success: false,
+      data: [],
+      message: json.message || "Gagal mengambil riwayat pengajuan KPR.",
+    };
+  } catch (e) {
+    console.error("KPR History Error:", e);
+    return {
+      success: false,
+      data: [],
+      message: "Terjadi kesalahan koneksi ke server.",
+    };
+  }
 }

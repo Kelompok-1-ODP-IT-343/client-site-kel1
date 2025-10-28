@@ -4,7 +4,8 @@ export type AppStatus =
   | "Dokumen Terkirim"
   | "Peninjauan 1"
   | "Peninjauan 2"
-  | "Peninjauan 3";
+  | "Peninjauan 3"
+  | "SUBMITTED";
 
 export type Application = {
   id: number;
@@ -14,6 +15,18 @@ export type Application = {
   loanAmount: number;
   date: string;
   image: string;
+};
+
+// API Response type for KPR History
+export type KprHistoryItem = {
+  id: number;
+  namaRumah: string;
+  statusPengajuan: string;
+  lokasiRumah: string;
+  aplikasiKode: string;
+  jumlahPinjaman: number;
+  tanggalPengajuan: string;
+  fotoProperti: string;
 };
 
 export type ProfileForm = {

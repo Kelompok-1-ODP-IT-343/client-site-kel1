@@ -17,6 +17,10 @@ export const STATUS_STYLES: Record<AppStatus, { chip: string; dot: string }> = {
     dot: "bg-orange-600",
   },
   "Peninjauan 3": { chip: "text-teal-700 border-teal-600", dot: "bg-teal-600" },
+  SUBMITTED: {
+    chip: "text-blue-700 border-blue-600",
+    dot: "bg-blue-600",
+  },
 };
 
 export const DEFAULT_PROFILE: ProfileForm = {

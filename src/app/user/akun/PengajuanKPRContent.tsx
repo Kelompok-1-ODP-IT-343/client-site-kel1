@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import {
   MapPin,
@@ -16,8 +16,9 @@ import InfoItem from "@/app/user/akun/InfoItem";
 import SummaryCard from "@/app/user/akun/SummaryCard";
 import { formatIDR } from "@/app/user/akun/formatIDR";
 import { STATUS_STYLES } from "@/app/user/akun/constants";
-import { Application } from "@/app/user/akun/types";
+import { Application, KprHistoryItem } from "@/app/user/akun/types";
 import { cn } from "@/app/lib/util";
+import { fetchKprHistory } from "@/app/lib/coreApi";
 
 const STATUS_ORDER = [
   "Dokumen Terkirim",
@@ -26,31 +27,111 @@ const STATUS_ORDER = [
   "Peninjauan 3",
 ] as const;
 
+// Function to map API status to display status
+const mapApiStatusToDisplayStatus = (apiStatus: string): string => {
+  switch (apiStatus) {
+    case "SUBMITTED":
+      return "Dokumen Terkirim";
+    default:
+      return apiStatus;
+  }
+};
+
+// Function to convert API response to Application format
+const convertKprHistoryToApplication = (item: KprHistoryItem): Application => {
+  const date = new Date(item.tanggalPengajuan);
+  const formattedDate = date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  return {
+    id: item.id,
+    cluster: item.namaRumah,
+    city: item.lokasiRumah,
+    status: mapApiStatusToDisplayStatus(item.statusPengajuan) as any,
+    loanAmount: item.jumlahPinjaman,
+    date: formattedDate,
+    image: item.fotoProperti || "/rumah-1.jpg", // fallback image
+  };
+};
+
 export default function PengajuanKPRContent() {
   const router = useRouter();
-  const [applications] = useState<Application[]>([
-    {
-      id: 1,
-      cluster: "Cluster Green Valley",
-      city: "Serpong, Banten",
-      status: "Dokumen Terkirim",
-      loanAmount: 1_500_000_000,
-      date: "15 Juli 2025",
-      image: "/rumah-1.jpg",
-    },
-    {
-      id: 2,
-      cluster: "Rumah Klasik Menteng",
-      city: "Jakarta Pusat",
-      status: "Peninjauan 1",
-      loanAmount: 25_000_000_000,
-      date: "18 Juli 2025",
-      image: "/rumah-2.jpg",
-    },
-  ]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Move useMemo before any conditional returns
+  const totalApps = applications.length;
+  const totalLoan = useMemo(
+    () => applications.reduce((s, a) => s + a.loanAmount, 0),
+    [applications]
+  );
+
+  useEffect(() => {
+    const loadKprHistory = async () => {
+      try {
+        setLoading(true);
+        const result = await fetchKprHistory();
+
+        if (result.success) {
+          const convertedApplications = result.data.map(convertKprHistoryToApplication);
+          setApplications(convertedApplications);
+        } else {
+          setError(result.message);
+        }
+      } catch (err) {
+        setError("Terjadi kesalahan saat memuat data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadKprHistory();
+  }, []);
 
   const goToDetail = (id: number) =>
     router.push(`/user/detail-pengajuan?loanId=${id}`);
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center">
+        <div className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-orange-100 to-teal-100">
+          <RefreshCcw className="h-8 w-8 text-bni-orange animate-spin" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800">
+          Memuat data pengajuan...
+        </h3>
+        <p className="mt-1 text-sm text-gray-500">
+          Mohon tunggu sebentar.
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-10 text-center">
+        <div className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-full bg-red-100">
+          <FileText className="h-8 w-8 text-red-500" />
+        </div>
+        <h3 className="text-lg font-semibold text-red-800">
+          Gagal memuat data
+        </h3>
+        <p className="mt-1 text-sm text-red-600">
+          {error}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    );
+  }
 
   if (applications.length === 0) {
     return (
@@ -67,12 +148,6 @@ export default function PengajuanKPRContent() {
       </div>
     );
   }
-
-  const totalApps = applications.length;
-  const totalLoan = useMemo(
-    () => applications.reduce((s, a) => s + a.loanAmount, 0),
-    [applications]
-  );
 
   return (
     <div>
@@ -168,14 +243,15 @@ export default function PengajuanKPRContent() {
 
                       <span
                         className={cn(
-                          "inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-sm font-semibold",
-                          s.chip
+                          "inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-sm font-semibold", "text-gray-500 border-gray-300"
+                          // s.chip || "text-gray-500 border-gray-300"
                         )}
                       >
                         <span
                           className={cn(
                             "inline-block h-2 w-2 rounded-full",
-                            s.dot
+                            "bg-gray-300"
+                            // s.dot || "bg-gray-300"
                           )}
                         />
                         {app.status}

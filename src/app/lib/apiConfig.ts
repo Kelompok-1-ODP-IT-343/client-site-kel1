@@ -7,4 +7,5 @@ export const API_ENDPOINTS = {
   PROPERTY_DETAIL: (id: number | string) => `/properties/${id}/details`,
 
   KPR_APPLICATION: "/kpr-applications",
+  KPR_HISTORY: "/kpr-applications/user/history",
 } as const;
