@@ -21,21 +21,40 @@ import { cn } from "@/app/lib/util";
 import { fetchKprHistory } from "@/app/lib/coreApi";
 
 const STATUS_ORDER = [
-  "Dokumen Terkirim",
-  "Peninjauan 1",
-  "Peninjauan 2",
-  "Peninjauan 3",
+  "Submitted",
+  "Property Appraisal",
+  "Credit Analysis",
+  "Final Approval",
 ] as const;
 
 // Function to map API status to display status
-const mapApiStatusToDisplayStatus = (apiStatus: string): string => {
-  switch (apiStatus) {
-    case "SUBMITTED":
-      return "Dokumen Terkirim";
-    default:
-      return apiStatus;
-  }
+const STATUS_MAP: Record<string, string> = {
+  SUBMITTED: "Submitted",
+  DOCUMENT_VERIFICATION: "Submitted",
+  PROPERTY_APPRAISAL: "Property Appraisal",
+  CREDIT_ANALYSIS: "Credit Analysis",
+  APPROVAL_PENDING: "Final Approval",
 };
+
+const mapApiStatusToDisplayStatus = (apiStatus: string) =>
+  STATUS_MAP[apiStatus] || apiStatus;
+
+// const mapApiStatusToDisplayStatus = (apiStatus: string): string => {
+//   switch (apiStatus) {
+//     case "SUBMITTED":
+//       return "Dokumen Terkirim";
+//     default:
+//       return apiStatus;
+//     // case "SUBMITTED":
+//     //   return "Submitted";
+//     // case "APPRAISAL":
+//     //   return "Property Appraisal";
+//     // case "CREDIT_ANALYSIS":
+//     //   return "Credit Analysis";
+//     // case "FINAL_APPROVAL":
+//     //   return "Final Approval";
+//   }
+// };
 
 // Function to convert API response to Application format
 const convertKprHistoryToApplication = (item: KprHistoryItem): Application => {
@@ -265,7 +284,7 @@ export default function PengajuanKPRContent() {
                       </div>
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-100">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-[#3FD8D4] to-[#FF8500] transition-all"
+                          className="h-full rounded-full bg-gradient-to-r from-[#00B894] via-[#00D1A0] to-[#2ECC71] transition-all"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
@@ -277,7 +296,7 @@ export default function PengajuanKPRContent() {
                               className={cn(
                                 "grid h-4 w-4 place-items-center rounded-full border",
                                 idx <= stepIndex
-                                  ? "border-[#3FD8D4] bg-[#3FD8D4] text-white"
+                                  ? "border-[#00B894] bg-[#00B894] text-white"
                                   : "border-gray-300 bg-white text-gray-400"
                               )}
                             >

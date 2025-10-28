@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 // Uncomment ini dit buat testing
-const PROTECTED=["/user/dashboard"];
-// const PROTECTED = [
-//   "/user/pengajuan",
-//   "/user/detail-pengajuan",
-//   "/user/dashboard",
-// ];
+// const PROTECTED=["/user/dashboard"];
+const PROTECTED = [
+  // "/user/pengajuan",
+   "/user/akun",
+  "/user/detail-pengajuan",
+  "/user/dashboard",
+];
 export function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const pathname =
