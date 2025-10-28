@@ -400,9 +400,91 @@ export default function RegisterSimple() {
               <h2 className="text-sm font-semibold mb-3">
                 Syarat dan Ketentuan Penggunaan Layanan Satu Atap by BNI
               </h2>
-              <p className="text-gray-700 text-xs leading-relaxed">
-                (Isi tetap seperti versi lamamu — poin 1–10)
-              </p>
+              <div className="text-gray-700 space-y-4 text-xs leading-relaxed mt-2">
+                <h3 className="font-bold">1. Definisi</h3>
+                <p>
+                  “Satu Atap” adalah platform digital yang menyediakan layanan simulasi, pengajuan,
+                  dan monitoring kredit pemilikan rumah (KPR) secara daring, bekerja sama
+                  dengan mitra bank dan developer properti.
+                </p>
+                <p>
+                  “Pengguna” adalah individu yang melakukan registrasi dan/atau menggunakan layanan Satu Atap.
+                </p>
+                <p>
+                  “Data Pribadi” adalah setiap data mengenai seseorang yang teridentifikasi atau
+                  dapat diidentifikasi, sesuai ketentuan UU No. 27 Tahun 2022.
+                </p>
+                <p>
+                  “Mitra Bank” adalah lembaga keuangan yang bekerja sama dengan Satu Atap untuk
+                  proses analisis dan persetujuan kredit.
+                </p>
+                <p>“Layanan” berarti seluruh fitur, sistem, dan fungsi yang disediakan melalui aplikasi atau situs web Satu Atap.</p>
+
+                <h3 className="font-bold">2. Ketentuan Umum</h3>
+                <p>
+                  Pengguna wajib membaca dan memahami seluruh isi Syarat dan Ketentuan ini sebelum
+                  menggunakan layanan Satu Atap. Dengan melakukan registrasi dan/atau menggunakan
+                  layanan Satu Atap, Pengguna dianggap telah memberikan persetujuan eksplisit atas
+                  pengumpulan, penyimpanan, penggunaan, dan pemrosesan data pribadi sesuai 
+                  ketentuan perundang-undangan yang berlaku.
+                </p>
+                <p>Satu Atap berhak mengubah, menambah, atau memperbarui ketentuan ini sewaktu-waktu.</p>
+
+                <h3 className="font-bold">3. Pengumpulan dan Penggunaan Data Pribadi</h3>
+                <p>
+                  Satu Atap mengumpulkan dan memproses data pribadi Pengguna untuk verifikasi,
+                  pemrosesan pengajuan KPR, komunikasi layanan, dan analisis internal dengan
+                  prinsip transparansi dan keamanan.
+                </p>
+
+                <h3 className="font-bold">4. Pembagian Data kepada Mitra Bank dan Developer</h3>
+                <p>
+                  Pengguna menyetujui pembagian data pribadi kepada Mitra Bank dan Developer
+                  Properti secara aman dan terenkripsi sesuai UU PDP dan POJK.
+                </p>
+
+                <h3 className="font-bold">5. Hak dan Kewajiban Pengguna</h3>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li>Mengakses, memperbaiki, dan menghapus data pribadi</li>
+                  <li>Menarik persetujuan pemrosesan data</li>
+                  <li>Mendapatkan pemberitahuan jika terjadi kebocoran data</li>
+                  <li>Menyampaikan data yang benar dan menjaga kerahasiaan akun</li>
+                </ul>
+
+                <h3 className="font-bold">6. Keamanan Informasi</h3>
+                <p>
+                  Data dilindungi dengan standar keamanan ISO 27001, kontrol akses, dan komunikasi HTTPS.
+                  Satu Atap tidak akan meminta OTP atau password melalui pesan pribadi.
+                </p>
+
+                <h3 className="font-bold">7. Persetujuan dan Penyimpanan Data</h3>
+                <p>
+                  Data pribadi disimpan selama layanan berlangsung dan dapat dihapus sesuai permintaan Pengguna.
+                </p>
+
+                <h3 className="font-bold">8. Batas Tanggung Jawab</h3>
+                <p>
+                  Satu Atap tidak menanggung kerugian akibat kelalaian Pengguna menjaga akun,
+                  atau gangguan dari pihak ketiga.
+                </p>
+
+                <h3 className="font-bold">9. Hukum dan Penyelesaian Sengketa</h3>
+                <p>
+                  Diatur oleh hukum Republik Indonesia dan diselesaikan melalui OJK atau
+                  Pengadilan Negeri Jakarta Pusat.
+                </p>
+
+                <h3 className="font-bold">10. Kontak Pengaduan</h3>
+                <p>Email: dpo@satuatap.co.id</p>
+                <p>Telepon: (021) 1234-5678</p>
+                <p>Graha BNI City Lt. 10, Jakarta Pusat, Indonesia</p>
+
+                <p className="mt-4 font-medium">
+                  Dengan mencentang persetujuan, Pengguna menyatakan telah membaca,
+                  memahami dan menyetujui seluruh ketentuan di atas.
+                </p>
+              </div>
+
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => {
