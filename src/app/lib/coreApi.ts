@@ -37,6 +37,123 @@ export async function loginApi(payload: any) {
   }
 }
 
+export async function submitKprApplication(
+  formData: any,
+  files: { [key: string]: File | null }
+) {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_APPLICATION}`;
+
+  try {
+    const multipartData = new FormData();
+
+    // Property and simulation data
+    multipartData.append("propertyId", formData.propertyId || "");
+    multipartData.append("kprRateId", "27"); // Default value as shown in curl
+    multipartData.append(
+      "simulationData.propertyValue",
+      formData.hargaProperti || ""
+    );
+    multipartData.append(
+      "simulationData.downPayment",
+      formData.downPayment?.replace(/[^0-9]/g, "") || ""
+    );
+    multipartData.append(
+      "simulationData.loanAmount",
+      String(
+        Number(formData.hargaProperti?.replace(/[^0-9]/g, "") || 0) -
+          Number(formData.downPayment?.replace(/[^0-9]/g, "") || 0)
+      )
+    );
+    multipartData.append(
+      "simulationData.loanTermYears",
+      formData.loanTerm || ""
+    );
+
+    // Personal data
+    multipartData.append("personalData.fullName", formData.fullName || "");
+    multipartData.append("personalData.nik", formData.nik || "");
+    multipartData.append("personalData.npwp", formData.npwp || "");
+    multipartData.append("personalData.birthDate", formData.birthDate || "");
+    multipartData.append("personalData.birthPlace", formData.birthPlace || "");
+    multipartData.append(
+      "personalData.gender",
+      formData.gender === "Laki-laki" ? "male" : "female"
+    );
+    multipartData.append(
+      "personalData.maritalStatus",
+      formData.maritalStatus?.toLowerCase() || ""
+    );
+    multipartData.append("personalData.address", formData.address || "");
+    multipartData.append("personalData.city", formData.city || "");
+    multipartData.append("personalData.province", formData.province || "");
+    multipartData.append("personalData.postalCode", formData.postalCode || "");
+
+    // Employment data
+    multipartData.append(
+      "employmentData.occupation",
+      formData.occupation || ""
+    );
+    multipartData.append(
+      "employmentData.monthlyIncome",
+      formData.monthlyIncome?.replace(/[^0-9]/g, "") || ""
+    );
+    multipartData.append(
+      "employmentData.companyName",
+      formData.companyName || ""
+    );
+    multipartData.append(
+      "employmentData.companyAddress",
+      formData.companyAddress || ""
+    );
+    multipartData.append("employmentData.companyCity", formData.city || "");
+    multipartData.append(
+      "employmentData.companyProvince",
+      formData.province || ""
+    );
+    multipartData.append(
+      "employmentData.companyPostalCode",
+      formData.postalCode || ""
+    );
+
+    // File uploads
+    if (files.fileKTP) {
+      multipartData.append("ktpDocument", files.fileKTP);
+    }
+    if (files.fileSlipGaji) {
+      multipartData.append("salarySlipDocument", files.fileSlipGaji);
+    }
+    if (files.fileNPWP) {
+      multipartData.append("npwpDocument", files.fileNPWP);
+    }
+    if (files.fileOther) {
+      multipartData.append("otherDocument", files.fileOther);
+    }
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        // Don't set Content-Type for FormData, let browser set it with boundary
+        Authorization: "Bearer " + (localStorage.getItem("token") || ""),
+      },
+      body: multipartData,
+    });
+
+    const json = await res.json();
+
+    if (res.ok && json.success) {
+      return {
+        success: true,
+        message: json.message || "Pengajuan KPR berhasil dikirim",
+        data: json.data,
+      };
+    }
+    return { success: false, message: json.message || "Pengajuan KPR gagal." };
+  } catch (e) {
+    console.error("KPR Application Error:", e);
+    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+  }
+}
+
 export function buildPropertyListQuery(params: {
   name?: string;
   city?: string;

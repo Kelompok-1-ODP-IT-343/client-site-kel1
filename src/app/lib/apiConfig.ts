@@ -5,4 +5,6 @@ export const API_ENDPOINTS = {
 
   PROPERTY_LIST: "/properties",
   PROPERTY_DETAIL: (id: number | string) => `/properties/${id}/details`,
+
+  KPR_APPLICATION: "/kpr-applications",
 } as const;

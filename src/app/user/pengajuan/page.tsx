@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { MapPin, ChevronDown, ChevronUp,Settings2,ArrowRight, BarChart3,User, Briefcase, FileText, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { allHouses } from '@/app/lib/propertyData';
+import { submitKprApplication } from '@/app/lib/coreApi';
 
 const formatCurrency = (amount: string | number): string => {
     const numValue = String(amount).replace(/[^0-9]/g, "");
@@ -35,7 +36,7 @@ type StepProps = { formData: any; handleChange: (e: React.ChangeEvent<HTMLInputE
 export default function FormPengajuanPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -47,7 +48,7 @@ export default function FormPengajuanPage() {
     downPayment: "", loanTerm: "",
     fileKTP: null as File | null,
     fileSlipGaji: null as File | null,
-    agreePrivacy: false,
+    agreeTerms: false,
   });
 
   const steps = ["Data Diri", "Alamat", "Pekerjaan", "Pengajuan"];
@@ -73,7 +74,7 @@ export default function FormPengajuanPage() {
           if (!data.fullName) newErrors.fullName = "Nama lengkap wajib diisi";
           if (!data.nik || data.nik.length !== 16) newErrors.nik = "NIK harus 16 digit";
           if (!data.npwp) newErrors.npwp = "NPWP wajib diisi";
-         
+
       } else if (currentStepIndex === 1) {
           if (!data.address) newErrors.address = "Alamat wajib diisi";
           if (!data.subdistrict) newErrors.subdistrict = "Kelurahan wajib diisi";
@@ -81,13 +82,13 @@ export default function FormPengajuanPage() {
 
       } else if (currentStepIndex === 2) {
           if (!data.occupation) newErrors.occupation = "Pekerjaan wajib diisi";
-         
+
       } else if (currentStepIndex === 3) {
           if (!data.downPayment || parseCurrency(data.downPayment) <= 0) newErrors.downPayment = "Uang Muka wajib diisi";
           if (!data.loanTerm || Number(data.loanTerm) <= 0) newErrors.loanTerm = "Jangka Waktu wajib diisi";
           if (!data.fileKTP) newErrors.fileKTP = "Upload KTP wajib";
           if (!data.fileSlipGaji) newErrors.fileSlipGaji = "Upload Slip Gaji wajib";
-          if (!data.agreePrivacy) newErrors.agreePrivacy = "Anda harus menyetujui kebijakan privasi";
+          if (!data.agreeTerms) newErrors.agreeTerms = "Anda harus menyetujui kebijakan privasi";
       }
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
@@ -100,10 +101,41 @@ export default function FormPengajuanPage() {
     e.preventDefault();
     if (validateStep(steps.length - 1)) {
         setIsLoading(true);
-        console.log("Mengirim data pengajuan:", { ...formData, ...applicationData });
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsLoading(false);
-        alert("Pengajuan berhasil dikirim! (Demo)");
+
+        try {
+          // Prepare files object
+          const files = {
+            fileKTP: formData.fileKTP,
+            fileSlipGaji: formData.fileSlipGaji,
+            fileNPWP: null, // Add if needed
+            fileOther: null, // Add if needed
+          };
+
+          // Prepare form data with application data
+          const submissionData = {
+            ...formData,
+            propertyId: applicationData.propertiId,
+            hargaProperti: applicationData.hargaProperti,
+          };
+
+          console.log("Mengirim data pengajuan:", { ...submissionData, files });
+
+          // Call the API
+          const result = await submitKprApplication(submissionData, files);
+
+          if (result.success) {
+            alert(result.message);
+            // Optionally redirect to success page
+            // router.push('/user/pengajuan/success');
+          } else {
+            alert(`Error: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('Submission error:', error);
+          alert("Terjadi kesalahan saat mengirim pengajuan. Silakan coba lagi.");
+        } finally {
+          setIsLoading(false);
+        }
     }
   };
 
@@ -120,15 +152,15 @@ export default function FormPengajuanPage() {
       <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-lg border">
         <h1 className="text-center text-3xl font-extrabold text-gray-800 mb-4">Formulir Pengajuan KPR</h1>
         <p className="text-center text-gray-500 mb-10">Lengkapi data di bawah ini untuk melanjutkan proses pengajuan Anda.</p>
-        
+
         <div className="w-full px-4 sm:px-0 mb-12">
             <div className="relative">
                 <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-200"></div>
-                <div 
+                <div
                     className="absolute top-5 left-0 h-0.5 bg-bni-orange transition-all duration-500"
                     style={{ width: `${(step / (steps.length - 1)) * 100}%` }} // Progress line
                 ></div>
-                
+
                 <div className="flex justify-between items-start relative">
                     {steps.map((label, i) => {
                         const isCompleted = i < step;
@@ -142,7 +174,7 @@ export default function FormPengajuanPage() {
                                         : "bg-white text-gray-400 border-gray-200" // Putih jika belum
                                     }`}
                                 >
-                                    {i + 1} 
+                                    {i + 1}
                                 </div>
                                 <span className={`mt-2 text-xs font-semibold ${ isActive || isCompleted ? "text-gray-800" : "text-gray-400"}`}>
                                     {label}
@@ -156,11 +188,11 @@ export default function FormPengajuanPage() {
 
         <form onSubmit={handleSubmit}>
           <AnimatePresence mode="wait">
-              <motion.div 
-                  key={step} 
-                  initial={{ opacity: 0, x: 30 }} 
-                  animate={{ opacity: 1, x: 0 }} 
-                  exit={{ opacity: 0, x: -30 }} 
+              <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -30 }}
                   transition={{ duration: 0.3 }}
               >
                 {step === 0 && <StepDataDiri formData={formData} handleChange={handleChange} errors={errors} />}
@@ -173,10 +205,10 @@ export default function FormPengajuanPage() {
           <div className="flex justify-between items-center mt-12 border-t pt-6">
             <div>
               {step > 0 && (
-                <button 
-                  type="button" 
-                  onClick={prevStep} 
-                  disabled={isLoading} 
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  disabled={isLoading}
                   className="px-6 py-2.5 rounded-lg border border-gray-300 font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition"
                 >
                   Kembali
@@ -185,17 +217,17 @@ export default function FormPengajuanPage() {
             </div>
             <div>
               {step < steps.length - 1 ? (
-                <button 
-                  type="button" 
-                  onClick={nextStep} 
+                <button
+                  type="button"
+                  onClick={nextStep}
                   className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-bni-orange text-white font-semibold shadow hover:bg-orange-600 transition transform hover:scale-105"
                 >
                   Berikutnya <ArrowRight size={18} />
                 </button>
               ) : (
-                <button 
-                  type="submit" 
-                  disabled={isLoading} 
+                <button
+                  type="submit"
+                  disabled={isLoading}
                   className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-bni-orange text-white font-semibold shadow hover:bg-green-600 transition disabled:bg-gray-400 disabled:cursor-wait w-40 transform hover:scale-105"
                 >
                   {isLoading ? (<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>) : ("Kirim Pengajuan")}
@@ -433,7 +465,7 @@ function StepPengajuan({
               </button>.
             </span>
           </label>
-         {errors.agreePrivacy && <p className="mt-1 text-xs text-red-500">{errors.agreePrivacy}</p>}
+         {errors.agreeTerms && <p className="mt-1 text-xs text-red-500">{errors.agreeTerms}</p>}
 
 
           {/* Popup Modal S&K */}
