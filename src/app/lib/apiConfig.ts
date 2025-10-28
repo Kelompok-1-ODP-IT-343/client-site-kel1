@@ -3,6 +3,6 @@ export const API_ENDPOINTS = {
   REGISTER: "/auth/register",
   LOGIN: "/auth/login",
 
-  PROPERTY_LIST: "/auth/cari-rumah",
+  PROPERTY_LIST: "/properties",
   PROPERTY_DETAIL: (id: number | string) => `/properties/${id}/details`,
 } as const;

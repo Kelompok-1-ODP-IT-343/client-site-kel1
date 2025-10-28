@@ -224,7 +224,9 @@ export default function CariRumahPage() {
                 />
               ))}
             </div>
-            {totalPages > 1 && (
+            {
+            // Show all aja jadi koboi
+            /* {totalPages > 1 && (
               <div className="mt-12 flex items-center justify-center gap-2 sm:gap-4">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -247,7 +249,7 @@ export default function CariRumahPage() {
                   Selanjutnya
                 </button>
               </div>
-            )}
+            )} */}
           </>
         ) : (
           <div className="text-center py-20 col-span-full">
