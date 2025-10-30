@@ -2,7 +2,7 @@ import { API_BASE_URL, API_ENDPOINTS } from "./apiConfig";
 import type { PropertyDetail, PropertyListItem } from "./types";
 import { getCookie } from "./cookie";
 
-export async function registerUser(payload: any) {
+export async function registerUser(payload: any) { 
   const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
   try {
     const res = await fetch(url, {
@@ -10,15 +10,19 @@ export async function registerUser(payload: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+
     const json = await res.json();
+
     if (res.ok && json.success) {
-      return { success: true, message: json.message, data: json.data };
+      return { success: true, message: json.message, data: json.data, status: res.status };
     }
-    return { success: false, message: json.message || "Registrasi gagal." };
+
+    return { success: false, message: json.message || "Registrasi gagal.", status: res.status };
   } catch (e) {
-    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+    return { success: false, message: "Terjadi kesalahan koneksi ke server.", status: 500 };
   }
 }
+
 
 export async function loginApi(payload: any) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`;

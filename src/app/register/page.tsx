@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon, Phone, X } from "lucide-react";
 import { cn } from "@/app/lib/util";
 import { Button } from "@/app/components/Ui/Button";
 import { Calendar } from "@/app/components/Ui/calendar";
@@ -58,6 +58,7 @@ export default function RegisterSimple() {
     username: "",
     password: "",
     confirmPassword: "",
+    phone: "",
     occupation: "",
     monthlyIncome: "",
     agree_terms: false,
@@ -93,8 +94,10 @@ export default function RegisterSimple() {
     if (!form.agree_terms)
       return setError("Anda harus menyetujui syarat & ketentuan.");
     if (!birthDate) return setError("Tanggal lahir harus diisi.");
+    if (!form.phone || form.phone.length < 10) return setError("Nomor telepon tidak valid.");
     if (
       !form.fullName ||
+      !form.phone ||
       !form.birthPlace ||
       !form.occupation ||
       !form.monthlyIncome
@@ -105,6 +108,7 @@ export default function RegisterSimple() {
 
     const payload = {
       fullName: form.fullName,
+      phone: form.phone,
       birthPlace: form.birthPlace,
       birthDate: format(birthDate, "yyyy-MM-dd"),
       email: form.email,
@@ -118,10 +122,26 @@ export default function RegisterSimple() {
 
     try {
       const result = await registerUser(payload);
+      // if (result.success) {
+      //   setMessage(`✅ ${result.message}. Mengarahkan ke login...`);
+      //   setTimeout(() => router.push("/user/login"), 2000);
+      // } 
+
+      if (result.status === 409 || result.message?.includes("sudah terdaftar")) {
+        setError("Akun dengan email atau username tersebut sudah terdaftar.");
+        return;
+      }
+
+      if (result.status === 404 || result.message?.includes("tidak ditemukan")) {
+        setError("Akun belum terdaftar, silakan buat akun baru.");
+        return;
+      }
+
       if (result.success) {
-        setMessage(`✅ ${result.message}. Mengarahkan ke login...`);
+        setMessage(`✅ ${result.message}. M...`);
         setTimeout(() => router.push("/user/login"), 2000);
-      } else {
+      }
+      else {
         setError(result.message || "Registrasi gagal.");
       }
     } catch (err: any) {
@@ -233,6 +253,7 @@ export default function RegisterSimple() {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Baris 1 */}
                   <InputField
                     id="fullName"
                     label="Nama Lengkap *"
@@ -241,6 +262,17 @@ export default function RegisterSimple() {
                     onChange={handleChange}
                     placeholder="Nama Lengkap"
                   />
+                  <InputField
+                    id="phone"
+                    label="Nomor Telepon *"
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="Contoh: 081234567890"
+                  />
+
+                  {/* Baris 2 */}
                   <InputField
                     id="birthPlace"
                     label="Tempat Lahir *"
@@ -291,6 +323,7 @@ export default function RegisterSimple() {
                     </Popover>
                   </div>
 
+                  {/* Baris 3 */}
                   <div>
                     <label
                       htmlFor="occupation"
@@ -324,6 +357,7 @@ export default function RegisterSimple() {
                     placeholder="Contoh: 5000000"
                   />
                 </div>
+
 
                 <div className="flex items-start gap-2 text-sm text-gray-700 mt-3">
                   <input

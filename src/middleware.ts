@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 const PROTECTED = [
   // "/user/pengajuan",
    "/user/akun",
-  "/user/detail-pengajuan",
+  // "/user/detail-pengajuan",
   "/user/dashboard",
 ];
 export function middleware(req: NextRequest) {

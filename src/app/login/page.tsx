@@ -11,6 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextAfterLogin = searchParams.get("next") || "/beranda";
+  // const nextAfterLogin = searchParams.get("next") || "/OTP-verification";
   const { login } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -25,7 +26,8 @@ export default function LoginPage() {
     const hasToken = document.cookie
       .split("; ")
       .some((c) => c.startsWith("token="));
-    if (hasToken) router.replace("/user/beranda");
+    // if (hasToken) router.replace("/user/beranda");
+    if (hasToken) router.replace("/OTP-verification");
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,7 +78,7 @@ export default function LoginPage() {
           refreshToken,
           fullName,
           photoUrl,
-          expiresInSec = 300,
+          expiresInSec = 600,
           refreshExpiresInSec = 86400,
         } = res.data;
 

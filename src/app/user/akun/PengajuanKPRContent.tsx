@@ -25,36 +25,20 @@ const STATUS_ORDER = [
   "Property Appraisal",
   "Credit Analysis",
   "Final Approval",
+  "Completed",
 ] as const;
 
 // Function to map API status to display status
 const STATUS_MAP: Record<string, string> = {
   SUBMITTED: "Submitted",
-  DOCUMENT_VERIFICATION: "Submitted",
   PROPERTY_APPRAISAL: "Property Appraisal",
   CREDIT_ANALYSIS: "Credit Analysis",
-  APPROVAL_PENDING: "Final Approval",
+  FINAL_APPROVAL: "Final Approval",
+  COMPLETED: "Completed",
 };
 
 const mapApiStatusToDisplayStatus = (apiStatus: string) =>
   STATUS_MAP[apiStatus] || apiStatus;
-
-// const mapApiStatusToDisplayStatus = (apiStatus: string): string => {
-//   switch (apiStatus) {
-//     case "SUBMITTED":
-//       return "Dokumen Terkirim";
-//     default:
-//       return apiStatus;
-//     // case "SUBMITTED":
-//     //   return "Submitted";
-//     // case "APPRAISAL":
-//     //   return "Property Appraisal";
-//     // case "CREDIT_ANALYSIS":
-//     //   return "Credit Analysis";
-//     // case "FINAL_APPROVAL":
-//     //   return "Final Approval";
-//   }
-// };
 
 // Function to convert API response to Application format
 const convertKprHistoryToApplication = (item: KprHistoryItem): Application => {
@@ -112,7 +96,7 @@ export default function PengajuanKPRContent() {
   }, []);
 
   const goToDetail = (id: number) =>
-    router.push(`/user/detail-pengajuan?loanId=${id}`);
+    router.push(`/user/detail-pengajuan/${id}`);
 
   if (loading) {
     return (
@@ -221,6 +205,10 @@ export default function PengajuanKPRContent() {
             const progressPct = Math.round(
               ((stepIndex + 1) / totalSteps) * 100
             );
+            // const progressPct =
+            //   app.status === "Completed"
+            //     ? 100
+            //     : Math.round(((stepIndex + 1) / totalSteps) * 100);
 
             return (
               <motion.div
