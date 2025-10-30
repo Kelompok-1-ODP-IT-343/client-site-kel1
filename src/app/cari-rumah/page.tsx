@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 
 import { fetchPropertyList } from "@/app/lib/coreApi";
 import type { PropertyListItem } from "@/app/lib/types";
-
+import { useDebounce } from "@/app/lib/hooks/useDebounce";
 const ITEMS_PER_PAGE = 9;
 
 export default function CariRumahPage() {
@@ -34,7 +34,7 @@ export default function CariRumahPage() {
   const [items, setItems] = useState<PropertyListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-
+  const debouncedSearchName = useDebounce(filters.name, 500);
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -42,9 +42,9 @@ export default function CariRumahPage() {
       try {
         const priceRange = parseBudget(filters.budget);
         const { items } = await fetchPropertyList({
-          name: filters.name || undefined,
+          name: debouncedSearchName || undefined,
           city: filters.location || undefined,
-          tipeProperti: filters.type ? filters.type.toLowerCase() : undefined,
+          tipeProperti: filters.type ? filters.type.toUpperCase() : undefined,
           priceMin: priceRange?.min,
           priceMax: priceRange?.max,
         });
@@ -55,8 +55,8 @@ export default function CariRumahPage() {
         setLoading(false);
       }
     })();
-  }, [filters.name, filters.location, filters.type, filters.budget]);
-
+    // }, [filters.name, filters.location, filters.type, filters.budget]);
+  }, [debouncedSearchName, filters.location, filters.type, filters.budget]);
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -101,7 +101,6 @@ export default function CariRumahPage() {
   ];
 
   const filtered = items.filter((i) => {
-    // (opsional) filter tambahan di client kalau mau
     return true;
   });
 
@@ -113,8 +112,8 @@ export default function CariRumahPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <section className="mb-12 bg-white p-6 rounded-xl shadow-md border border-gray-100">
-        <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
+      <section className="mb-12">
+        <h1 className="text-4xl font-extrabold text-center mb-8 tracking-tight bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
           Eksplor Rumah Impian
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
@@ -128,7 +127,7 @@ export default function CariRumahPage() {
               placeholder="Nama Rumah Impianmu"
               value={filters.name}
               onChange={handleFilterChange}
-              className="w-full bg-white border border-gray-300 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-bni-orange focus:outline-none"
+              className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
             />
           </div>
           <div>
@@ -140,7 +139,7 @@ export default function CariRumahPage() {
                 name="location"
                 value={filters.location}
                 onChange={handleFilterChange}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-bni-orange focus:outline-none"
+                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               >
                 <option value="">Semua Lokasi</option>
                 {locationOptions.map((opt) => (
@@ -164,7 +163,7 @@ export default function CariRumahPage() {
                 name="type"
                 value={filters.type}
                 onChange={handleFilterChange}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-bni-orange focus:outline-none"
+                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               >
                 <option value="">Semua Tipe</option>
                 {typeOptions.map((opt) => (
@@ -188,7 +187,7 @@ export default function CariRumahPage() {
                 name="budget"
                 value={filters.budget}
                 onChange={handleFilterChange}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-bni-orange focus:outline-none"
+                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               >
                 <option value="">Semua Harga</option>
                 {budgetOptions.map((opt) => (
@@ -225,8 +224,8 @@ export default function CariRumahPage() {
               ))}
             </div>
             {
-            // Show all aja jadi koboi
-            /* {totalPages > 1 && (
+              // Show all aja jadi koboi
+              /* {totalPages > 1 && (
               <div className="mt-12 flex items-center justify-center gap-2 sm:gap-4">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -249,7 +248,8 @@ export default function CariRumahPage() {
                   Selanjutnya
                 </button>
               </div>
-            )} */}
+            )} */
+            }
           </>
         ) : (
           <div className="text-center py-20 col-span-full">
@@ -339,19 +339,23 @@ function HouseCard({
           <MapPin size={14} className="mr-1 flex-shrink-0" />
           {house.city}
         </p>
-
-        <div className="flex items-center justify-between text-xs text-gray-600 mt-3 border-t pt-3">
-          <div className="flex items-center gap-1">
-            <BedDouble size={14} /> -
-          </div>
-          <div className="flex items-center gap-1">
-            <Bath size={14} /> -
-          </div>
-          <div className="flex items-center gap-1">
-            <HomeIcon size={14} /> -
-          </div>
+        <div className="grid grid-cols-3 gap-3 text-xs text-gray-600 mt-3 border-t pt-3 min-h-[44px]">
+          {" "}
+          {house.parsedFeatures.length > 0 ? (
+            house.parsedFeatures.slice(0, 3).map((feature) => (
+              <div key={feature.key} className="flex flex-col items-start">
+                <span className="font-semibold text-sm text-gray-800">
+                  {feature.value}
+                </span>
+                <span className="text-gray-500">{feature.key}</span>{" "}
+              </div>
+            ))
+          ) : (
+            <span className="text-gray-400 col-span-3 text-center">
+              Fitur tidak tersedia
+            </span>
+          )}{" "}
         </div>
-
         <div className="mt-4">
           <p className="text-sm text-gray-500">Harga mulai</p>
           <p className="text-xl font-bold text-bni-orange">{formattedPrice}</p>
@@ -367,7 +371,7 @@ function HouseCard({
               Ajukan
             </button>
             <Link
-              href={`/user/detail-rumah/${house.id}`}
+              href={`/detail-rumah/${house.id}`}
               className="py-2.5 rounded-lg font-semibold text-sm text-center text-gray-900 shadow transition hover:opacity-90"
               style={{ backgroundColor: "#DDEE59" }}
             >

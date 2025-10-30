@@ -1,8 +1,82 @@
 import { API_BASE_URL, API_ENDPOINTS } from "./apiConfig";
 import type { PropertyDetail, PropertyListItem } from "./types";
 import { getCookie } from "./cookie";
+function parseFeaturesList(
+  featuresString: string | null
+): { key: string; value: string }[] {
+  if (!featuresString) return [];
+  try {
+    return featuresString
+      .split(",")
+      .map((part) => {
+        const pieces = part.split(":");
+        if (pieces.length < 2) return null;
+        const key = pieces[0].trim();
+        const value = pieces.slice(1).join(":").trim();
+        return { key, value };
+      })
+      .filter(Boolean) as { key: string; value: string }[];
+  } catch (e) {
+    console.error("Gagal mem-parsing string fitur list:", featuresString, e);
+    return [];
+  }
+}
+function buildFeaturesArray(
+  d: any
+): { featureName: string; featureValue: string }[] {
+  const features = [];
+  if (d.bedrooms) {
+    features.push({
+      featureName: "Kamar Tidur",
+      featureValue: String(d.bedrooms),
+    });
+  }
+  if (d.bathrooms) {
+    features.push({
+      featureName: "Kamar Mandi",
+      featureValue: String(d.bathrooms),
+    });
+  }
+  if (d.buildingArea) {
+    features.push({
+      featureName: "Luas Bangunan",
+      featureValue: `${d.buildingArea} m²`,
+    });
+  }
+  if (d.landArea) {
+    features.push({
+      featureName: "Luas Tanah",
+      featureValue: `${d.landArea} m²`,
+    });
+  }
+  if (d.floors) {
+    features.push({
+      featureName: "Jumlah Lantai",
+      featureValue: String(d.floors),
+    });
+  }
+  if (d.garage) {
+    features.push({
+      featureName: "Garasi/Carport",
+      featureValue: String(d.garage),
+    });
+  }
+  if (d.certificateType) {
+    features.push({
+      featureName: "Sertifikat",
+      featureValue: d.certificateType,
+    });
+  }
+  if (d.yearBuilt) {
+    features.push({
+      featureName: "Tahun Dibangun",
+      featureValue: String(d.yearBuilt),
+    });
+  }
 
-export async function registerUser(payload: any) { 
+  return features;
+}
+export async function registerUser(payload: any) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
   try {
     const res = await fetch(url, {
@@ -14,15 +88,27 @@ export async function registerUser(payload: any) {
     const json = await res.json();
 
     if (res.ok && json.success) {
-      return { success: true, message: json.message, data: json.data, status: res.status };
+      return {
+        success: true,
+        message: json.message,
+        data: json.data,
+        status: res.status,
+      };
     }
 
-    return { success: false, message: json.message || "Registrasi gagal.", status: res.status };
+    return {
+      success: false,
+      message: json.message || "Registrasi gagal.",
+      status: res.status,
+    };
   } catch (e) {
-    return { success: false, message: "Terjadi kesalahan koneksi ke server.", status: 500 };
+    return {
+      success: false,
+      message: "Terjadi kesalahan koneksi ke server.",
+      status: 500,
+    };
   }
 }
-
 
 export async function loginApi(payload: any) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`;
@@ -178,17 +264,14 @@ export function buildPropertyListQuery(params: {
   priceMax?: number;
 }) {
   const sp = new URLSearchParams();
-
   if (params.name) sp.set("name", params.name);
   if (params.city) sp.set("city", params.city);
   if (params.provinsi) sp.set("provinsi", params.provinsi);
   if (params.tipeProperti) sp.set("tipeProperti", params.tipeProperti);
-
   if (typeof params.priceMin === "number")
     sp.set("priceMin", String(params.priceMin));
   if (typeof params.priceMax === "number")
     sp.set("priceMax", String(params.priceMax));
-
   return sp.toString();
 }
 
@@ -200,7 +283,8 @@ export async function fetchPropertyList(params: {
   priceMin?: number;
   priceMax?: number;
 }): Promise<{ items: PropertyListItem[]; raw: any }> {
-  const qs = buildPropertyListQuery(params);
+  const qs = buildPropertyListQuery(params); // Asumsi fungsi ini ada di file ini
+
   const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_LIST}${
     qs ? `?${qs}` : ""
   }`;
@@ -216,18 +300,22 @@ export async function fetchPropertyList(params: {
   }
 
   const data: PropertyListItem[] = Array.isArray(json.data)
-    ? json.data.map((d: any) => ({
-        id: d.id,
-        title: d.title,
-        city: d.city ?? null,
-        property_code: d.property_code ?? null,
-        property_type: d.property_type ?? null,
-        listing_type: d.listing_type ?? null,
-        price: Number(d.price ?? 0),
-        main_image: d.main_image ?? null,
-        features: d.features ?? null,
-        nearby_places: d.nearby_places ?? null,
-      }))
+    ? json.data.map((d: any) => {
+        const dynamicFeatures = parseFeaturesList(d.features);
+
+        return {
+          id: d.id,
+          title: d.title,
+          city: d.city ?? null,
+          property_code: d.property_code ?? null,
+          property_type: d.property_type ?? null,
+          listing_type: d.listing_type ?? null,
+          price: Number(d.price ?? 0),
+          main_image: d.file_path ?? null,
+          nearby_places: d.nearby_places ?? null,
+          parsedFeatures: dynamicFeatures,
+        };
+      })
     : [];
 
   return { items: data, raw: json };
@@ -261,15 +349,12 @@ export async function fetchPropertyDetail(
 
   const d = json.data;
 
-  const images = parseJsonArray<string>(d.images);
-  const features = parseJsonArray<{
-    featureName: string;
-    featureValue: string;
-  }>(d.features);
-  const locations = parseJsonArray<{ poiName: string; distanceKm: number }>(
-    d.locations
-  );
+  const features = buildFeaturesArray(d);
+  const locations: { poiName: string; distanceKm: number }[] = [];
 
+  const mainImage = d.filePath ?? null;
+  const galleryImages = Array.isArray(d.images) ? d.images : [];
+  const allImages = [mainImage, ...galleryImages].filter(Boolean) as string[];
   const result: PropertyDetail = {
     id: d.id,
     title: d.title,
@@ -279,9 +364,10 @@ export async function fetchPropertyDetail(
     listing_type: d.listing_type ?? null,
     property_code: d.property_code ?? null,
     price: Number(d.price ?? 0),
-    images,
+    images: allImages,
     features,
     locations,
+    developer: d.developer ?? null,
   };
 
   return result;
