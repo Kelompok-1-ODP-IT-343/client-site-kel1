@@ -1,7 +1,9 @@
 import HouseCard from "./HouseCard";
-import type { House } from "@/app/cari-rumah/page";
+// import type { House } from "@/app/cari-rumah/page";
+import type { House } from '@/app/lib/propertyData';
 
 type HouseListProps = {
+  // houses: House[];
   houses: House[];
   favorites: number[];
   onToggleFavorite: (id: number) => void;
@@ -24,7 +26,6 @@ export default function HouseList({
   }
 
   return (
-    // INI KUNCI RESPONSif: 1 kolom di mobile, 2 di tablet, 3 di laptop, 4 di desktop besar
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
       {houses.map((house) => (
         <HouseCard

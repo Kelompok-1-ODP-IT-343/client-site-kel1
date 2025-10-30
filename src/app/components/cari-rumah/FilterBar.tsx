@@ -1,6 +1,5 @@
 import { Search } from "lucide-react";
-import type { House } from "@/app/cari-rumah/page"; // Sesuaikan path jika perlu
-
+import type { House } from '@/app/lib/propertyData';
 type FilterBarProps = {
   filters: { name: string; location: string; type: string; budget: string };
   onFilterChange: (name: string, value: string) => void;

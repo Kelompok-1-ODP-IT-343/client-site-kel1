@@ -1,4 +1,3 @@
-// src/app/components/button-profile/profile.tsx
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
