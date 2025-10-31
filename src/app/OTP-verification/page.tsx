@@ -3,15 +3,28 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
+import { verifyOtpApi } from "@/app/lib/coreApi";
+import { useAuth } from "@/app/lib/authContext";
+import { setCookie } from "@/app/lib/cookie";
 
+import { jwtDecode } from "jwt-decode";
+type JwtPayload = {
+  userId: number | string;
+  sub: string;
+  role: string;
+  iat: number;
+  exp: number;
+};
 export default function OTPVerificationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const phone = searchParams.get("phone") || "08xxxxxxxxxx";
-  
+  const [loading, setLoading] = useState(false);
+  const finalRedirectPath = searchParams.get("next") || "/beranda";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
-
+  const identifier = searchParams.get("identifier"); 
+  const { login } = useAuth();
+  const phone = searchParams.get("phone") || "nomor Anda";
   const handleInput = (value: string, index: number) => {
     if (/^\d?$/.test(value)) {
       const newOtp = [...otp];
@@ -25,20 +38,62 @@ export default function OTPVerificationPage() {
     }
   };
 
-  const handleVerify = () => {
-    const code = otp.join("");
+  const handleVerify = async () => {
+      const code = otp.join("");
 
-    if (code.length !== 6) {
-      return setError("Masukkan kode OTP lengkap.");
-    }
+      if (code.length !== 6) {
+        return setError("Masukkan kode OTP lengkap.");
+      }
 
-    if (code === "123456") {
-      router.replace("/beranda");
-    } else {
-      setError("Kode OTP salah. Silakan coba lagi.");
-    }
-  };
+      if (!identifier) {
+        return setError("Sesi tidak valid. Silakan login kembali.");
+      }
 
+      setLoading(true);
+      setError("");
+
+      try {
+        const payload = {
+          identifier: identifier,
+          otp: code,
+          purpose: "login",
+        };
+        const res = await verifyOtpApi(payload);
+
+        if (res.success && res.data) {
+          const {
+            token,
+            refreshToken,
+            type,
+            id,
+            fullName,
+            photoUrl,
+            expiresInSec = 3600, // 1 jam (ganti jika API ada nilainya)
+            refreshExpiresInSec = 86400, // 1 hari (ganti jika API ada nilainya)
+          } = res.data;
+
+          setCookie("token", token, expiresInSec);
+          setCookie("token_type", type || "Bearer", expiresInSec);
+          setCookie("refreshToken", refreshToken, refreshExpiresInSec);
+          const decodedToken = jwtDecode<JwtPayload>(token);
+          const userId = decodedToken.userId;
+          login({
+            id: userId,
+            fullName: fullName || "Pengguna",
+            photoUrl: photoUrl || "/profile.png",
+          });
+
+          router.replace(finalRedirectPath);
+          
+        } else {
+          setError(res.message || "Kode OTP salah. Silakan coba lagi.");
+        }
+      } catch (err: any) {
+        setError(err.message || "Gagal terhubung ke server.");
+      } finally {
+        setLoading(false);
+      }
+    };
   const resendOtp = () => {
     setOtp(["", "", "", "", "", ""]);
     setError("");

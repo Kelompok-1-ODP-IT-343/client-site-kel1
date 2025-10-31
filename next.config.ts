@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "is3.cloudhost.id",
         port: "",
-        pathname: "/griyabni01/**",
+        pathname: "/**",
       },
     ],
   },

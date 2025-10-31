@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { fetchPropertyList } from "@/app/lib/coreApi";
+import { fetchPropertyList,toggleFavorite } from "@/app/lib/coreApi";
 import type { PropertyListItem } from "@/app/lib/types";
 import { useDebounce } from "@/app/lib/hooks/useDebounce";
 const ITEMS_PER_PAGE = 9;
@@ -29,11 +29,29 @@ export default function CariRumahPage() {
     budget: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoggedIn] = useState(true);
+  const [isLoggedIn,setIsLoggedIn] = useState(true);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [items, setItems] = useState<PropertyListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const userString = localStorage.getItem("user");
+  const [userData, setUserData] = useState<{ id: number | string } | null>(null);
+  useEffect(() => {
+      const userString = localStorage.getItem("user");      
+      if (userString) {
+        try {
+          const user = JSON.parse(userString);
+          setUserData(user);
+          setIsLoggedIn(true);
+        } catch (e) {
+          console.error("Gagal parse data user dari localStorage", e);
+          localStorage.removeItem("user");
+          setIsLoggedIn(false);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    }, []);
   const debouncedSearchName = useDebounce(filters.name, 500);
   useEffect(() => {
     (async () => {
@@ -65,18 +83,38 @@ export default function CariRumahPage() {
     setCurrentPage(1);
   };
 
-  const handleToggleFavorite = (houseId: number) => {
-    if (!isLoggedIn) {
+const handleToggleFavorite = async (houseId: number) => {
+    if (!isLoggedIn || !userData) { 
       alert("Silakan login untuk menyimpan favorit.");
       return;
     }
-    setFavorites((prev) =>
-      prev.includes(houseId)
-        ? prev.filter((id) => id !== houseId)
-        : [...prev, houseId]
-    );
-  };
 
+    const userId = userData.id;
+
+    if (!userId) {
+        alert("Sesi pengguna tidak ditemukan (ID tidak ada), silakan login kembali.");
+        return;
+    }
+
+    try {
+      const response = await toggleFavorite(userId, houseId);
+
+      if (response.success) {
+        const status = response.data.status;
+        
+        if (status === "added") {
+          setFavorites((prev) => [...prev, houseId]);
+        } else if (status === "removed") {
+          setFavorites((prev) => prev.filter((id) => id !== houseId));
+        }
+      } else {
+        alert(response.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan koneksi saat mengubah favorit.");
+    }
+  };
   const handleAjukan = (house: PropertyListItem) => {
     const params = new URLSearchParams({
       propertiId: String(house.id),

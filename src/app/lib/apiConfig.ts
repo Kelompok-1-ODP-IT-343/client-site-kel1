@@ -8,4 +8,8 @@ export const API_ENDPOINTS = {
 
   KPR_APPLICATION: "/kpr-applications",
   KPR_HISTORY: "/kpr-applications/user/history",
+  TOGGLE_FAVORITE: "/properties/favorites",
+  // TOGGLE_FAVORITE: (propertyId: number | string) => `/favorites/toggle/${propertyId}`,
+  FETCH_FAVORITES: "/favorites/user",
+VERIFY_OTP: "/auth/verify-otp",
 } as const;

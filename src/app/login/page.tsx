@@ -11,6 +11,8 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextAfterLogin = searchParams.get("next") || "/beranda";
+  const finalRedirectPath = searchParams.get("next") || "/beranda"; 
+  const otpVerificationPath = "/OTP-verification";
   // const nextAfterLogin = searchParams.get("next") || "/OTP-verification";
   const { login } = useAuth();
 
@@ -60,8 +62,7 @@ export default function LoginPage() {
     setErrors(newErrors);
     return ok;
   };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus({ loading: false, message: "", type: "" });
     if (!validateForm()) return;
@@ -70,33 +71,29 @@ export default function LoginPage() {
     try {
       const payload = { identifier: form.email, password: form.password };
       const res = await loginApi(payload);
+      if (res.success) {
+        if (res.data.success) {
+          setStatus({
+            loading: false,
+            message: res.message || "OTP berhasil dikirim! Mengarahkan...",
+            type: "success",
+          });
 
-      if (res.success && res.data) {
-        const {
-          token,
-          type,
-          refreshToken,
-          fullName,
-          photoUrl,
-          expiresInSec = 600,
-          refreshExpiresInSec = 86400,
-        } = res.data;
+          const params = new URLSearchParams({
+            identifier: form.email, 
+            phone: res.data.maskedPhone || "nomor Anda", 
+            next: finalRedirectPath,
+          });
 
-        setCookie("token", token, expiresInSec);
-        setCookie("token_type", type || "Bearer", expiresInSec);
-        setCookie("refreshToken", refreshToken, refreshExpiresInSec);
+          setTimeout(() => router.replace(`${otpVerificationPath}?${params.toString()}`), 400);
 
-        login({
-          fullName: fullName || "Pengguna",
-          photoUrl: photoUrl || "/profile.png",
-        });
-
-        setStatus({
-          loading: false,
-          message: "Login berhasil! Mengarahkan…",
-          type: "success",
-        });
-        setTimeout(() => router.replace(nextAfterLogin), 400);
+        } else {
+          setStatus({
+            loading: false,
+            message: res.data.message || "Gagal mengirim OTP.", 
+            type: "error",
+          });
+        }
       } else {
         setStatus({
           loading: false,
@@ -107,7 +104,7 @@ export default function LoginPage() {
     } catch (err: any) {
       setStatus({
         loading: false,
-        message: err.message || "Gagal terhubung ke server.",
+        message: err.message || "Gagal terhubung ke server. (Cek CORS)",
         type: "error",
       });
     }

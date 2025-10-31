@@ -411,3 +411,141 @@ export async function fetchKprHistory() {
     };
   }
 }
+
+// ==============================
+// WISHLIST / FAVORITE PROPERTY
+// ==============================
+
+export async function fetchUserFavorites() {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.FETCH_FAVORITES}`;
+  const token = getCookie("token") || "";
+  const tokenType = getCookie("token_type") || "Bearer";
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `${tokenType} ${token}` : "",
+      },
+    });
+
+    const json = await res.json();
+
+    if (res.ok && json.success) {
+      return { success: true, data: json.data || [] };
+    } else {
+      return { success: false, data: [], message: json.message };
+    }
+  } catch (error) {
+    console.error("Fetch Wishlist Error:", error);
+    return { success: false, data: [], message: "Gagal memuat wishlist." };
+  }
+}
+
+// export async function toggleFavorite(propertyId: number | string) {
+//   const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE(propertyId)}`;
+//   const token = getCookie("token") || "";
+//   const tokenType = getCookie("token_type") || "Bearer";
+
+//   try {
+//     const res = await fetch(url, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: token ? `${tokenType} ${token}` : "",
+//       },
+//     });
+
+//     const json = await res.json();
+
+//     if (res.ok && json.success) {
+//       return {
+//         success: true,
+//         message: json.message || "Toggle favorite success",
+//         data: json.data,
+//       };
+//     } else {
+//       return {
+//         success: false,
+//         message: json.message || "Gagal mengubah status favorit.",
+//       };
+//     }
+//   } catch (error) {
+//     console.error("Toggle Favorite Error:", error);
+//     return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+//   }
+// }
+
+export async function verifyOtpApi(payload: {
+  identifier: string;
+  otp: string;
+  purpose: string;
+}) {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.VERIFY_OTP}`; // Tambahkan VERIFY_OTP ke ENDPOINTS
+  
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+
+    if (res.ok && json.success) {
+      return {
+        success: true,
+        message: json.message,
+        data: json.data,
+      };
+    } else {
+      return {
+        success: false,
+        message: json.message || "Verifikasi OTP gagal.",
+      };
+    }
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    return { success: false, message: "Terjadi kesalahan koneksi." };
+  }
+}
+export async function toggleFavorite(userId: number | string, propertyId: number | string) {
+  // --- PERBAIKAN DI SINI ---
+  // Membangun URL dengan query parameters
+  const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?userId=${userId}&propertyId=${propertyId}`;
+  // -------------------------
+
+  const token = getCookie("token") || "";
+  const tokenType = getCookie("token_type") || "Bearer";
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `${tokenType} ${token}` : "",
+      },
+    });
+
+    const json = await res.json();
+
+    if (res.ok && json.success) {
+      return {
+        success: true,
+        message: json.message || "Toggle favorite success",
+        data: json.data,
+      };
+    } else {
+      return {
+        success: false,
+        message: json.message || "Gagal mengubah status favorit.",
+      };
+    }
+  } catch (error) {
+    console.error("Toggle Favorite Error:", error);
+    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+  }
+}

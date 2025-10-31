@@ -10,6 +10,7 @@ import {
 import { deleteCookie } from "@/app/lib/cookie";
 
 type User = {
+id: number | string;
   fullName: string;
   photoUrl?: string;
 };
