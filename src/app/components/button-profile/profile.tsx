@@ -84,7 +84,7 @@ export default function UserMenu() {
           )}
         </div>
         <span className="hidden md:inline font-semibold text-gray-800">
-          {user.fullName}
+          {`Hi, ${user.fullName?.split(" ")[0] || "Pengguna"}!`}
         </span>
       </button>
 

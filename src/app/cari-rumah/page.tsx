@@ -326,16 +326,20 @@ function HouseCard({
   onToggleFavorite: (id: number) => void;
   onAjukan: () => void;
 }) {
+  const router = useRouter();
   const formattedPrice = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
   }).format(house.price);
 
+  const goToDetail = () => router.push(`/detail-rumah/${house.id}`);
+
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg flex flex-col"
+      onClick={goToDetail}
+      className="bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg flex flex-col cursor-pointer"
     >
       <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[180px] lg:min-h-[220px] max-h-[260px]">
         <Image
@@ -347,7 +351,10 @@ function HouseCard({
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
         <button
-          onClick={() => onToggleFavorite(house.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(house.id);
+          }}
           className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
           aria-label="Toggle Favorite"
         >
@@ -402,7 +409,10 @@ function HouseCard({
         <div className="mt-5 pt-4 border-t border-gray-100 flex-grow flex items-end">
           <div className="grid grid-cols-2 gap-3 w-full">
             <button
-              onClick={onAjukan}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAjukan();
+              }}
               className="py-2.5 rounded-lg font-semibold text-sm text-white shadow transition hover:opacity-90"
               style={{ backgroundColor: "#FF8500" }}
             >
@@ -410,6 +420,7 @@ function HouseCard({
             </button>
             <Link
               href={`/detail-rumah/${house.id}`}
+              onClick={(e) => e.stopPropagation()}
               className="py-2.5 rounded-lg font-semibold text-sm text-center text-gray-900 shadow transition hover:opacity-90"
               style={{ backgroundColor: "#DDEE59" }}
             >

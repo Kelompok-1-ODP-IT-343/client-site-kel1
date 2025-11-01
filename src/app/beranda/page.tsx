@@ -280,7 +280,7 @@ function PropertyCard({
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/user/detail-rumah/${id}`);
+    router.push(`/detail-rumah/${id}`);
   };
 
   return (

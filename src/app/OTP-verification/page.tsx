@@ -22,6 +22,7 @@ export default function OTPVerificationPage() {
   const finalRedirectPath = searchParams.get("next") || "/beranda";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const identifier = searchParams.get("identifier"); 
   const { login } = useAuth();
   const phone = searchParams.get("phone") || "nomor Anda";
@@ -31,6 +32,7 @@ export default function OTPVerificationPage() {
       newOtp[index] = value;
       setOtp(newOtp);
       setError("");
+      setNotice("");
 
       if (value && index < 5) {
         document.getElementById(`otp-${index + 1}`)?.focus();
@@ -50,7 +52,8 @@ export default function OTPVerificationPage() {
       }
 
       setLoading(true);
-      setError("");
+  setError("");
+  setNotice("");
 
       try {
         const payload = {
@@ -75,11 +78,18 @@ export default function OTPVerificationPage() {
           setCookie("token", token, expiresInSec);
           setCookie("token_type", type || "Bearer", expiresInSec);
           setCookie("refreshToken", refreshToken, refreshExpiresInSec);
-          const decodedToken = jwtDecode<JwtPayload>(token);
-          const userId = decodedToken.userId;
+          const decodedToken = jwtDecode<JwtPayload & { fullName?: string; name?: string }>(token);
+          const userId = decodedToken.userId ?? (decodedToken as any).sub;
+          // Derive a better display name if backend didn't return fullName
+          const fallbackFromEmail = identifier && identifier.includes("@")
+            ? identifier.split("@")[0]
+            : identifier || "Pengguna";
+          const displayName =
+            fullName || decodedToken.fullName || decodedToken.name || fallbackFromEmail || "Pengguna";
+
           login({
             id: userId,
-            fullName: fullName || "Pengguna",
+            fullName: displayName,
             photoUrl: photoUrl || "/profile.png",
           });
 
@@ -97,7 +107,7 @@ export default function OTPVerificationPage() {
   const resendOtp = () => {
     setOtp(["", "", "", "", "", ""]);
     setError("");
-    alert("OTP baru telah dikirim ulang ✔");
+    setNotice("OTP baru telah dikirim ulang ✔");
     document.getElementById("otp-0")?.focus();
   };
 
@@ -134,17 +144,22 @@ export default function OTPVerificationPage() {
               maxLength={1}
               value={value}
               onChange={(e) => handleInput(e.target.value, i)}
-              className={`w-12 h-14 border rounded-xl text-center text-xl font-semibold transition
+              className={`w-12 h-14 border rounded-xl text-center text-xl font-semibold transition text-black
                 ${error ? "border-red-500 ring-red-200" : "border-gray-300 focus:ring-bni-teal/40"}`}
             />
           ))}
         </div>
 
-        {/* ERROR MESSAGE */}
+        {/* MESSAGES */}
         {error && (
-          <p className="text-red-600 text-xs font-semibold mb-4">
+          <div className="text-center text-sm p-3 rounded-lg mt-4 mb-6 bg-red-100 text-red-800">
             {error}
-          </p>
+          </div>
+        )}
+        {notice && !error && (
+          <div className="text-center text-sm p-3 rounded-lg mt-4 mb-6 bg-green-100 text-green-800">
+            {notice}
+          </div>
         )}
 
         {/* SUBMIT BUTTON */}
