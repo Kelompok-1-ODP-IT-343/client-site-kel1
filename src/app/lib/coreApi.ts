@@ -1,4 +1,4 @@
-import { API_BASE_URL, API_ENDPOINTS } from "./apiConfig";
+import { API_BASE_URL, API_ENDPOINTS, DEFAULT_KPR_RATE_ID } from "./apiConfig";
 import type { PropertyDetail, PropertyListItem } from "./types";
 import { getCookie } from "./cookie";
 function parseFeaturesList(
@@ -139,7 +139,11 @@ export async function submitKprApplication(
 
     // Property and simulation data
     multipartData.append("propertyId", formData.propertyId || "");
-    multipartData.append("kprRateId", "27"); // Default value as shown in curl
+    // Append kprRateId if provided by client or a default from env is set
+    const kprRateId = formData.kprRateId || DEFAULT_KPR_RATE_ID;
+    if (kprRateId) {
+      multipartData.append("kprRateId", String(kprRateId));
+    }
     multipartData.append(
       "simulationData.propertyValue",
       formData.hargaProperti || ""
@@ -151,8 +155,11 @@ export async function submitKprApplication(
     multipartData.append(
       "simulationData.loanAmount",
       String(
-        Number(formData.hargaProperti?.replace(/[^0-9]/g, "") || 0) -
-          Number(formData.downPayment?.replace(/[^0-9]/g, "") || 0)
+        Math.max(
+          0,
+          Number(formData.hargaProperti?.replace(/[^0-9]/g, "") || 0) -
+            Number(formData.downPayment?.replace(/[^0-9]/g, "") || 0)
+        )
       )
     );
     multipartData.append(

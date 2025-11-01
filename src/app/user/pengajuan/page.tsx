@@ -184,6 +184,20 @@ export default function FormPengajuanPage() {
     }
 
     setErrors(newErr);
+
+    // Fokus dan scroll ke field pertama yang error agar user tahu apa yang harus diisi
+    const firstKey = Object.keys(newErr)[0];
+    if (firstKey) {
+      // gunakan requestAnimationFrame agar DOM sudah update
+      requestAnimationFrame(() => {
+        const el = document.getElementById(firstKey);
+        if (el && typeof (el as any).focus === "function") {
+          (el as any).focus();
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+    }
+
     return Object.keys(newErr).length === 0;
   };
 

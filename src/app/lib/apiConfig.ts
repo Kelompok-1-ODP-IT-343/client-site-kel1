@@ -1,4 +1,6 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+// Optional default KPR rate ID if backend requires it; set via env NEXT_PUBLIC_DEFAULT_KPR_RATE_ID
+export const DEFAULT_KPR_RATE_ID = process.env.NEXT_PUBLIC_DEFAULT_KPR_RATE_ID || "";
 export const API_ENDPOINTS = {
   REGISTER: "/auth/register",
   LOGIN: "/auth/login",

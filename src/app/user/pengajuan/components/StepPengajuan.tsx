@@ -103,6 +103,13 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
               ))}
             </SelectField>
 
+            <SelectField required label="Paket KPR" name="kprRateId" value={formData.kprRateId} onChange={handleChange} error={errors.kprRateId}>
+              <option value="">Pilih Paket...</option>
+              {[1,2,3,4,5].map((id) => (
+                <option key={id} value={id}>{`Pilihan ${id}`}</option>
+              ))}
+            </SelectField>
+
             <FileInputField required label="Upload KTP (.jpg/.pdf, max 2MB)" name="fileKTP" file={formData.fileKTP} onChange={handleChange} error={errors.fileKTP} />
             <FileInputField required label="Upload Slip Gaji (.pdf, max 2MB)" name="fileSlipGaji" file={formData.fileSlipGaji} onChange={handleChange} error={errors.fileSlipGaji} />
           </div>
