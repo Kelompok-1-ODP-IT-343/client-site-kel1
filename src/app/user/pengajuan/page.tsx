@@ -61,6 +61,16 @@ export default function FormPengajuanPage() {
   const [step, setStep] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<ErrorMap>({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successInfo, setSuccessInfo] = useState<{
+    fullName: string;
+    propertiNama: string | null;
+    hargaProperti: number;
+    downPayment: number;
+    loanTerm: number;
+    paketLabel: string;
+    loanWithFees: number;
+  } | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
@@ -207,6 +217,31 @@ export default function FormPengajuanPage() {
 
   const prevStep = () => setStep((s) => Math.max(0, s - 1));
 
+  const ID_TO_NAME: Record<number, string> = {
+    1: "fixed_1y", 2: "fixed_2y", 3: "fixed_1y", 4: "fixed_3y", 5: "fixed_4y",
+    6: "fixed_3y", 7: "fixed_5y", 8: "fixed_6y", 9: "fixed_7y", 10: "fixed_8y",
+    11: "fixed_9y", 12: "fixed_3y", 13: "fixed_5y", 14: "fixed_10y", 15: "fixed_5y",
+    16: "fixed_3y", 17: "fixed_5y", 18: "fixed_3y", 19: "fixed_5y", 20: "fixed_10y",
+    21: "fixed_3y", 22: "fixed_5y", 23: "fixed_10y", 24: "fixed_3y", 25: "fixed_5y",
+    26: "fixed_10y", 53: "tiered_10y", 54: "tiered_15y", 55: "tiered_20y", 56: "tiered_25y", 57: "tiered_30y",
+  };
+
+  const labelForPackage = (value?: string) => {
+    if (!value) return "—";
+    let name = value;
+    if (/^\d+$/.test(value)) {
+      const mapped = ID_TO_NAME[Number(value)];
+      if (mapped) name = mapped;
+      else return "—";
+    }
+    const match = name.match(/(fixed|tiered)_(\d+)y/);
+    if (!match) return name.replaceAll("_", " ");
+    const kind = match[1];
+    const years = Number(match[2]);
+    if (kind === "tiered") return `Fixed Berjenjang ${years} Tahun`;
+    return `Fixed ${years} Tahun`;
+  };
+
   // --- submit final ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,8 +266,23 @@ export default function FormPengajuanPage() {
       const result = await submitKprApplication(submissionData, files);
 
       if (result?.success) {
-        alert(result.message || "Pengajuan berhasil dikirim.");
-        // router.push("/user/pengajuan/success");
+        // Build success summary for modal
+        const harga = Number(applicationData.hargaProperti || 0);
+        const dp = parseCurrency(formData.downPayment || "0");
+        const ADMIN_FEE = 2_500_000;
+        const baseLoan = Math.max(0, harga - dp);
+        const provisi = Math.round(baseLoan * 0.01);
+        const loanWithFees = Math.max(0, harga + ADMIN_FEE + provisi - dp);
+        setSuccessInfo({
+          fullName: formData.fullName,
+          propertiNama: applicationData.propertiNama,
+          hargaProperti: harga,
+          downPayment: dp,
+          loanTerm: Number(formData.loanTerm || 0),
+          paketLabel: labelForPackage((formData as any).kprRateId),
+          loanWithFees,
+        });
+        setShowSuccess(true);
       } else {
         alert(`Error: ${result?.message || "Gagal mengirim pengajuan"}`);
       }
@@ -245,6 +295,7 @@ export default function FormPengajuanPage() {
   };
 
   return (
+    <>
     <main className="flex-grow py-10 bg-gray-50">
       <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-lg border">
         <h1 className="text-center text-3xl font-extrabold text-gray-800 mb-4">
@@ -378,6 +429,82 @@ export default function FormPengajuanPage() {
           </div>
         </form>
       </div>
-    </main>
+  </main>
+  {/* Success Modal */}
+    <AnimatePresence>
+      {showSuccess && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          >
+            <div className="flex flex-col items-center text-center">
+              <motion.div
+                className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 12 }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-10 h-10 text-green-600"
+                >
+                  <motion.path
+                    d="M20 6L9 17L4 12"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.6, ease: "easeInOut", delay: 0.1 }}
+                  />
+                </svg>
+              </motion.div>
+              <h3 className="mt-4 text-xl font-semibold text-gray-900">Pengajuan KPR Berhasil Dikirim</h3>
+              <p className="mt-1 text-sm text-gray-600">Kami telah menerima pengajuan Anda. Tim kami akan memprosesnya secepatnya.</p>
+
+              {successInfo && (
+                <div className="mt-4 w-full text-sm text-gray-700">
+                  <div className="flex justify-between py-1"><span>Nama</span><span className="font-semibold">{successInfo?.fullName || "-"}</span></div>
+                  <div className="flex justify-between py-1"><span>Properti</span><span className="font-semibold">{successInfo?.propertiNama || "-"}</span></div>
+                  <div className="flex justify-between py-1"><span>Harga</span><span className="font-semibold">{formatCurrency(successInfo?.hargaProperti || 0)}</span></div>
+                  <div className="flex justify-between py-1"><span>Downpayment</span><span className="font-semibold">{formatCurrency(successInfo?.downPayment || 0)}</span></div>
+                  <div className="flex justify-between py-1"><span>Tenor</span><span className="font-semibold">{successInfo?.loanTerm} Tahun</span></div>
+                  <div className="flex justify-between py-1"><span>Paket</span><span className="font-semibold">{successInfo?.paketLabel}</span></div>
+                  <div className="flex justify-between py-1 border-t mt-2 pt-2"><span>Pinjaman (incl. biaya)</span><span className="font-semibold">{formatCurrency(successInfo?.loanWithFees || 0)}</span></div>
+                </div>
+              )}
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={() => setShowSuccess(false)}
+                  className="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100"
+                >
+                  Tutup
+                </button>
+                <button
+                  onClick={() => router.push("/beranda")}
+                  className="px-5 py-2 rounded-lg bg-bni-orange text-white font-semibold hover:bg-orange-600"
+                >
+                  Ke Beranda
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
