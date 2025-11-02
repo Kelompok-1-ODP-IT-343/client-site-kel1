@@ -43,6 +43,7 @@ type FormData = {
 
   downPayment: string;
   loanTerm: string;
+  kprRateId?: string; // numeric id as string
 
   fileKTP: File | null;
   fileSlipGaji: File | null;
@@ -61,16 +62,31 @@ export default function FormPengajuanPage() {
   const [step, setStep] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<ErrorMap>({});
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successInfo, setSuccessInfo] = useState<{
-    fullName: string;
-    propertiNama: string | null;
-    hargaProperti: number;
-    downPayment: number;
-    loanTerm: number;
-    paketLabel: string;
-    loanWithFees: number;
-  } | null>(null);
+  const [resultModal, setResultModal] = useState<{
+    open: boolean;
+    status: "success" | "fail";
+    info: {
+      applicationNumber?: string | number | null;
+      message?: string;
+      fullName: string;
+      propertiNama: string | null;
+      hargaProperti: number;
+      downPayment: number;
+      loanTerm: number;
+      paketLabel: string;
+      loanWithFees: number;
+    };
+  }>({ open: false, status: "success", info: {
+    applicationNumber: null,
+    message: undefined,
+    fullName: "",
+    propertiNama: null,
+    hargaProperti: 0,
+    downPayment: 0,
+    loanTerm: 0,
+    paketLabel: "—",
+    loanWithFees: 0,
+  }});
 
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
@@ -98,6 +114,7 @@ export default function FormPengajuanPage() {
 
     downPayment: "",
     loanTerm: "",
+  kprRateId: "",
 
     fileKTP: null,
     fileSlipGaji: null,
@@ -187,6 +204,8 @@ export default function FormPengajuanPage() {
         newErr.downPayment = "Uang muka tidak valid";
       if (!d.loanTerm || Number(d.loanTerm) <= 0)
         newErr.loanTerm = "Jangka waktu tidak valid";
+      if (!d.kprRateId || String(d.kprRateId).trim() === "")
+        newErr.kprRateId = "Paket KPR wajib dipilih";
       if (!d.fileKTP) newErr.fileKTP = "Upload KTP wajib";
       if (!d.fileSlipGaji) newErr.fileSlipGaji = "Upload Slip Gaji wajib";
       if (!d.agreeTerms)
@@ -265,15 +284,65 @@ export default function FormPengajuanPage() {
       // panggil API core
       const result = await submitKprApplication(submissionData, files);
 
+      // Build base info
+      const harga = Number(applicationData.hargaProperti || 0);
+      const dp = parseCurrency(formData.downPayment || "0");
+      const ADMIN_FEE = 2_500_000;
+      const baseLoan = Math.max(0, harga - dp);
+      const provisi = Math.round(baseLoan * 0.01);
+      const loanWithFees = Math.max(0, harga + ADMIN_FEE + provisi - dp);
+      const applicationNumber = (result?.data && (
+        result.data.applicationNumber ?? result.data.applicationNo ?? result.data.applicationId ?? result.data.id ?? result.data.code
+      )) || null;
+
       if (result?.success) {
-        // Build success summary for modal
-        const harga = Number(applicationData.hargaProperti || 0);
-        const dp = parseCurrency(formData.downPayment || "0");
-        const ADMIN_FEE = 2_500_000;
-        const baseLoan = Math.max(0, harga - dp);
-        const provisi = Math.round(baseLoan * 0.01);
-        const loanWithFees = Math.max(0, harga + ADMIN_FEE + provisi - dp);
-        setSuccessInfo({
+        setResultModal({
+          open: true,
+          status: "success",
+          info: {
+            applicationNumber,
+            message: result?.message,
+            fullName: formData.fullName,
+            propertiNama: applicationData.propertiNama,
+            hargaProperti: harga,
+            downPayment: dp,
+            loanTerm: Number(formData.loanTerm || 0),
+            paketLabel: labelForPackage((formData as any).kprRateId),
+            loanWithFees,
+          },
+        });
+      } else {
+        setResultModal({
+          open: true,
+          status: "fail",
+          info: {
+            applicationNumber,
+            message: result?.message || "Gagal mengirim pengajuan",
+            fullName: formData.fullName,
+            propertiNama: applicationData.propertiNama,
+            hargaProperti: harga,
+            downPayment: dp,
+            loanTerm: Number(formData.loanTerm || 0),
+            paketLabel: labelForPackage((formData as any).kprRateId),
+            loanWithFees,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      // Network or unexpected error
+      const harga = Number(applicationData.hargaProperti || 0);
+      const dp = parseCurrency(formData.downPayment || "0");
+      const ADMIN_FEE = 2_500_000;
+      const baseLoan = Math.max(0, harga - dp);
+      const provisi = Math.round(baseLoan * 0.01);
+      const loanWithFees = Math.max(0, harga + ADMIN_FEE + provisi - dp);
+      setResultModal({
+        open: true,
+        status: "fail",
+        info: {
+          applicationNumber: null,
+          message: "Terjadi kesalahan saat mengirim pengajuan. Silakan coba lagi.",
           fullName: formData.fullName,
           propertiNama: applicationData.propertiNama,
           hargaProperti: harga,
@@ -281,18 +350,22 @@ export default function FormPengajuanPage() {
           loanTerm: Number(formData.loanTerm || 0),
           paketLabel: labelForPackage((formData as any).kprRateId),
           loanWithFees,
-        });
-        setShowSuccess(true);
-      } else {
-        alert(`Error: ${result?.message || "Gagal mengirim pengajuan"}`);
-      }
-    } catch (err) {
-      console.error("Submission error:", err);
-      alert("Terjadi kesalahan saat mengirim pengajuan. Silakan coba lagi.");
+        },
+      });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Disable submit if mandatory pengajuan fields are not satisfied
+  const pengajuanReady = step !== 3 ? true : (
+    parseCurrency(formData.downPayment || "0") > 0 &&
+    Number(formData.loanTerm || 0) > 0 &&
+    !!(formData.kprRateId && String(formData.kprRateId).trim() !== "") &&
+    !!formData.fileKTP &&
+    !!formData.fileSlipGaji &&
+    formData.agreeTerms === true
+  );
 
   return (
     <>
@@ -415,7 +488,7 @@ export default function FormPengajuanPage() {
               ) : (
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !pengajuanReady}
                   className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-bni-orange text-white font-semibold shadow hover:bg-green-600 transition disabled:bg-gray-400 disabled:cursor-wait w-40 transform hover:scale-105"
                 >
                   {isLoading ? (
@@ -430,9 +503,9 @@ export default function FormPengajuanPage() {
         </form>
       </div>
   </main>
-  {/* Success Modal */}
+  {/* Result Modal (success or fail) */}
     <AnimatePresence>
-      {showSuccess && (
+      {resultModal.open && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           initial={{ opacity: 0 }}
@@ -447,58 +520,69 @@ export default function FormPengajuanPage() {
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
           >
             <div className="flex flex-col items-center text-center">
-              <motion.div
-                className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 12 }}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-10 h-10 text-green-600"
+              {resultModal.status === "success" ? (
+                <motion.div
+                  className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 12 }}
                 >
-                  <motion.path
-                    d="M20 6L9 17L4 12"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.6, ease: "easeInOut", delay: 0.1 }}
-                  />
-                </svg>
-              </motion.div>
-              <h3 className="mt-4 text-xl font-semibold text-gray-900">Pengajuan KPR Berhasil Dikirim</h3>
-              <p className="mt-1 text-sm text-gray-600">Kami telah menerima pengajuan Anda. Tim kami akan memprosesnya secepatnya.</p>
-
-              {successInfo && (
-                <div className="mt-4 w-full text-sm text-gray-700">
-                  <div className="flex justify-between py-1"><span>Nama</span><span className="font-semibold">{successInfo?.fullName || "-"}</span></div>
-                  <div className="flex justify-between py-1"><span>Properti</span><span className="font-semibold">{successInfo?.propertiNama || "-"}</span></div>
-                  <div className="flex justify-between py-1"><span>Harga</span><span className="font-semibold">{formatCurrency(successInfo?.hargaProperti || 0)}</span></div>
-                  <div className="flex justify-between py-1"><span>Downpayment</span><span className="font-semibold">{formatCurrency(successInfo?.downPayment || 0)}</span></div>
-                  <div className="flex justify-between py-1"><span>Tenor</span><span className="font-semibold">{successInfo?.loanTerm} Tahun</span></div>
-                  <div className="flex justify-between py-1"><span>Paket</span><span className="font-semibold">{successInfo?.paketLabel}</span></div>
-                  <div className="flex justify-between py-1 border-t mt-2 pt-2"><span>Pinjaman (incl. biaya)</span><span className="font-semibold">{formatCurrency(successInfo?.loanWithFees || 0)}</span></div>
-                </div>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-green-600">
+                    <motion.path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.6, ease: "easeInOut", delay: 0.1 }} />
+                  </svg>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 12 }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-red-600">
+                    <path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </motion.div>
               )}
+
+              <h3 className="mt-4 text-xl font-semibold text-gray-900">
+                {resultModal.status === "success" ? "Pengajuan KPR Berhasil Dikirim" : "Pengajuan KPR Gagal"}
+              </h3>
+              {resultModal.info.message && (
+                <p className={`mt-1 text-sm ${resultModal.status === "success" ? "text-gray-600" : "text-red-600"}`}>
+                  {resultModal.info.message}
+                </p>
+              )}
+
+              <div className="mt-4 w-full text-sm text-gray-700">
+                <div className="flex justify-between py-1"><span>No. Pengajuan</span><span className="font-semibold">{resultModal.info.applicationNumber ?? "-"}</span></div>
+                <div className="flex justify-between py-1"><span>Nama</span><span className="font-semibold">{resultModal.info.fullName || "-"}</span></div>
+                <div className="flex justify-between py-1"><span>Properti</span><span className="font-semibold">{resultModal.info.propertiNama || "-"}</span></div>
+                <div className="flex justify-between py-1"><span>Jumlah Pinjaman</span><span className="font-semibold">{formatCurrency(resultModal.info.loanWithFees || 0)}</span></div>
+                <div className="flex justify-between py-1"><span>Tenor</span><span className="font-semibold">{resultModal.info.loanTerm} Tahun</span></div>
+              </div>
 
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={() => setShowSuccess(false)}
+                  onClick={() => setResultModal((m) => ({ ...m, open: false }))}
                   className="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100"
                 >
                   Tutup
                 </button>
-                <button
-                  onClick={() => router.push("/beranda")}
-                  className="px-5 py-2 rounded-lg bg-bni-orange text-white font-semibold hover:bg-orange-600"
-                >
-                  Ke Beranda
-                </button>
+                {resultModal.status === "success" ? (
+                  <button
+                    onClick={() => router.push("/beranda")}
+                    className="px-5 py-2 rounded-lg bg-bni-orange text-white font-semibold hover:bg-orange-600"
+                  >
+                    Ke Beranda
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setResultModal((m) => ({ ...m, open: false }))}
+                    className="px-5 py-2 rounded-lg bg-bni-orange text-white font-semibold hover:bg-orange-600"
+                  >
+                    Coba Lagi
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>

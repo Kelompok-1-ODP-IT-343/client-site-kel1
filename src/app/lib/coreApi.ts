@@ -248,14 +248,22 @@ export async function submitKprApplication(
 
     const json = await res.json();
 
-    if (res.ok && json.success) {
+    const statusText = (json?.status ?? json?.result ?? "").toString().toLowerCase();
+    const messageText = (json?.message ?? "").toString();
+    const successFlag = Boolean(
+      json?.success === true ||
+      statusText === "success" ||
+      (res.ok && /berhasil|success/i.test(messageText))
+    );
+
+    if (successFlag) {
       return {
         success: true,
-        message: json.message || "Pengajuan KPR berhasil dikirim",
-        data: json.data,
+        message: messageText || "Pengajuan KPR berhasil dikirim",
+        data: json.data ?? json.result ?? json,
       };
     }
-    return { success: false, message: json.message || "Pengajuan KPR gagal." };
+    return { success: false, message: messageText || "Pengajuan KPR gagal.", data: json.data ?? null };
   } catch (e) {
     console.error("KPR Application Error:", e);
     return { success: false, message: "Terjadi kesalahan koneksi ke server." };
