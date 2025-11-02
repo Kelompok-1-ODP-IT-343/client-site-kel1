@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { format } from "date-fns";
+// import { format } from "date-fns";
 import { Calendar as CalendarIcon, Phone, X } from "lucide-react";
 import { cn } from "@/app/lib/util";
 import { Button } from "@/app/components/Ui/Button";
@@ -14,6 +14,8 @@ import {
   PopoverTrigger,
 } from "@/app/components/Ui/popover";
 import { registerUser } from "@/app/lib/coreApi";
+import { format, isValid } from "date-fns"; 
+import { id as dateLocaleId } from "date-fns/locale/id"; 
 
 const OCCUPATION_KTP = [
   "BELUM_TIDAK_BEKERJA",
@@ -51,7 +53,22 @@ export default function RegisterSimple() {
   const [message, setMessage] = useState("");
   const [showTerms, setShowTerms] = useState(false);
 
-  const [form, setForm] = useState({
+  type FormState = {
+    fullName: string;
+    birthPlace: string;
+    email: string;
+    username: string;
+    password: string;
+    confirmPassword: string;
+    phone: string;
+    occupation: string;
+    monthlyIncome: string;
+    agree_terms: boolean;
+  };
+
+  type ErrorState = Partial<Record<keyof FormState, string>>;
+
+  const [form, setForm] = useState<FormState>({
     fullName: "",
     birthPlace: "",
     email: "",
@@ -64,46 +81,148 @@ export default function RegisterSimple() {
     agree_terms: false,
   });
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value,
-    });
-    setError("");
+  const [errors, setErrors] = useState<ErrorState>({});
+  const [globalError, setGlobalError] = useState(""); 
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const isCheckbox = type === "checkbox";
+    const checked = (e.target as HTMLInputElement).checked;
+
+    let finalValue: string | boolean = isCheckbox ? checked : value;
+
+    if (name === "monthlyIncome") {
+      const numericValue = value.replace(/[^0-9]/g, ''); 
+      if (numericValue) {
+        finalValue = new Intl.NumberFormat('id-ID').format(Number(numericValue));
+      } else {
+        finalValue = ""; 
+      }
+    }
+
+    setForm(prev => ({
+      ...prev,
+      [name]: finalValue,
+    }));
+
+    // Hapus error untuk field ini jika user mulai mengetik
+    if (errors[name as keyof FormState]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
+    setGlobalError(""); 
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
+  const validateStep1 = () => {
+    const newErrors: ErrorState = {};
+    let isValid = true;
 
-    if (!form.email.includes("@")) return setError("Format email tidak valid.");
-    if (form.password.length < 8)
-      return setError("Password minimal 8 karakter.");
-    if (!/[A-Z]/.test(form.password))
-      return setError("Password harus mengandung huruf besar.");
-    if (!/[a-z]/.test(form.password))
-      return setError("Password harus mengandung huruf kecil.");
-    if (!/\d/.test(form.password))
-      return setError("Password harus mengandung angka.");
-    if (!/[^A-Za-z0-9]/.test(form.password))
-      return setError("Password harus mengandung karakter spesial.");
-    if (form.password !== form.confirmPassword)
-      return setError("Konfirmasi password tidak sama.");
-    if (!form.agree_terms)
-      return setError("Anda harus menyetujui syarat & ketentuan.");
-    if (!birthDate) return setError("Tanggal lahir harus diisi.");
-    if (!form.phone || form.phone.length < 10)
-      return setError("Nomor telepon tidak valid.");
-    if (
-      !form.fullName ||
-      !form.phone ||
-      !form.birthPlace ||
-      !form.occupation ||
-      !form.monthlyIncome
-    )
-      return setError("Semua data diri (*) harus diisi.");
+    if (!form.email) {
+      newErrors.email = "Email wajib diisi.";
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = "Format email tidak valid.";
+      isValid = false;
+    }
+
+    if (!form.username) {
+      newErrors.username = "Username wajib diisi.";
+      isValid = false;
+    }
+
+    if (!form.password) {
+      newErrors.password = "Password wajib diisi.";
+      isValid = false;
+    } else if (form.password.length < 8) {
+      newErrors.password = "Password minimal 8 karakter.";
+      isValid = false;
+    } else if (!/[A-Z]/.test(form.password)) {
+      newErrors.password = "Password harus mengandung huruf besar.";
+      isValid = false;
+    } else if (!/[a-z]/.test(form.password)) {
+      newErrors.password = "Password harus mengandung huruf kecil.";
+      isValid = false;
+    } else if (!/\d/.test(form.password)) {
+      newErrors.password = "Password harus mengandung angka.";
+      isValid = false;
+    } else if (!/[^A-Za-z0-9]/.test(form.password)) {
+      newErrors.password = "Password harus mengandung karakter spesial.";
+      isValid = false;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Konfirmasi password tidak sama.";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const validateStep2 = () => {
+    const newErrors: ErrorState = {};
+    let isFormValid = true; 
+    
+    if (!form.fullName) {
+      newErrors.fullName = "Nama lengkap wajib diisi.";
+      isFormValid = false; 
+    }
+    if (!form.phone) {
+      newErrors.phone = "Nomor telepon wajib diisi.";
+      isFormValid = false; 
+    } else if (form.phone.length < 10) {
+      newErrors.phone = "Nomor telepon tidak valid.";
+      isFormValid = false;
+    }
+    if (!form.birthPlace) {
+      newErrors.birthPlace = "Tempat lahir wajib diisi.";
+      isFormValid = false; 
+    }
+    
+    if (!birthDate || !isValid(birthDate)) { 
+      setGlobalError("Tanggal lahir wajib diisi.");
+      isFormValid = false; 
+    }
+    
+    if (!form.occupation) {
+      newErrors.occupation = "Pekerjaan wajib diisi.";
+      isFormValid = false; 
+    }
+    if (!form.monthlyIncome) {
+      newErrors.monthlyIncome = "Pendapatan bulanan wajib diisi.";
+      isFormValid = false; 
+    }
+    if (!form.agree_terms) {
+      setGlobalError("Anda harus menyetujui syarat & ketentuan.");
+      isFormValid = false; 
+    }
+
+    setErrors(prev => ({ ...prev, ...newErrors }));
+    return isFormValid;
+  };
+
+  const handleNextStep = () => {
+    setGlobalError(""); 
+    if (validateStep1()) {
+      setStep(2);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGlobalError("");
+    setErrors({});
+
+    // Validasi kedua step sebelum submit
+    const isStep1Valid = validateStep1();
+    const isStep2Valid = validateStep2();
+
+    if (!isStep1Valid || !isStep2Valid) {
+      if (!isStep1Valid) setStep(1); 
+      return;
+    }
 
     setLoading(true);
 
@@ -111,47 +230,37 @@ export default function RegisterSimple() {
       fullName: form.fullName,
       phone: form.phone,
       birthPlace: form.birthPlace,
-      birthDate: format(birthDate, "yyyy-MM-dd"),
+      birthDate: format(birthDate!, "yyyy-MM-dd"),
       email: form.email,
       username: form.username,
       password: form.password,
       confirmPassword: form.confirmPassword,
       occupation: form.occupation,
-      monthlyIncome: form.monthlyIncome,
+      monthlyIncome: form.monthlyIncome.replace(/\./g, ''),
       consentAt: new Date().toISOString(),
     };
 
     try {
       const result = await registerUser(payload);
-      // if (result.success) {
-      //   setMessage(`✅ ${result.message}. Mengarahkan ke login...`);
-      //   setTimeout(() => router.push("/user/login"), 2000);
-      // }
 
-      if (
-        result.status === 409 ||
-        result.message?.includes("sudah terdaftar")
-      ) {
-        setError("Akun dengan email atau username tersebut sudah terdaftar.");
+      if (result.status === 409 || result.message?.includes("sudah terdaftar")) {
+        setGlobalError("Akun dengan email atau username tersebut sudah terdaftar.");
+        setStep(1);
         return;
       }
-
-      if (
-        result.status === 404 ||
-        result.message?.includes("tidak ditemukan")
-      ) {
-        setError("Akun belum terdaftar, silakan buat akun baru.");
+      if (result.status === 404 || result.message?.includes("tidak ditemukan")) {
+        setGlobalError("Endpoint tidak ditemukan.");
         return;
       }
 
       if (result.success) {
-        setMessage(`✅ ${result.message}. M...`);
+        setMessage(`✅ ${result.message}. Mengarahkan ke login...`);
         setTimeout(() => router.push("/login"), 2000);
       } else {
-        setError(result.message || "Registrasi gagal.");
+        setGlobalError(result.message || "Registrasi gagal.");
       }
     } catch (err: any) {
-      setError(err.message || "Terjadi kesalahan koneksi.");
+      setGlobalError(err.message || "Terjadi kesalahan koneksi.");
     } finally {
       setLoading(false);
     }
@@ -197,7 +306,8 @@ export default function RegisterSimple() {
                 <h2 className="text-lg font-semibold text-[#003366]">
                   Informasi Akun
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   <InputField
                     id="email"
                     label="Email *"
@@ -206,6 +316,7 @@ export default function RegisterSimple() {
                     value={form.email}
                     onChange={handleChange}
                     placeholder="Email"
+                    error={errors.email}
                   />
                   <InputField
                     id="username"
@@ -214,6 +325,7 @@ export default function RegisterSimple() {
                     value={form.username}
                     onChange={handleChange}
                     placeholder="Username"
+                    error={errors.username}
                   />
                   <InputField
                     id="password"
@@ -223,6 +335,7 @@ export default function RegisterSimple() {
                     value={form.password}
                     onChange={handleChange}
                     placeholder="Kata Sandi"
+                    error={errors.password}
                   />
                   <InputField
                     id="confirmPassword"
@@ -232,9 +345,24 @@ export default function RegisterSimple() {
                     value={form.confirmPassword}
                     onChange={handleChange}
                     placeholder="Konfirmasi Kata Sandi"
+                    error={errors.confirmPassword}
                   />
                 </div>
 
+                {globalError && step === 1 && (
+                  <p className="text-red-600 text-sm text-center">{globalError}</p>
+                )}
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={handleNextStep} 
+                    className="bg-[#FF6600] hover:bg-[#e65c00] text-white font-semibold px-6 py-2.5 rounded-lg transition"
+                  >
+                    Selanjutnya
+                  </button>
+                </div>
+                
                 <div className="flex justify-end pt-2">
                   <button
                     type="button"
@@ -275,7 +403,7 @@ export default function RegisterSimple() {
                     type="tel"
                     value={form.phone}
                     onChange={handleChange}
-                    placeholder="Contoh: 081234567890"
+                    placeholder="Contoh: 6281234567890"
                   />
 
                   {/* Baris 2 */}
@@ -301,7 +429,7 @@ export default function RegisterSimple() {
                           id="birth_date"
                           variant="outline"
                           className={cn(
-                            "justify-start text-left font-normal w-full border rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50",
+                            "justify-start text-left font-normal w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white hover:bg-gray-50",
                             !birthDate && "text-gray-400"
                           )}
                         >
@@ -315,7 +443,7 @@ export default function RegisterSimple() {
                         align="start"
                         side="bottom"
                         sideOffset={4}
-                        className="p-3 bg-white border border-gray-200 shadow-xl rounded-xl w-[280px]"
+                        className="w-auto p-0 bg-white border border-gray-300 rounded-lg shadow-lg"
                       >
                         <Calendar
                           mode="single"
@@ -324,6 +452,15 @@ export default function RegisterSimple() {
                           fromYear={1950}
                           toYear={new Date().getFullYear() - 17}
                           captionLayout="dropdown"
+                          className="p-3"
+                          classNames={{
+                            head_cell: "w-9 font-semibold text-sm",
+                            cell: "h-9 w-9 text-center p-0",
+                            day: "h-9 w-9 p-0 font-normal rounded-md",
+                            day_selected: "bg-orange-500 text-white hover:bg-orange-600",
+                            day_today: "bg-gray-100 text-gray-900",
+                            month: "space-y-4",
+                          }}
                         />
                       </PopoverContent>
                     </Popover>
@@ -333,7 +470,7 @@ export default function RegisterSimple() {
                   <div>
                     <label
                       htmlFor="occupation"
-                      className="block text-sm font-medium text-gray-700 mb-2"
+                      className="block text-sm font-semibold text-gray-800 mb-2"
                     >
                       Pekerjaan *
                     </label>
@@ -342,7 +479,8 @@ export default function RegisterSimple() {
                       name="occupation"
                       value={form.occupation}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-orange-400"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 
+                                focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
                     >
                       <option value="">Pilih Jenis Pekerjaan</option>
                       {OCCUPATION_KTP.map((job) => (
@@ -360,7 +498,7 @@ export default function RegisterSimple() {
                     type="number"
                     value={form.monthlyIncome}
                     onChange={handleChange}
-                    placeholder="Contoh: 5000000"
+                    placeholder="Contoh: 5.000.000"
                   />
                 </div>
 
@@ -575,12 +713,22 @@ function InputField({
   value,
   onChange,
   placeholder,
-}: any) {
+  error, 
+}: {
+  id: string;
+  label: string;
+  name: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  error?: string; 
+}) {
   return (
     <div>
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-gray-700 mb-2"
+        className="block text-sm font-semibold text-gray-800 mb-2"
       >
         {label}
       </label>
@@ -591,8 +739,12 @@ function InputField({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-orange-400"
+        className={cn(
+          "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent",
+          error && "border-red-500 ring-1 ring-red-200" 
+        )}
       />
+      {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
     </div>
   );
 }

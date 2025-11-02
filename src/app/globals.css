@@ -44,7 +44,7 @@ body {
 }
 
 /* Enhanced Typography */
-h1,
+/* h1,
 h2,
 h3,
 h4,
@@ -76,6 +76,38 @@ p {
   color: #495057;
   font-size: 1.1rem;
   line-height: 1.7;
+  margin-bottom: 1rem;
+} */
+
+/* Enhanced Typography (Biarkan Tailwind yang mengatur ukuran) */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  /* Hapus 'font-size' dan 'font-weight' dari sini */
+  line-height: 1.2;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+h1 {
+  /* Hapus 'font-size' dan 'font-weight' */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  /* Hapus 'font-size' dan 'font-weight' */
+}
+
+h3 {
+  /* Hapus 'font-size' dan 'font-weight' */
+}
+
+p {
+  color: #495057;
+  /* Hapus 'font-size' dan 'line-height' */
   margin-bottom: 1rem;
 }
 
