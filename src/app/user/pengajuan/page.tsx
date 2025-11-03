@@ -152,6 +152,7 @@ export default function FormPengajuanPage() {
 
     // normalisasi khusus beberapa field
     if (name === "nik") value = formatNumberOnly(String(value)).slice(0, 16);
+    if (name === "phone") value = formatNumberOnly(String(value)).slice(0, 15);
     if (name === "postalCode")
       value = formatNumberOnly(String(value)).slice(0, 5);
     if (name === "monthlyIncome" || name === "downPayment")

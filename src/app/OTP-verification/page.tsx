@@ -20,6 +20,7 @@ export default function OTPVerificationPage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const finalRedirectPath = searchParams.get("next") || "/beranda";
+  const purpose = searchParams.get("purpose") || "login";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -59,42 +60,75 @@ export default function OTPVerificationPage() {
         const payload = {
           identifier: identifier,
           otp: code,
-          purpose: "login",
+          purpose: purpose,
         };
         const res = await verifyOtpApi(payload);
 
-        if (res.success && res.data) {
-          const {
-            token,
-            refreshToken,
-            type,
-            id,
-            fullName,
-            photoUrl,
-            expiresInSec = 3600, // 1 jam (ganti jika API ada nilainya)
-            refreshExpiresInSec = 86400, // 1 hari (ganti jika API ada nilainya)
-          } = res.data;
+        if (res.success) {
+          // Registrasi biasanya tidak memberikan token, hanya aktivasi akun.
+          if (purpose === "register") {
+            const d = res.data || {} as any;
+            const token = d.token as string | undefined;
+            if (token && typeof token === "string") {
+              const refreshToken = d.refreshToken as string | undefined;
+              const type = (d.type as string) || "Bearer";
+              const expiresInSec = (d.expiresInSec as number) ?? 3600;
+              const refreshExpiresInSec = (d.refreshExpiresInSec as number) ?? 86400;
+              // optional: if backend did provide tokens, treat as login
+              setCookie("token", token, expiresInSec);
+              setCookie("token_type", type, expiresInSec);
+              if (refreshToken) setCookie("refreshToken", refreshToken, refreshExpiresInSec);
 
-          setCookie("token", token, expiresInSec);
-          setCookie("token_type", type || "Bearer", expiresInSec);
-          setCookie("refreshToken", refreshToken, refreshExpiresInSec);
-          const decodedToken = jwtDecode<JwtPayload & { fullName?: string; name?: string }>(token);
-          const userId = decodedToken.userId ?? (decodedToken as any).sub;
-          // Derive a better display name if backend didn't return fullName
-          const fallbackFromEmail = identifier && identifier.includes("@")
-            ? identifier.split("@")[0]
-            : identifier || "Pengguna";
-          const displayName =
-            fullName || decodedToken.fullName || decodedToken.name || fallbackFromEmail || "Pengguna";
+              const decodedToken = jwtDecode<JwtPayload & { fullName?: string; name?: string }>(token);
+              const userId = decodedToken.userId ?? (decodedToken as any).sub ?? "";
+              const fallbackFromEmail = identifier && identifier.includes("@")
+                ? identifier.split("@")[0]
+                : identifier || "Pengguna";
+              const displayName = (d.fullName as string) || decodedToken.fullName || decodedToken.name || fallbackFromEmail || "Pengguna";
 
-          login({
-            id: userId,
-            fullName: displayName,
-            photoUrl: photoUrl || "/profile.png",
-          });
+              login({ id: userId || fallbackFromEmail, fullName: displayName, photoUrl: (d.photoUrl as string) || "/profile.png" });
+              router.replace(finalRedirectPath);
+              return;
+            }
+            // No token returned: just inform and redirect to login
+            setNotice("Akun berhasil diaktivasi. Silakan login.");
+            setTimeout(() => router.replace("/login"), 800);
+            return;
+          }
 
-          router.replace(finalRedirectPath);
-          
+          // Default (login purpose): harus ada token
+          if (res.data && typeof res.data.token === "string") {
+            const {
+              token,
+              refreshToken,
+              type,
+              id,
+              fullName,
+              photoUrl,
+              expiresInSec = 3600,
+              refreshExpiresInSec = 86400,
+            } = res.data as any;
+
+            setCookie("token", token, expiresInSec);
+            setCookie("token_type", type || "Bearer", expiresInSec);
+            if (refreshToken) setCookie("refreshToken", refreshToken, refreshExpiresInSec);
+
+            const decodedToken = jwtDecode<JwtPayload & { fullName?: string; name?: string }>(token);
+            const userId = decodedToken.userId ?? (decodedToken as any).sub ?? "";
+            const fallbackFromEmail = identifier && identifier.includes("@")
+              ? identifier.split("@")[0]
+              : identifier || "Pengguna";
+            const displayName =
+              fullName || decodedToken.fullName || decodedToken.name || fallbackFromEmail || "Pengguna";
+
+            login({ id: userId || fallbackFromEmail, fullName: displayName, photoUrl: photoUrl || "/profile.png" });
+            router.replace(finalRedirectPath);
+          } else {
+            // Skenario sukses tetapi tanpa token (mis. backend hanya aktivasi akun)
+            setError("");
+            setNotice("Verifikasi berhasil. Silakan login untuk melanjutkan.");
+            setTimeout(() => router.replace("/login"), 800);
+          }
         } else {
           setError(res.message || "Kode OTP salah. Silakan coba lagi.");
         }

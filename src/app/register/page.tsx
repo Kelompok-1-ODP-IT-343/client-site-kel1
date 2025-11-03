@@ -14,6 +14,7 @@ import {
   PopoverTrigger,
 } from "@/app/components/Ui/popover";
 import { registerUser } from "@/app/lib/coreApi";
+import { formatCurrency } from "@/app/user/pengajuan/utils/format";
 import { format, isValid } from "date-fns"; 
 import { id as dateLocaleId } from "date-fns/locale/id"; 
 
@@ -92,12 +93,12 @@ export default function RegisterSimple() {
     let finalValue: string | boolean = isCheckbox ? checked : value;
 
     if (name === "monthlyIncome") {
-      const numericValue = value.replace(/[^0-9]/g, ''); 
-      if (numericValue) {
-        finalValue = new Intl.NumberFormat('id-ID').format(Number(numericValue));
-      } else {
-        finalValue = ""; 
-      }
+      // Ambil hanya angka lalu format otomatis dengan pemisah ribuan (.)
+      const numericOnly = value.replace(/[^0-9]/g, "").slice(0, 20);
+      finalValue = formatCurrency(numericOnly);
+    } else if (name === "phone") {
+      // Hanya angka untuk nomor telepon, batasi panjang umum 15 digit
+      finalValue = value.replace(/[^0-9]/g, "").slice(0, 15);
     }
 
     setForm(prev => ({
@@ -236,7 +237,8 @@ export default function RegisterSimple() {
       password: form.password,
       confirmPassword: form.confirmPassword,
       occupation: form.occupation,
-      monthlyIncome: form.monthlyIncome.replace(/\./g, ''),
+      // Pastikan hanya angka yang dikirim ke backend
+      monthlyIncome: form.monthlyIncome.replace(/\D/g, ''),
       consentAt: new Date().toISOString(),
     };
 
@@ -254,8 +256,15 @@ export default function RegisterSimple() {
       }
 
       if (result.success) {
-        setMessage(`✅ ${result.message}. Mengarahkan ke login...`);
-        setTimeout(() => router.push("/login"), 2000);
+        // Setelah registrasi sukses, arahkan ke halaman verifikasi OTP
+        const params = new URLSearchParams({
+          identifier: form.email,
+          phone: form.phone || "nomor Anda",
+          next: "/login",
+          purpose: "registration",
+        });
+        setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
+        setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
       } else {
         setGlobalError(result.message || "Registrasi gagal.");
       }
@@ -401,6 +410,9 @@ export default function RegisterSimple() {
                     label="Nomor Telepon *"
                     name="phone"
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={15}
                     value={form.phone}
                     onChange={handleChange}
                     placeholder="Contoh: 6281234567890"
@@ -432,6 +444,7 @@ export default function RegisterSimple() {
                             "justify-start text-left font-normal w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white hover:bg-gray-50",
                             !birthDate && "text-gray-400"
                           )}
+                          style={birthDate ? { color: "#111827" } : undefined}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
                           {birthDate
@@ -495,7 +508,7 @@ export default function RegisterSimple() {
                     id="monthlyIncome"
                     label="Pendapatan Bulanan *"
                     name="monthlyIncome"
-                    type="number"
+                    type="text"
                     value={form.monthlyIncome}
                     onChange={handleChange}
                     placeholder="Contoh: 5.000.000"
@@ -714,6 +727,9 @@ function InputField({
   onChange,
   placeholder,
   error, 
+  inputMode,
+  pattern,
+  maxLength,
 }: {
   id: string;
   label: string;
@@ -723,6 +739,9 @@ function InputField({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder: string;
   error?: string; 
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  pattern?: string;
+  maxLength?: number;
 }) {
   return (
     <div>
@@ -739,6 +758,9 @@ function InputField({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        inputMode={inputMode}
+        pattern={pattern}
+        maxLength={maxLength}
         className={cn(
           "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent",
           error && "border-red-500 ring-1 ring-red-200" 

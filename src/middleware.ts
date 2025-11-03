@@ -23,7 +23,7 @@ export function middleware(req: NextRequest) {
 
   if (!token) {
     const redirectUrl = url.clone();
-    redirectUrl.pathname = "/user/login";
+    redirectUrl.pathname = "/login";
     const next = url.pathname + (url.search || "");
     redirectUrl.searchParams.set("next", next);
     return NextResponse.redirect(redirectUrl);
