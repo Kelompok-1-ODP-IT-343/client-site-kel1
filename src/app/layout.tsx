@@ -1,10 +1,8 @@
-// ❌ JANGAN pakai "use client" di file ini
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-import { AuthProviderWrapper } from "@/app/providers/AuthProviderWrapper"; // ✅ tambahan wrapper client
+import { AuthProviderWrapper } from "@/app/providers/AuthProviderWrapper"; 
 import Header from "@/app/components/layout/Header";
 import Footer from "@/app/components/layout/Footer";
 

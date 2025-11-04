@@ -2,10 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-
 import Field from "@/app/user/akun/Field";
 import SelectField from "@/app/user/akun/SelectField";
 import FileUpload from "@/app/user/akun/FileUpload";
+import { useAuth } from "@/app/lib/authContext";
+import { updateUserProfile } from "@/app/lib/coreApi";
+
+import { getCookie } from "@/app/lib/cookie";
+import { API_BASE_URL } from "@/app/lib/apiConfig";
 
 import {
   ALLOWED_TYPES,
@@ -19,43 +23,74 @@ export default function ProfilContent() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const prevUrlRef = useRef<string | null>(null);
 
+  const { user } = useAuth();
+
   useEffect(() => {
-    const t = setTimeout(() => {
-      setFormData((prev) => ({
-        ...prev,
-        full_name: "Chipmunk Depok",
-        username: "chipmunk123",
-        email: "user@email.com",
-        phone: "081234567890",
-        nik: "3175010202000001",
-        npwp: "09.888.999.0-123.000",
-        birth_date: "1998-06-01",
-        birth_place: "Depok",
-        gender: "Laki-laki",
-        marital_status: "Belum Menikah",
-        address: "Jl. Melati No. 10",
-        sub_district: "Kemiri",
-        district: "Beji",
-        city: "Depok",
-        province: "Jawa Barat",
-        postal_code: "16422",
-        occupation: "Software Engineer",
-        company_name: "PT Satu Atap Digital",
-        company_address: "Jl. Sudirman No. 1",
-        company_district: "Setiabudi",
-        company_subdistrict: "Kuningan",
-        company_city: "Jakarta Selatan",
-        company_province: "DKI Jakarta",
-        company_postal_code: "12950",
-        monthly_income: "15000000",
-      }));
-    }, 250);
-    return () => clearTimeout(t);
-  }, []);
+    async function fetchUserProfile() {
+      try {
+        if (!user?.id) return;
+
+        const token = getCookie("token");
+        const tokenType = getCookie("token_type") || "Bearer";
+
+        const res = await fetch(`${API_BASE_URL}/user/profile`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${tokenType} ${token}`,
+          },
+        });
+
+        const json = await res.json();
+        console.log("Response Profil:", json); 
+        console.log("==== FETCH USER PROFILE RESPONSE ====");
+        console.log("URL:", `${API_BASE_URL}/user/${user.id}`);
+        console.log("TOKEN:", getCookie("token"));
+        console.log("USER ID:", user.id);
+        console.log("RESPONSE JSON:", json);
+
+        if (res.ok && json.success && json.data) {
+          const d = json.data;
+
+          setFormData((prev) => ({
+            ...prev,
+            full_name: d.fullName || "",
+            username: d.username || "",
+            email: d.email || "",
+            phone: d.phone || "",
+            nik: d.nik || "",
+            npwp: d.npwp || "",
+            birth_date: d.birthDate || "",
+            birth_place: d.birthPlace || "",
+            gender: d.gender === "FEMALE" ? "Perempuan" : "Laki-laki",
+            marital_status:
+              d.maritalStatus === "SINGLE"
+                ? "Belum Menikah"
+                : d.maritalStatus === "MARRIED"
+                ? "Menikah"
+                : "Cerai",
+            address: d.address || "",
+            city: d.city || "",
+            province: d.province || "",
+            postal_code: d.postalCode || "",
+            occupation: d.occupation || "",
+            company_name: d.companyName || "",
+            monthly_income: String(d.monthlyIncome || ""),
+          }));
+        } else {
+          console.warn("Gagal ambil data profil:", json.message);
+        }
+      } catch (err) {
+        console.error("Gagal memuat profil:", err);
+      }
+    }
+
+    fetchUserProfile();
+  }, [user]);
+
 
   useEffect(() => {
     return () => {
@@ -110,25 +145,40 @@ export default function ProfilContent() {
       setError("");
 
       try {
-        const form = new FormData();
-        Object.entries(formData).forEach(([k, v]) => form.append(k, v as any));
+        if (!user?.id) throw new Error("User belum login.");
 
-        const res = await fetch("/api/profile/update", {
-          method: "POST",
-          body: form,
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Gagal update profil");
+        const payload = {
+          username: formData.username,
+          email: formData.email,
+          phone: formData.phone,
+          nik: formData.nik,
+          npwp: formData.npwp,
+          birthPlace: formData.birth_place,
+          birthDate: formData.birth_date,
+          gender: formData.gender.toUpperCase(),
+          maritalStatus: formData.marital_status.toUpperCase(),
+          address: formData.address,
+          city: formData.city,
+          province: formData.province,
+          postalCode: formData.postal_code,
+          occupation: formData.occupation,
+          companyName: formData.company_name,
+          monthlyIncome: Number(formData.monthly_income),
+        };
 
-        setSuccess(data.message || "Profil berhasil diperbarui");
+        const res = await updateUserProfile(user.id, payload);
+        if (res.success) setSuccess("Profil berhasil diperbarui!");
+        else setError(res.message || "Gagal memperbarui profil.");
       } catch (err: any) {
-        setError(err.message || "Terjadi kesalahan");
+        console.error(err);
+        setError(err.message || "Terjadi kesalahan.");
       } finally {
         setLoading(false);
       }
     },
-    [formData]
+    [formData, user]
   );
+
 
   const genderOptions = useMemo(() => ["Laki-laki", "Perempuan"], []);
   const maritalOptions = useMemo(
@@ -251,18 +301,6 @@ export default function ProfilContent() {
               onChange={handleChange}
             />
             <Field
-              name="sub_district"
-              label="Kelurahan"
-              value={formData.sub_district}
-              onChange={handleChange}
-            />
-            <Field
-              name="district"
-              label="Kecamatan"
-              value={formData.district}
-              onChange={handleChange}
-            />
-            <Field
               name="city"
               label="Kota / Kabupaten"
               value={formData.city}
@@ -304,42 +342,6 @@ export default function ProfilContent() {
               name="company_name"
               label="Nama Perusahaan"
               value={formData.company_name}
-              onChange={handleChange}
-            />
-            <Field
-              name="company_address"
-              label="Alamat Kantor"
-              value={formData.company_address}
-              onChange={handleChange}
-            />
-            <Field
-              name="company_subdistrict"
-              label="Kelurahan Kantor"
-              value={formData.company_subdistrict}
-              onChange={handleChange}
-            />
-            <Field
-              name="company_district"
-              label="Kecamatan Kantor"
-              value={formData.company_district}
-              onChange={handleChange}
-            />
-            <Field
-              name="company_city"
-              label="Kota Kantor"
-              value={formData.company_city}
-              onChange={handleChange}
-            />
-            <Field
-              name="company_province"
-              label="Provinsi Kantor"
-              value={formData.company_province}
-              onChange={handleChange}
-            />
-            <Field
-              name="company_postal_code"
-              label="Kode Pos Kantor"
-              value={formData.company_postal_code}
               onChange={handleChange}
             />
           </div>

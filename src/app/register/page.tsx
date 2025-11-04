@@ -17,6 +17,8 @@ import { registerUser } from "@/app/lib/coreApi";
 import { formatCurrency } from "@/app/user/pengajuan/utils/format";
 import { format, isValid } from "date-fns"; 
 import { id as dateLocaleId } from "date-fns/locale/id"; 
+import { useAuth } from "@/app/lib/authContext";
+import { setCookie } from "@/app/lib/cookie";
 
 const OCCUPATION_KTP = [
   "BELUM_TIDAK_BEKERJA",
@@ -47,6 +49,7 @@ const OCCUPATION_KTP = [
 
 export default function RegisterSimple() {
   const router = useRouter();
+  const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [birthDate, setBirthDate] = useState<Date>();
@@ -255,19 +258,30 @@ export default function RegisterSimple() {
         return;
       }
 
-      if (result.success) {
-        // Setelah registrasi sukses, arahkan ke halaman verifikasi OTP
-        const params = new URLSearchParams({
-          identifier: form.email,
-          phone: form.phone || "nomor Anda",
-          next: "/login",
-          purpose: "registration",
-        });
-        setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
-        setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
-      } else {
-        setGlobalError(result.message || "Registrasi gagal.");
-      }
+      if (result.success && result.data) {
+  // Simpan token dan data user ke cookie + context
+  setCookie("token", result.data.token, 86400);
+  setCookie("token_type", result.data.tokenType || "Bearer", 86400);
+
+  login({
+    id: result.data.id,
+    fullName: result.data.fullName,
+    photoUrl: result.data.photoUrl || "",
+  });
+
+  // Arahkan ke OTP
+  const params = new URLSearchParams({
+    identifier: form.email,
+    phone: form.phone || "nomor Anda",
+    next: "/login",
+    purpose: "registration",
+  });
+  setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
+  setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
+} else {
+  setGlobalError(result.message || "Registrasi gagal.");
+}
+
     } catch (err: any) {
       setGlobalError(err.message || "Terjadi kesalahan koneksi.");
     } finally {

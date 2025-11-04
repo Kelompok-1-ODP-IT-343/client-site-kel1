@@ -7,6 +7,7 @@ import { Mail, Lock } from "lucide-react";
 import { loginApi } from "@/app/lib/coreApi";
 import { useAuth } from "@/app/lib/authContext";
 import { setCookie } from "@/app/lib/cookie";
+
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -62,53 +63,58 @@ export default function LoginPage() {
     setErrors(newErrors);
     return ok;
   };
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus({ loading: false, message: "", type: "" });
-    if (!validateForm()) return;
 
-    setStatus({ loading: true, message: "", type: "" });
-    try {
-      const payload = { identifier: form.email, password: form.password };
-      const res = await loginApi(payload);
-      if (res.success) {
-        if (res.data.success) {
-          setStatus({
-            loading: false,
-            message: res.message || "OTP berhasil dikirim! Mengarahkan...",
-            type: "success",
-          });
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setStatus({ loading: false, message: "", type: "" });
+  if (!validateForm()) return;
 
-          const params = new URLSearchParams({
-            identifier: form.email, 
-            phone: res.data.maskedPhone || "nomor Anda", 
-            next: finalRedirectPath,
-          });
+  setStatus({ loading: true, message: "", type: "" });
+  try {
+    const payload = { identifier: form.email, password: form.password };
+    const res = await loginApi(payload);
 
-          setTimeout(() => router.replace(`${otpVerificationPath}?${params.toString()}`), 400);
+    if (res.success && res.data) {
+      // Simpan token untuk autentikasi API berikutnya
+      setCookie("token", res.data.token, 86400);
+      setCookie("token_type", res.data.tokenType || "Bearer", 86400);
 
-        } else {
-          setStatus({
-            loading: false,
-            message: res.data.message || "Gagal mengirim OTP.", 
-            type: "error",
-          });
-        }
-      } else {
-        setStatus({
-          loading: false,
-          message: res.message || "Email atau password salah.",
-          type: "error",
-        });
-      }
-    } catch (err: any) {
+      // Simpan data user ke AuthContext
+      login({
+        id: res.data.id,
+        fullName: res.data.fullName,
+        photoUrl: res.data.photoUrl || "",
+      });
+
+      // Arahkan ke OTP
+      const params = new URLSearchParams({
+        identifier: form.email,
+        phone: res.data.maskedPhone || "nomor Anda",
+        next: finalRedirectPath,
+      });
+
       setStatus({
         loading: false,
-        message: err.message || "Gagal terhubung ke server. (Cek CORS)",
+        message: res.message || "OTP berhasil dikirim! Mengarahkan...",
+        type: "success",
+      });
+
+      setTimeout(() => router.replace(`${otpVerificationPath}?${params.toString()}`), 400);
+    } else {
+      setStatus({
+        loading: false,
+        message: res.message || "Email atau password salah.",
         type: "error",
       });
     }
-  };
+  } catch (err: any) {
+    setStatus({
+      loading: false,
+      message: err.message || "Gagal terhubung ke server.",
+      type: "error",
+    });
+  }
+};
 
   return (
     <main className="flex flex-1 items-center justify-center py-10 px-4 bg-gray-50">

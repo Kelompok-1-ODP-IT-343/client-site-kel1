@@ -1,6 +1,7 @@
 import { API_BASE_URL, API_ENDPOINTS, DEFAULT_KPR_RATE_ID } from "./apiConfig";
 import type { PropertyDetail, PropertyListItem } from "./types";
 import { getCookie } from "./cookie";
+
 function parseFeaturesList(
   featuresString: string | null
 ): { key: string; value: string }[] {
@@ -528,10 +529,8 @@ export async function verifyOtpApi(payload: {
   }
 }
 export async function toggleFavorite(userId: number | string, propertyId: number | string) {
-  // --- PERBAIKAN DI SINI ---
-  // Membangun URL dengan query parameters
+
   const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?userId=${userId}&propertyId=${propertyId}`;
-  // -------------------------
 
   const token = getCookie("token") || "";
   const tokenType = getCookie("token_type") || "Bearer";
@@ -561,6 +560,33 @@ export async function toggleFavorite(userId: number | string, propertyId: number
     }
   } catch (error) {
     console.error("Toggle Favorite Error:", error);
+    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+  }
+}
+
+export async function updateUserProfile(userId: number, payload: any) {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.UPDATE_PROFILE(userId)}`;
+  const token = getCookie("token") || "";
+  const tokenType = getCookie("token_type") || "Bearer";
+
+  try {
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `${tokenType} ${token}` : "",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, message: json.message || "Gagal memperbarui profil." };
+    }
+
+    return { success: true, message: json.message, data: json.data };
+  } catch (e) {
+    console.error("Update Profile Error:", e);
     return { success: false, message: "Terjadi kesalahan koneksi ke server." };
   }
 }
