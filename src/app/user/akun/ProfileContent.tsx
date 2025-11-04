@@ -166,7 +166,8 @@ export default function ProfilContent() {
           monthlyIncome: Number(formData.monthly_income),
         };
 
-        const res = await updateUserProfile(user.id, payload);
+        // const res = await updateUserProfile(user.id, payload);
+        const res = await updateUserProfile(Number(user.id), payload);
         if (res.success) setSuccess("Profil berhasil diperbarui!");
         else setError(res.message || "Gagal memperbarui profil.");
       } catch (err: any) {
