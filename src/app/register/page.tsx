@@ -386,7 +386,7 @@ export default function RegisterSimple() {
                   </button>
                 </div>
                 
-                <div className="flex justify-end pt-2">
+                {/* <div className="flex justify-end pt-2">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
@@ -394,7 +394,7 @@ export default function RegisterSimple() {
                   >
                     Selanjutnya
                   </button>
-                </div>
+                </div> */}
               </motion.div>
             ) : (
               <motion.div
