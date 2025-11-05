@@ -183,6 +183,9 @@ export async function submitKprApplication(
       formData.maritalStatus?.toLowerCase() || ""
     );
     multipartData.append("personalData.address", formData.address || "");
+  // New adjustments: send full address details including district and subDistrict
+  multipartData.append("personalData.district", formData.district || "");
+  multipartData.append("personalData.subDistrict", formData.subdistrict || "");
     multipartData.append("personalData.city", formData.city || "");
     multipartData.append("personalData.province", formData.province || "");
     multipartData.append("personalData.postalCode", formData.postalCode || "");
@@ -204,14 +207,30 @@ export async function submitKprApplication(
       "employmentData.companyAddress",
       formData.companyAddress || ""
     );
-    multipartData.append("employmentData.companyCity", formData.city || "");
+    // New adjustments: use dedicated company location fields
+    multipartData.append(
+      "employmentData.companyCity",
+      formData.companyCity || ""
+    );
     multipartData.append(
       "employmentData.companyProvince",
-      formData.province || ""
+      formData.companyProvince || ""
     );
     multipartData.append(
       "employmentData.companyPostalCode",
-      formData.postalCode || ""
+      formData.companyPostalCode || ""
+    );
+    multipartData.append(
+      "employmentData.workExperience",
+      formData.workExperience || ""
+    );
+    multipartData.append(
+      "employmentData.companyDistrict",
+      formData.companyDistrict || ""
+    );
+    multipartData.append(
+      "employmentData.companySubdistrict",
+      formData.companySubdistrict || ""
     );
 
     // File uploads

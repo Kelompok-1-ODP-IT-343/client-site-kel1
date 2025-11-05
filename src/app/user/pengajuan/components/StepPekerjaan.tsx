@@ -50,6 +50,12 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
           ))}
         </SelectField>
         <InputField required label="Nama Perusahaan / Instansi" name="companyName" value={formData.companyName} onChange={handleChange} error={errors.companyName} />
+        <InputField required label="Alamat Perusahaan" name="companyAddress" value={formData.companyAddress} onChange={handleChange} error={errors.companyAddress} />
+        <InputField required label="Kelurahan Perusahaan" name="companySubdistrict" value={formData.companySubdistrict} onChange={handleChange} error={errors.companySubdistrict} />
+        <InputField required label="Kecamatan Perusahaan" name="companyDistrict" value={formData.companyDistrict} onChange={handleChange} error={errors.companyDistrict} />
+        <InputField required label="Kota / Kabupaten Perusahaan" name="companyCity" value={formData.companyCity} onChange={handleChange} error={errors.companyCity} />
+        <InputField required label="Provinsi Perusahaan" name="companyProvince" value={formData.companyProvince} onChange={handleChange} error={errors.companyProvince} />
+        <InputField required label="Kode Pos Perusahaan" name="companyPostalCode" value={formData.companyPostalCode} maxLength={5} onChange={handleChange} error={errors.companyPostalCode} />
         <InputField required label="Pendapatan Bersih per Bulan (Rp)" name="monthlyIncome" placeholder="Contoh: 10.000.000" value={formData.monthlyIncome} onChange={handleChange} error={errors.monthlyIncome} />
         <InputField required label="Lama Bekerja (Tahun)" name="workExperience" type="number" value={formData.workExperience} onChange={handleChange} error={errors.workExperience} placeholder="Contoh: 5"/>
       </div>

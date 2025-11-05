@@ -38,6 +38,11 @@ type FormData = {
   occupation: string;
   companyName: string;
   companyAddress: string;
+  companyCity: string;
+  companyProvince: string;
+  companyPostalCode: string;
+  companyDistrict: string;
+  companySubdistrict: string;
   monthlyIncome: string;
   workExperience: string;
 
@@ -109,6 +114,11 @@ export default function FormPengajuanPage() {
     occupation: "",
     companyName: "",
     companyAddress: "",
+  companyCity: "",
+  companyProvince: "",
+  companyPostalCode: "",
+  companyDistrict: "",
+  companySubdistrict: "",
     monthlyIncome: "",
     workExperience: "",
 
@@ -155,6 +165,8 @@ export default function FormPengajuanPage() {
     if (name === "phone") value = formatNumberOnly(String(value)).slice(0, 15);
     if (name === "postalCode")
       value = formatNumberOnly(String(value)).slice(0, 5);
+    if (name === "companyPostalCode")
+      value = formatNumberOnly(String(value)).slice(0, 5);
     if (name === "monthlyIncome" || name === "downPayment")
       value = formatCurrency(String(value));
     if (name === "workExperience" || name === "loanTerm")
@@ -198,6 +210,16 @@ export default function FormPengajuanPage() {
     } else if (idx === 2) {
       if (!d.occupation) newErr.occupation = "Pekerjaan wajib diisi";
       if (!d.companyName) newErr.companyName = "Nama perusahaan wajib diisi";
+      if (!d.companyAddress) newErr.companyAddress = "Alamat perusahaan wajib diisi";
+      if (!d.companySubdistrict)
+        newErr.companySubdistrict = "Kelurahan perusahaan wajib diisi";
+      if (!d.companyDistrict)
+        newErr.companyDistrict = "Kecamatan perusahaan wajib diisi";
+      if (!d.companyCity) newErr.companyCity = "Kota/Kab. perusahaan wajib diisi";
+      if (!d.companyProvince)
+        newErr.companyProvince = "Provinsi perusahaan wajib diisi";
+      if (!d.companyPostalCode || d.companyPostalCode.length !== 5)
+        newErr.companyPostalCode = "Kode pos perusahaan 5 digit";
       if (!d.monthlyIncome) newErr.monthlyIncome = "Pendapatan wajib diisi";
       if (!d.workExperience) newErr.workExperience = "Lama bekerja wajib diisi";
     } else if (idx === 3) {

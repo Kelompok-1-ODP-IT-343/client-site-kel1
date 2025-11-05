@@ -45,8 +45,8 @@ export default function Header() {
       animate={{
         y: hidden ? -80 : 0,
         boxShadow: !atTop
-          ? "0 6px 18px rgba(0,0,0,0.07)"
-          : "0 0 0 rgba(0,0,0,0)",
+          ? "0 6px 18px rgba(231, 15, 15, 0.07)"
+          : "0 0 0 rgba(0, 0, 0, 0)",
       }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className="bg-white/90 backdrop-blur-md sticky top-0 z-50 w-full transition-all"
@@ -101,7 +101,7 @@ export default function Header() {
               <>
                 <Link
                   href={USER_ROUTES.LOGIN}
-                  className="relative overflow-hidden border border-gray-800 text-black px-5 py-2 rounded-full font-bold text-sm group transition-all duration-200 hover:text-white"
+                  className="relative overflow-hidden border border-gray-800 text-black px-5 py-2 rounded-full font-bold text-sm group transition-all duration-200 hover:text-white bg-"
                 >
                   <span className="absolute inset-0 bg-gray-800 scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out rounded-full" />
                   <span className="relative z-10 group-hover:text-white">
