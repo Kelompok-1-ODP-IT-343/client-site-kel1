@@ -15,4 +15,6 @@ export const API_ENDPOINTS = {
   FETCH_FAVORITES: "/favorites/user",
   VERIFY_OTP: "/auth/verify-otp",
   UPDATE_PROFILE: (userId: number | string) => `/user/${userId}`,
+  KPR_DETAIL: (id: number | string) => `/kpr-applications/${id}`,
+
 } as const;

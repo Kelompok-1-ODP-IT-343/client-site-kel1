@@ -609,3 +609,33 @@ export async function updateUserProfile(userId: number, payload: any) {
     return { success: false, message: "Terjadi kesalahan koneksi ke server." };
   }
 }
+
+export async function fetchKprDetail(id: number | string) {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_DETAIL(id)}`;
+  const token = getCookie("token") || "";
+  const tokenType = getCookie("token_type") || "Bearer";
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `${tokenType} ${token}` : "",
+      },
+    });
+
+    const json = await res.json();
+
+    if (res.ok && json.success && json.data) {
+      return { success: true, data: json.data, message: json.message };
+    } else {
+      return {
+        success: false,
+        message: json.message || "Gagal memuat detail pengajuan.",
+      };
+    }
+  } catch (error) {
+    console.error("Fetch KPR Detail Error:", error);
+    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+  }
+}

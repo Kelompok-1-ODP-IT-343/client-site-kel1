@@ -1,7 +1,7 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import {
@@ -10,112 +10,131 @@ import {
   PolarAngleAxis,
   ResponsiveContainer,
 } from "recharts";
+import { fetchKprDetail } from "@/app/lib/coreApi";
 
-/* ========= MOCK DATA ========= */
-const loanData = [
-  {
-    id: 1,
-    property: {
-      name: "Cluster Green Valley",
-      city: "Serpong, Banten",
-      price: 1500000000,
-      image: "/rumah-1.jpg",
-    },
-    application: {
-      number: "KPR-2025-008",
-      date: "12 Oktober 2025",
-      status: "Peninjauan 2",
-      officer: "Budi Santoso",
-      branch: "BNI Sudirman",
-    },
-    loan: {
-      principal: 525000000,
-      downPayment: 225000000,
-      tenorYears: 15,
-      interest: "6.25% Fixed 3 Tahun",
-      monthlyInstallment: 4850000,
-      akadDate: "20 Oktober 2025",
-    },
-    balance: {
-      remainingTenor: 165,
-      totalPaid: 72750000,
-      outstanding: 452250000,
-    },
-    timeline: [
-      { step: "Dokumen Terkirim", date: "12 Oktober 2025", note: "Pengajuan dikirim oleh nasabah.", status: "Selesai" },
-      { step: "Peninjauan 1", date: "13 Oktober 2025", note: "Peninjauan oleh Developer.", status: "Selesai" },
-      { step: "Peninjauan 2", date: "15 Oktober 2025", note: "Peninjauan oleh BNI.", status: "Proses" },
-      { step: "Peninjauan 3", date: "-", note: "Tahap finalisasi BNI.", status: "-" },
-    ],
-    payments: [
-      { month: "Agustus 2025", date: "10-08-2025", amount: 4850000, status: "Lunas" },
-      { month: "September 2025", date: "10-09-2025", amount: 4850000, status: "Lunas" },
-      { month: "Oktober 2025", date: "10-10-2025", amount: 4850000, status: "Pending" },
-    ],
-    account: {
-      owner: "Acil Bocah Palembang",
-      number: "0287483879",
-      bank: "BNI Sudirman",
-      va: "9876543210000001",
-      method: "Autodebet",
-    },
-  },
-];
+type TimelineItem = {
+  step: string;
+  date: string;
+  note: string;
+  status: string;
+};
 
 export default function DetailPengajuanPage() {
-  const params = useSearchParams();
-  const loanId = Number(params.get("loanId"));
-  const [data, setData] = useState<typeof loanData[0] | null>(null);
+  const { id } = useParams();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const selected = loanData.find((d) => d.id === loanId);
-    setData(selected || null);
-  }, [loanId]);
+    if (!id) return;
+    async function loadDetail() {
+      const res = await fetchKprDetail(Number(id));
+      if (res.success) setData(res.data);
+      setLoading(false);
+    }
+    loadDetail();
+  }, [id]);
 
-  if (!data) {
-    return <div className="p-8 text-gray-600 text-center">Gagal memuat data atau loan tidak ditemukan.</div>;
-  }
+  if (loading) return <div className="p-8 text-gray-600 text-center">Memuat data...</div>;
+  if (!data) return <div className="p-8 text-gray-600 text-center">Gagal memuat data atau loan tidak ditemukan.</div>;
+
+  // ======== Data mapping dari API ========
+  const property = data.propertyInfo || {};
+  const application = data || {};
+  const user = data.userInfo || {};
+  const documents = data.documents || [];
+  const approvals = data.approvalWorkflows || [];
 
   const f = (n: number) =>
-    n.toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
+    n?.toLocaleString("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    });
 
-  const currentIndex = data.timeline.findIndex((t) => t.status === "Proses" || t.status === "-");
-  const progressPercent = ((currentIndex <= 0 ? 0 : currentIndex - 1) / (data.timeline.length - 1)) * 100;
+  // ======== Simulasi Progress Chart ========
+  const tenorYears = application.loanTermYears ?? 0;
+  const remainingTenor = Math.floor((Math.random() * tenorYears * 12) / 2);
+  const tenorProgress = ((tenorYears * 12 - remainingTenor) / (tenorYears * 12)) * 100;
+  const outstanding = Math.floor(application.loanAmount * 0.75);
+  const outstandingProgress = ((application.loanAmount - outstanding) / application.loanAmount) * 100;
 
-  /* ===== Hitung progress tenor & outstanding ===== */
-  const totalTenor = data.loan.tenorYears * 12;
-  const tenorProgress = ((totalTenor - data.balance.remainingTenor) / totalTenor) * 100;
-  const totalOutstanding = data.loan.principal;
-  const outstandingProgress = ((totalOutstanding - data.balance.outstanding) / totalOutstanding) * 100;
+  const stageDisplayNames: Record<string, string> = {
+  SUBMITTED: "Pengajuan Dikirim",
+  DOCUMENT_VERIFICATION: "Verifikasi Dokumen",
+  PROPERTY_APPRAISAL: "Appraisal Properti",
+  CREDIT_ANALYSIS: "Analisis Kredit",
+  APPROVAL: "Persetujuan",
+  OFFER_LETTER: "Surat Penawaran",
+  SIGNING: "Penandatanganan Akad",
+  DISBURSEMENT: "Pencairan Dana",
+  COMPLETED: "Selesai",
+  };
+
+// ======== Timeline (PERBAIKAN DITERAPKAN DI SINI) ========
+const timeline: TimelineItem[] = approvals.length
+  ? approvals.map((a: any) => ({
+      step: a.stage,
+      date: a.dueDate
+        ? new Date(a.dueDate).toLocaleDateString("id-ID")
+        : "-",
+      note: a.approvalNotes || "Menunggu proses",
+      status: a.status === "PENDING" ? "Proses" : "Selesai",
+    }))
+  : [
+      {
+        step: "SUBMITTED",
+        date: new Date(application.submittedAt).toLocaleDateString("id-ID"),
+        note: "Pengajuan dikirim",
+        status: "Selesai",
+      },
+      {
+        step: "PROPERTY_APPRAISAL",
+        date: "-",
+        note: "Menunggu appraisal properti",
+        status: "Proses",
+      },
+    ];
+
+  const currentIndex = timeline.findIndex((t) => t.status === "Proses" || t.status === "-");
+  const progressPercent = ((currentIndex <= 0 ? 0 : currentIndex - 1) / (timeline.length - 1)) * 100;
+
+  // ======== Dummy history pembayaran untuk tampilan ========
+  const payments = [
+    { month: "Agustus 2025", date: "10-08-2025", amount: 4850000, status: "Lunas" },
+    { month: "September 2025", date: "10-09-2025", amount: 4850000, status: "Lunas" },
+    { month: "Oktober 2025", date: "10-10-2025", amount: 4850000, status: "Pending" },
+  ];
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-12 font-[Inter] bg-white">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-        Detail Pengajuan KPR
-      </h1>
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Detail Pengajuan KPR</h1>
 
       {/* ===== INFORMASI PROPERTI ===== */}
       <section className="grid md:grid-cols-2 gap-6 bg-white">
         <ColorCard title="Informasi Properti">
           <div className="flex items-center gap-4">
             <div className="relative w-28 h-20 rounded-lg overflow-hidden border">
-              <Image src={data.property.image} alt="Properti" fill className="object-cover" />
+              <Image
+                src={property.mainImage || "/placeholder.png"}
+                alt="Properti"
+                fill
+                className="object-cover"
+              />
             </div>
             <div>
-              <p className="font-semibold text-gray-800">{data.property.name}</p>
-              <p className="text-gray-500 text-sm">{data.property.city}</p>
-              <p className="text-[#FF8500] font-semibold">{f(data.property.price)}</p>
+              <p className="font-semibold text-gray-800">{property.title || "-"}</p>
+              <p className="text-gray-500 text-sm">{property.city}</p>
+              <p className="text-[#FF8500] font-semibold">{f(property.price || 0)}</p>
             </div>
           </div>
         </ColorCard>
 
         <ColorCard title="Info Pengajuan">
           <ul className="text-sm text-gray-700 space-y-1">
-            <li>Nomor Aplikasi: <strong>{data.application.number}</strong></li>
-            <li>Tanggal Pengajuan: <strong>{data.application.date}</strong></li>
-            <li>Status: <strong>{data.application.status}</strong></li>
-            <li>Petugas KPR: <strong>{data.application.officer}</strong></li>
-            <li>Cabang: <strong>{data.application.branch}</strong></li>
+            <li>Nomor Aplikasi: <strong>{application.applicationNumber}</strong></li>
+            <li>Status: <strong>{application.status}</strong></li>
+            <li>Tujuan: <strong>{application.purpose}</strong></li>
+            <li>Nama Nasabah: <strong>{user.fullName}</strong></li>
           </ul>
         </ColorCard>
       </section>
@@ -124,12 +143,11 @@ export default function DetailPengajuanPage() {
       <section className="grid md:grid-cols-2 gap-6 bg-white">
         <ColorCard title="Detail Pinjaman">
           <ul className="text-sm text-gray-700 space-y-1">
-            <li>Jumlah Pinjaman: <strong>{f(data.loan.principal)}</strong></li>
-            <li>Uang Muka: <strong>{f(data.loan.downPayment)}</strong></li>
-            <li>Tenor: <strong>{data.loan.tenorYears} Tahun</strong></li>
-            <li>Bunga: <strong>{data.loan.interest}</strong></li>
-            <li>Tanggal Akad: <strong>{data.loan.akadDate}</strong></li>
-            <li>Angsuran / Bulan: <strong>{f(data.loan.monthlyInstallment)}</strong></li>
+            <li>Jumlah Pinjaman: <strong>{f(application.loanAmount)}</strong></li>
+            <li>Uang Muka: <strong>{f(application.downPayment)}</strong></li>
+            <li>Tenor: <strong>{application.loanTermYears} Tahun</strong></li>
+            <li>Bunga: <strong>{(application.interestRate * 100).toFixed(2)}%</strong></li>
+            <li>Angsuran / Bulan: <strong>{f(application.monthlyInstallment)}</strong></li>
           </ul>
         </ColorCard>
 
@@ -140,40 +158,62 @@ export default function DetailPengajuanPage() {
           </div>
 
           <ul className="text-sm text-gray-700 space-y-1 mt-6">
-            <li>Sisa Tenor: <strong>{data.balance.remainingTenor} bulan</strong></li>
-            <li>Total Dibayar: <strong>{f(data.balance.totalPaid)}</strong></li>
-            <li>Sisa Outstanding: <strong>{f(data.balance.outstanding)}</strong></li>
+            <li>Sisa Tenor: <strong>{remainingTenor} bulan</strong></li>
+            <li>Total Dibayar: <strong>{f(application.downPayment || 0)}</strong></li>
+            <li>Sisa Outstanding: <strong>{f(outstanding)}</strong></li>
           </ul>
         </ColorCard>
       </section>
 
-      {/* ===== TIMELINE ===== */}
+      {/* ===== 🔹 NEW: TIMELINE PENGAJUAN  ===== */}
+      {/* ===== 🔹 TIMELINE PENGAJUAN ===== */}
       <ColorCard title="Timeline Pengajuan">
-        <div className="relative flex justify-between items-start mt-4">
-          <div className="absolute top-3 left-0 right-0 h-1 bg-gray-200 rounded-full z-0" />
+        <div className="relative flex justify-between items-start pt-10 px-4">
+          {/* Garis abu-abu dasar */}
+          <div className="absolute top-12 left-8 right-8 h-1 bg-gray-200 rounded-full z-0" />
+
+          {/* Garis biru progres */}
           <div
-            className="absolute top-3 left-0 h-1 bg-[#3FD8D5] rounded-full z-10 transition-all duration-700"
-            style={{ width: `${progressPercent}%` }}
+            className="absolute top-12 left-8 h-1 bg-[#3FD8D5] rounded-full z-10 transition-all duration-700"
+            style={{ width: `${progressPercent || 0}%` }}
           />
-          {data.timeline.map((t, i) => {
-            const active = t.status === "Selesai" || t.status === "Proses";
+
+          {timeline.map((t: TimelineItem, i: number) => {
+            const stepName = stageDisplayNames[t.step] || t.step.replace("_", " ");
+            const isSelesai = t.status === "Selesai";
+            const isProses = t.status === "Proses";
+            const isActive = isSelesai || isProses;
+
             return (
               <div key={i} className="relative z-20 flex flex-col items-center w-full text-center">
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${
-                    active ? "bg-[#3FD8D5] border-transparent scale-105" : "bg-white border-gray-300"
+                    isActive
+                      ? "bg-[#3FD8D5] border-transparent scale-105"
+                      : "bg-white border-gray-300"
                   }`}
                 >
-                  {active && <CheckCircle2 size={14} className="text-white" />}
+                  {isSelesai && <CheckCircle2 size={14} className="text-white" />}
+                  {isProses && <div className="w-3 h-3 bg-white rounded-full animate-pulse" />}
                 </div>
-                <span className={`mt-2 text-sm font-semibold ${active ? "text-[#3FD8D5]" : "text-gray-500"}`}>{t.step}</span>
+
+                <span
+                  className={`mt-2 text-sm font-semibold ${
+                    isActive ? "text-[#3FD8D5]" : "text-gray-500"
+                  }`}
+                >
+                  {stepName}
+                </span>
                 <span className="text-xs text-gray-400 mt-1">{t.date}</span>
-                <span className="text-xs text-gray-600 italic mt-0.5">{t.note}</span>
+                <span className="text-xs text-gray-600 italic mt-0.5 whitespace-nowrap">
+                  {t.note}
+                </span>
               </div>
             );
           })}
         </div>
       </ColorCard>
+
 
       {/* ===== HISTORY PEMBAYARAN + REKENING ===== */}
       <section className="grid md:grid-cols-2 gap-6 bg-white">
@@ -188,7 +228,7 @@ export default function DetailPengajuanPage() {
               </tr>
             </thead>
             <tbody>
-              {data.payments.map((p, i) => (
+              {payments.map((p, i) => (
                 <tr key={i} className="border-b text-gray-700">
                   <td className="py-2">{p.month}</td>
                   <td>{p.date}</td>
@@ -200,19 +240,21 @@ export default function DetailPengajuanPage() {
           </table>
         </ColorCard>
 
-        <ColorCard title="Info Rekening">
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>Nama Pemilik: <strong>{data.account.owner}</strong></li>
-            <li>Nomor Rekening: <strong>{data.account.number}</strong></li>
-            <li>Bank Tujuan: <strong>{data.account.bank}</strong></li>
-            <li>Virtual Account: <strong>{data.account.va}</strong></li>
-            <li>Metode: <strong>{data.account.method}</strong></li>
+        <ColorCard title="Dokumen Terlampir">
+          <ul className="text-sm text-gray-700 space-y-2">
+            {documents.map((doc: any) => (
+              <li key={doc.documentId}>
+                <a href={doc.filePath} target="_blank" className="text-blue-600 hover:underline">
+                  {doc.documentType}
+                </a>
+              </li>
+            ))}
           </ul>
         </ColorCard>
       </section>
 
       {/* ===== NOTIFIKASI ===== */}
-      {data.payments.some((p) => p.status === "Pending") && (
+      {payments.some((p) => p.status === "Pending") && (
         <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl shadow-sm">
           <AlertCircle className="w-5 h-5" />
           <p>
@@ -231,16 +273,12 @@ export default function DetailPengajuanPage() {
 function ColorCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-white hover:shadow-lg transition-shadow duration-300">
-      <div className="bg-[#3FD8D5] px-5 py-3 text-white font-semibold text-lg">
-        {title}
-      </div>
+      <div className="bg-[#3FD8D5] px-5 py-3 text-white font-semibold text-lg">{title}</div>
       <div className="bg-white p-6">{children}</div>
     </div>
   );
 }
 
-/* Radial Chart — versi putih bersih */
-/* Radial Chart */
 function RadialChart({ value, color, label }: { value: number; color: string; label: string }) {
   const chart = [{ value, fill: color }];
 
@@ -276,4 +314,3 @@ function RadialChart({ value, color, label }: { value: number; color: string; la
     </div>
   );
 }
-
