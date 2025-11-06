@@ -65,34 +65,14 @@ export default function OTPVerificationPage() {
         const res = await verifyOtpApi(payload);
 
         if (res.success) {
-          // Registrasi biasanya tidak memberikan token, hanya aktivasi akun.
           if (purpose === "register") {
-            const d = res.data || {} as any;
-            const token = d.token as string | undefined;
-            if (token && typeof token === "string") {
-              const refreshToken = d.refreshToken as string | undefined;
-              const type = (d.type as string) || "Bearer";
-              const expiresInSec = (d.expiresInSec as number) ?? 3600;
-              const refreshExpiresInSec = (d.refreshExpiresInSec as number) ?? 86400;
-              // optional: if backend did provide tokens, treat as login
-              setCookie("token", token, expiresInSec);
-              setCookie("token_type", type, expiresInSec);
-              if (refreshToken) setCookie("refreshToken", refreshToken, refreshExpiresInSec);
-
-              const decodedToken = jwtDecode<JwtPayload & { fullName?: string; name?: string }>(token);
-              const userId = decodedToken.userId ?? (decodedToken as any).sub ?? "";
-              const fallbackFromEmail = identifier && identifier.includes("@")
-                ? identifier.split("@")[0]
-                : identifier || "Pengguna";
-              const displayName = (d.fullName as string) || decodedToken.fullName || decodedToken.name || fallbackFromEmail || "Pengguna";
-
-              login({ id: userId || fallbackFromEmail, fullName: displayName, photoUrl: (d.photoUrl as string) || "/profile.png" });
-              router.replace(finalRedirectPath);
-              return;
-            }
-            // No token returned: just inform and redirect to login
-            setNotice("Akun berhasil diaktivasi. Silakan login.");
-            setTimeout(() => router.replace("/login"), 800);
+            setNotice("Verifikasi berhasil! Mengarahkan ke halaman sukses...");
+            setTimeout(() => {
+              const nextParams = new URLSearchParams({
+                next: "/login", 
+              });
+              router.replace(`/register/success?${nextParams.toString()}`);
+            }, 1000);
             return;
           }
 

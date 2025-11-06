@@ -96,11 +96,9 @@ export default function RegisterSimple() {
     let finalValue: string | boolean = isCheckbox ? checked : value;
 
     if (name === "monthlyIncome") {
-      // Ambil hanya angka lalu format otomatis dengan pemisah ribuan (.)
       const numericOnly = value.replace(/[^0-9]/g, "").slice(0, 20);
       finalValue = formatCurrency(numericOnly);
     } else if (name === "phone") {
-      // Hanya angka untuk nomor telepon, batasi panjang umum 15 digit
       finalValue = value.replace(/[^0-9]/g, "").slice(0, 15);
     }
 
@@ -109,7 +107,6 @@ export default function RegisterSimple() {
       [name]: finalValue,
     }));
 
-    // Hapus error untuk field ini jika user mulai mengetik
     if (errors[name as keyof FormState]) {
       setErrors(prev => ({
         ...prev,
@@ -219,7 +216,6 @@ export default function RegisterSimple() {
     setGlobalError("");
     setErrors({});
 
-    // Validasi kedua step sebelum submit
     const isStep1Valid = validateStep1();
     const isStep2Valid = validateStep2();
 
@@ -258,27 +254,16 @@ export default function RegisterSimple() {
         return;
       }
 
-      if (result.success && result.data) {
-  // Simpan token dan data user ke cookie + context
-  setCookie("token", result.data.token, 86400);
-  setCookie("token_type", result.data.tokenType || "Bearer", 86400);
-
-  login({
-    id: result.data.id,
-    fullName: result.data.fullName,
-    photoUrl: result.data.photoUrl || "",
-  });
-
-  // Arahkan ke OTP
-  const params = new URLSearchParams({
-    identifier: form.email,
-    phone: form.phone || "nomor Anda",
-    next: "/login",
-    purpose: "registration",
-  });
-  setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
-  setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
-} else {
+if (result.success && result.data) {
+        const params = new URLSearchParams({
+          identifier: form.email,
+          phone: form.phone || "nomor Anda",
+          next: "/login", 
+          purpose: "registration",
+        });
+        setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
+        setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
+      } else {
   setGlobalError(result.message || "Registrasi gagal.");
 }
 
@@ -385,16 +370,6 @@ export default function RegisterSimple() {
                     Selanjutnya
                   </button>
                 </div>
-                
-                {/* <div className="flex justify-end pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="bg-[#FFB703] hover:bg-[#f9a602] text-[#003366] font-semibold px-6 py-2 rounded-md transition"
-                  >
-                    Selanjutnya
-                  </button>
-                </div> */}
               </motion.div>
             ) : (
               <motion.div

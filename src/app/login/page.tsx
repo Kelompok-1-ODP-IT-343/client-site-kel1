@@ -12,9 +12,8 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextAfterLogin = searchParams.get("next") || "/beranda";
-  const finalRedirectPath = searchParams.get("next") || "/beranda"; 
+  const finalRedirectPath = searchParams.get("next") || "/beranda";
   const otpVerificationPath = "/OTP-verification";
-  // const nextAfterLogin = searchParams.get("next") || "/OTP-verification";
   const { login } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -29,9 +28,12 @@ export default function LoginPage() {
     const hasToken = document.cookie
       .split("; ")
       .some((c) => c.startsWith("token="));
-    // if (hasToken) router.replace("/user/beranda");
-    if (hasToken) router.replace("/OTP-verification");
+
+    if (hasToken) {
+      router.replace("/beranda"); 
+    }
   }, [router]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -75,22 +77,11 @@ export default function LoginPage() {
     const res = await loginApi(payload);
 
     if (res.success && res.data) {
-      // Simpan token untuk autentikasi API berikutnya
-      setCookie("token", res.data.token, 86400);
-      setCookie("token_type", res.data.tokenType || "Bearer", 86400);
-
-      // Simpan data user ke AuthContext
-      login({
-        id: res.data.id,
-        fullName: res.data.fullName,
-        photoUrl: res.data.photoUrl || "",
-      });
-
-      // Arahkan ke OTP
       const params = new URLSearchParams({
         identifier: form.email,
         phone: res.data.maskedPhone || "nomor Anda",
         next: finalRedirectPath,
+        purpose: "login",
       });
 
       setStatus({
@@ -99,7 +90,21 @@ export default function LoginPage() {
         type: "success",
       });
 
-      setTimeout(() => router.replace(`${otpVerificationPath}?${params.toString()}`), 400);
+      setTimeout(() => {
+        if (res.data.otpRequired === false) {
+          setCookie("token", res.data.token, 86400);
+          setCookie("token_type", res.data.tokenType || "Bearer", 86400);
+          login({
+            id: res.data.id,
+            fullName: res.data.fullName,
+            photoUrl: res.data.photoUrl || "",
+          });
+          router.replace(finalRedirectPath);
+        } else {
+          // default: arahkan ke OTP
+          router.replace(`${otpVerificationPath}?${params.toString()}`);
+        }
+      }, 500);
     } else {
       setStatus({
         loading: false,
@@ -164,7 +169,7 @@ export default function LoginPage() {
                     : "border-gray-300 focus:border-bni-teal focus:ring-bni-teal/50"
                 }`}
                 required
-              />
+                />
             </div>
             {errors.password && (
               <p className="text-red-500 text-xs mt-1 ml-1">
