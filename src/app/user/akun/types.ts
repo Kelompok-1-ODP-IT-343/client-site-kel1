@@ -55,6 +55,7 @@ export type ProfileForm = {
   company_province: string;
   company_postal_code: string;
   monthly_income: string;
+  // subdistrict?: string;
   profile_photo: File | null;
   ktp_photo: File | null;
   salary_slip_photo: File | null;

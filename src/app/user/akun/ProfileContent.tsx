@@ -10,6 +10,7 @@ import { updateUserProfile } from "@/app/lib/coreApi";
 
 import { getCookie } from "@/app/lib/cookie";
 import { API_BASE_URL } from "@/app/lib/apiConfig";
+import rawData from "@/data/indonesia.json";
 
 import {
   ALLOWED_TYPES,
@@ -25,6 +26,16 @@ export default function ProfilContent() {
   const [error, setError] = useState("");
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const prevUrlRef = useRef<string | null>(null);
+  const indonesiaData = rawData as {
+  province: string;
+  city: string;
+  sub_district: string;
+  postalcode: string;
+  }[];
+  const [provinsiList, setProvinsiList] = useState<string[]>([]);
+  const [kotaList, setKotaList] = useState<string[]>([]);
+  const [kecamatanList, setKecamatanList] = useState<string[]>([]);
+  const [kodePosList, setKodePosList] = useState<string[]>([]);
 
   const { user } = useAuth();
 
@@ -91,6 +102,60 @@ export default function ProfilContent() {
     fetchUserProfile();
   }, [user]);
 
+  // === Inisialisasi data wilayah ===
+  useEffect(() => {
+    const provinces = [...new Set(indonesiaData.map((d) => d.province))];
+    setProvinsiList(provinces);
+  }, []);
+
+  useEffect(() => {
+    if (!formData.province) return;
+    const cities = indonesiaData
+      .filter((d) => d.province === formData.province)
+      .map((d) => d.city);
+    setKotaList([...new Set(cities)]);
+    setKecamatanList([]);
+    setKodePosList([]);
+  }, [formData.province]);
+
+  useEffect(() => {
+    if (!formData.city) return;
+    const districts = indonesiaData
+      .filter((d) => d.city === formData.city)
+      .map((d) => d.sub_district);
+    setKecamatanList([...new Set(districts)]);
+    setKodePosList([]);
+  }, [formData.city]);
+
+useEffect(() => {
+  if (!formData.sub_district) return;
+  const postal = indonesiaData
+    .filter((d) => d.sub_district === formData.sub_district)
+    .map((d) => d.postalcode);
+
+  const kodePos = postal.length > 0 ? postal[0] : "";
+  setFormData((prev) => ({ ...prev, postal_code: kodePos }));
+}, [formData.sub_district]);
+
+
+// // 2
+  // useEffect(() => {
+  //   if (!formData.sub_district) return;
+  //   const postal = indonesiaData
+  //     .filter((d) => d.sub_district === formData.sub_district)
+  //     .map((d) => d.postalcode);
+  //   setKodePosList([...new Set(postal)]);
+  // }, [formData.sub_district]);
+
+//   useEffect(() => {
+//   if (!formData.sub_district) return;
+//   const postal = indonesiaData
+//     .filter((d) => d.sub_district === formData.sub_district)
+//     .map((d) => d.postalcode);
+
+//   const kodePos = postal.length > 0 ? postal[0] : "";
+//   setFormData((prev) => ({ ...prev, postal_code: kodePos }));
+// }, [formData.sub_district]);
 
   useEffect(() => {
     return () => {
@@ -301,26 +366,44 @@ export default function ProfilContent() {
               value={formData.address}
               onChange={handleChange}
             />
-            <Field
-              name="city"
-              label="Kota / Kabupaten"
-              value={formData.city}
-              onChange={handleChange}
-            />
-            <Field
+
+            <SelectField
               name="province"
               label="Provinsi"
               value={formData.province}
               onChange={handleChange}
+              options={provinsiList}
             />
-            <Field
+
+            <SelectField
+              name="city"
+              label="Kota / Kabupaten"
+              value={formData.city}
+              onChange={handleChange}
+              options={kotaList}
+              disabled={!formData.province}
+            />
+
+            <SelectField
+              name="sub_district"
+              label="Kecamatan"
+              value={formData.sub_district}
+              onChange={handleChange}
+              options={kecamatanList}
+              disabled={!formData.city}
+            />
+
+            <SelectField
               name="postal_code"
               label="Kode Pos"
               value={formData.postal_code}
               onChange={handleChange}
+              options={kodePosList}
+              disabled={!formData.sub_district}
             />
           </div>
         </section>
+
 
         {/* DATA PEKERJAAN */}
         <section>
