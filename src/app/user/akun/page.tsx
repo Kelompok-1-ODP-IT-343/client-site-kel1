@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import {
   Bell,
   FileText,
@@ -18,7 +18,7 @@ import WishlistContent from "@/app/user/akun/WishlistContent";
 import NotifikasiContent from "@/app/user/akun/NotifikasiContent";
 import { Section } from "@/app/user/akun/types";
 
-export default function AkunPage() {
+function AkunContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -111,5 +111,13 @@ export default function AkunPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function AkunPage() {
+  return (
+    <Suspense fallback={null}>
+      <AkunContent />
+    </Suspense>
   );
 }
