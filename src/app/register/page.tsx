@@ -404,7 +404,7 @@ if (result.success && result.data) {
                     maxLength={15}
                     value={form.phone}
                     onChange={handleChange}
-                    placeholder="Contoh: 6281234567890"
+                    placeholder="Contoh: 081234567890"
                   />
 
                   {/* Baris 2 */}
