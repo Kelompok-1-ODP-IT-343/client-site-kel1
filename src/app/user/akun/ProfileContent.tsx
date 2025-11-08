@@ -133,8 +133,17 @@ useEffect(() => {
     .filter((d) => d.sub_district === formData.sub_district)
     .map((d) => d.postal_code);
 
-  const kodePos = postal.length > 0 ? postal[0] : "";
-  setFormData((prev) => ({ ...prev, postal_code: kodePos }));
+  const uniquePostal = [...new Set(postal)];
+  setKodePosList(uniquePostal);
+
+  // Set nilai default jika belum ada atau tidak valid
+  setFormData((prev) => ({
+    ...prev,
+    postal_code:
+      prev.postal_code && uniquePostal.includes(prev.postal_code)
+        ? prev.postal_code
+        : uniquePostal[0] || "",
+  }));
 }, [formData.sub_district]);
 
 
