@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
@@ -8,7 +8,7 @@ import { loginApi } from "@/app/lib/coreApi";
 import { useAuth } from "@/app/lib/authContext";
 import { setCookie } from "@/app/lib/cookie";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextAfterLogin = searchParams.get("next") || "/beranda";
@@ -218,5 +218,13 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }

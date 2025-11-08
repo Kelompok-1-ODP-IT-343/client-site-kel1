@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
-export default function RegisterSuccessPage() {
+function RegisterSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/login";
@@ -75,5 +75,13 @@ export default function RegisterSuccessPage() {
         </button>
       </motion.div>
     </div>
+  );
+}
+
+export default function RegisterSuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterSuccessContent />
+    </Suspense>
   );
 }

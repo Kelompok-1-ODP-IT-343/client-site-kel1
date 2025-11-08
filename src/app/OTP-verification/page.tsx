@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { verifyOtpApi } from "@/app/lib/coreApi";
@@ -15,7 +15,7 @@ type JwtPayload = {
   iat: number;
   exp: number;
 };
-export default function OTPVerificationPage() {
+function OTPVerificationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -207,5 +207,13 @@ export default function OTPVerificationPage() {
 
       </div>
     </main>
+  );
+}
+
+export default function OTPVerificationPage() {
+  return (
+    <Suspense fallback={null}>
+      <OTPVerificationContent />
+    </Suspense>
   );
 }

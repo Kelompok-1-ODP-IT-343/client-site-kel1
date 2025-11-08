@@ -34,22 +34,23 @@ export default function CariRumahPage() {
   const [items, setItems] = useState<PropertyListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const userString = localStorage.getItem("user");
   const [userData, setUserData] = useState<{ id: number | string } | null>(null);
   useEffect(() => {
-      const userString = localStorage.getItem("user");      
-      if (userString) {
-        try {
-          const user = JSON.parse(userString);
-          setUserData(user);
-          setIsLoggedIn(true);
-        } catch (e) {
-          console.error("Gagal parse data user dari localStorage", e);
-          localStorage.removeItem("user");
+      if (typeof window !== "undefined") {
+        const userString = localStorage.getItem("user");
+        if (userString) {
+          try {
+            const user = JSON.parse(userString);
+            setUserData(user);
+            setIsLoggedIn(true);
+          } catch (e) {
+            console.error("Gagal parse data user dari localStorage", e);
+            localStorage.removeItem("user");
+            setIsLoggedIn(false);
+          }
+        } else {
           setIsLoggedIn(false);
         }
-      } else {
-        setIsLoggedIn(false);
       }
     }, []);
   const debouncedSearchName = useDebounce(filters.name, 500);

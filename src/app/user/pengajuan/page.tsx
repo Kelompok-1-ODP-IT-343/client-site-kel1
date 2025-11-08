@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -60,7 +60,7 @@ type ErrorMap = Record<string, string>;
 
 const STEPS = ["Data Diri", "Alamat", "Pekerjaan", "Pengajuan"];
 
-export default function FormPengajuanPage() {
+function FormPengajuanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -613,5 +613,13 @@ export default function FormPengajuanPage() {
       )}
     </AnimatePresence>
     </>
+  );
+}
+
+export default function FormPengajuanPage() {
+  return (
+    <Suspense fallback={null}>
+      <FormPengajuanContent />
+    </Suspense>
   );
 }

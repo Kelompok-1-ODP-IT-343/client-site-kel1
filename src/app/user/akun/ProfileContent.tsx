@@ -30,7 +30,7 @@ export default function ProfilContent() {
   province: string;
   city: string;
   sub_district: string;
-  postalcode: string;
+  postal_code: string;
   }[];
   const [provinsiList, setProvinsiList] = useState<string[]>([]);
   const [kotaList, setKotaList] = useState<string[]>([]);
@@ -131,7 +131,7 @@ useEffect(() => {
   if (!formData.sub_district) return;
   const postal = indonesiaData
     .filter((d) => d.sub_district === formData.sub_district)
-    .map((d) => d.postalcode);
+    .map((d) => d.postal_code);
 
   const kodePos = postal.length > 0 ? postal[0] : "";
   setFormData((prev) => ({ ...prev, postal_code: kodePos }));
