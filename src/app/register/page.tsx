@@ -175,7 +175,14 @@ export default function RegisterSimple() {
     setErrors(prev => ({ ...prev, ...newErrors }));
     return isFormValid;
   };
-
+const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+  if (e.key === 'Enter') {
+   if (step === 1) {
+    e.preventDefault();
+    handleNextStep();
+   }
+  }
+ };
   const handleNextStep = () => {
     setGlobalError(""); 
     if (validateStep1()) {
@@ -272,7 +279,7 @@ export default function RegisterSimple() {
           <span className="text-gray-400">—</span>
           <StepIndicator number={2} label="Data Diri" active={step === 2} />
         </div>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
           <AnimatePresence mode="wait">
             {step === 1 ? (
               <motion.div
@@ -378,7 +385,6 @@ export default function RegisterSimple() {
                     placeholder="Contoh: 081234567890"
                   />
 
-                  {/* Baris 2 */}
                   <InputField
                     id="birthPlace"
                     label="Tempat Lahir *"
@@ -429,8 +435,8 @@ export default function RegisterSimple() {
                           classNames={{
                             head_cell: "w-9 font-semibold text-sm",
                             cell: "h-9 w-9 text-center p-0",
-                            day: "h-9 w-9 p-0 font-normal rounded-md",
-                            day_selected: "bg-orange-500 text-white hover:bg-orange-600",
+                            day: "h-9 w-9 p-0 font-normal rounded-md hover:bg-orange-100/50 transition-colors",
+                            day_selected: "bg-orange-500 text-white hover:bg-orange-600 focus:bg-orange-600 aria-selected:bg-orange-500 aria-selected:text-black",
                             day_today: "bg-gray-100 text-gray-900",
                             month: "space-y-4",
                           }}
