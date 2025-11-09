@@ -65,18 +65,14 @@ function OTPVerificationContent() {
         const res = await verifyOtpApi(payload);
 
         if (res.success) {
-          if (purpose === "register") {
+          if (purpose === "registration") {
             setNotice("Verifikasi berhasil! Mengarahkan ke halaman sukses...");
             setTimeout(() => {
-              const nextParams = new URLSearchParams({
-                next: "/login", 
-              });
-              router.replace(`/register/success?${nextParams.toString()}`);
+              router.replace(finalRedirectPath);
             }, 1000);
             return;
           }
 
-          // Default (login purpose): harus ada token
           if (res.data && typeof res.data.token === "string") {
             const {
               token,
@@ -104,7 +100,6 @@ function OTPVerificationContent() {
             login({ id: userId || fallbackFromEmail, fullName: displayName, photoUrl: photoUrl || "/profile.png" });
             router.replace(finalRedirectPath);
           } else {
-            // Skenario sukses tetapi tanpa token (mis. backend hanya aktivasi akun)
             setError("");
             setNotice("Verifikasi berhasil. Silakan login untuk melanjutkan.");
             setTimeout(() => router.replace("/login"), 800);
@@ -131,24 +126,20 @@ function OTPVerificationContent() {
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 border text-center">
         
-        {/* ICON */}
         <div className="inline-flex items-center justify-center w-16 h-16 bg-bni-orange/10 rounded-full mb-6">
           <ShieldCheck className="w-10 h-10 text-bni-orange" />
         </div>
 
-        {/* TITLE */}
         <h1 className="text-2xl font-extrabold text-gray-800 mb-2">
           Verifikasi OTP
         </h1>
 
-        {/* SUBTITLE */}
         <p className="text-sm text-gray-600 mb-8">
           Masukkan kode OTP 6 digit yang telah dikirim ke nomor:
           <br />
           <span className="font-semibold text-gray-800">{phone}</span>
         </p>
 
-        {/* OTP INPUTS */}
         <div className="flex justify-center gap-2 mb-4">
           {otp.map((value, i) => (
             <input
@@ -164,7 +155,6 @@ function OTPVerificationContent() {
           ))}
         </div>
 
-        {/* MESSAGES */}
         {error && (
           <div className="text-center text-sm p-3 rounded-lg mt-4 mb-6 bg-red-100 text-red-800">
             {error}
@@ -176,7 +166,6 @@ function OTPVerificationContent() {
           </div>
         )}
 
-        {/* SUBMIT BUTTON */}
         <button
           type="button"
           onClick={handleVerify}
@@ -186,7 +175,6 @@ function OTPVerificationContent() {
           Verifikasi
         </button>
 
-        {/* RESEND OTP */}
         <p className="text-gray-600 text-sm mt-6">
           Tidak menerima kode?{" "}
           <button
@@ -197,7 +185,6 @@ function OTPVerificationContent() {
           </button>
         </p>
 
-        {/* BACK */}
         <button
           onClick={goBack}
           className="mt-4 text-sm text-gray-500 hover:text-gray-700"

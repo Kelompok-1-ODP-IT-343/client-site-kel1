@@ -2,33 +2,7 @@
 import StepContent from "./StepContent";
 import InputField from "../fields/InputField";
 import SelectField from "../fields/SelectField";
-
-const OCCUPATION_OPTIONS = [
-  { value: "BELUM_TIDAK_BEKERJA", label: "Belum Tidak Bekerja" },
-  { value: "MENGURUS_RUMAH_TANGGA", label: "Mengurus Rumah Tangga" },
-  { value: "PELAJAR_MAHASISWA", label: "Pelajar Mahasiswa" },
-  { value: "PENSIUNAN", label: "Pensiunan" },
-  { value: "PNS", label: "PNS" },
-  { value: "TNI", label: "TNI" },
-  { value: "POLRI", label: "POLRI" },
-  { value: "KARYAWAN_SWASTA", label: "Karyawan Swasta" },
-  { value: "KARYAWAN_BUMN", label: "Karyawan BUMN" },
-  { value: "KARYAWAN_BUMD", label: "Karyawan BUMD" },
-  { value: "KARYAWAN_HONORER", label: "Karyawan Honorer" },
-  { value: "WIRASWASTA", label: "Wiraswasta" },
-  { value: "PERDAGANGAN", label: "Perdagangan" },
-  { value: "PETANI_PEKEBUN", label: "Petani Pekebun" },
-  { value: "PETERNAK", label: "Peternak" },
-  { value: "NELAYAN_PERIKANAN", label: "Nelayan Perikanan" },
-  { value: "INDUSTRI", label: "Industri" },
-  { value: "KONSTRUKSI", label: "Konstruksi" },
-  { value: "TRANSPORTASI", label: "Transportasi" },
-  { value: "BURUH_HARIAN_LEPAS", label: "Buruh Harian Lepas" },
-  { value: "BURUH_TANI_PERKEBUNAN", label: "Buruh Tani Perkebunan" },
-  { value: "BURUH_NELAYAN_PERIKANAN", label: "Buruh Nelayan Perikanan" },
-  { value: "BURUH_PETERNAKAN", label: "Buruh Peternakan" },
-  { value: "PEMBANTU_RUMAH_TANGGA", label: "Pembantu Rumah Tangga" },
-];
+import { OCCUPATION_OPTIONS } from "@/app/user/constants/occupationOptions";
 
 export default function StepPekerjaan({ formData, handleChange, errors }: any) {
   return (

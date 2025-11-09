@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-// import { format } from "date-fns";
-import { Calendar as CalendarIcon, Phone, X } from "lucide-react";
+import { Calendar as CalendarIcon,  X } from "lucide-react";
 import { cn } from "@/app/lib/util";
 import { Button } from "@/app/components/Ui/Button";
 import { Calendar } from "@/app/components/Ui/calendar";
@@ -16,36 +15,9 @@ import {
 import { registerUser } from "@/app/lib/coreApi";
 import { formatCurrency } from "@/app/user/pengajuan/utils/format";
 import { format, isValid } from "date-fns"; 
-import { id as dateLocaleId } from "date-fns/locale/id"; 
 import { useAuth } from "@/app/lib/authContext";
-import { setCookie } from "@/app/lib/cookie";
+import { OCCUPATION_KTP } from "./constants";
 
-const OCCUPATION_KTP = [
-  "BELUM_TIDAK_BEKERJA",
-  "MENGURUS_RUMAH_TANGGA",
-  "PELAJAR_MAHASISWA",
-  "PENSIUNAN",
-  "PNS",
-  "TNI",
-  "POLRI",
-  "KARYAWAN_SWASTA",
-  "KARYAWAN_BUMN",
-  "KARYAWAN_BUMD",
-  "KARYAWAN_HONORER",
-  "WIRASWASTA",
-  "PERDAGANGAN",
-  "PETANI_PEKEBUN",
-  "PETERNAK",
-  "NELAYAN_PERIKANAN",
-  "INDUSTRI",
-  "KONSTRUKSI",
-  "TRANSPORTASI",
-  "BURUH_HARIAN_LEPAS",
-  "BURUH_TANI_PERKEBUNAN",
-  "BURUH_NELAYAN_PERIKANAN",
-  "BURUH_PETERNAKAN",
-  "PEMBANTU_RUMAH_TANGGA",
-];
 
 export default function RegisterSimple() {
   const router = useRouter();
@@ -254,18 +226,18 @@ export default function RegisterSimple() {
         return;
       }
 
-if (result.success && result.data) {
-        const params = new URLSearchParams({
-          identifier: form.email,
-          phone: form.phone || "nomor Anda",
-          next: "/login", 
-          purpose: "registration",
-        });
-        setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
-        setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
-      } else {
-  setGlobalError(result.message || "Registrasi gagal.");
-}
+    if (result.success && result.data) {
+            const params = new URLSearchParams({
+              identifier: form.email,
+              phone: form.phone || "nomor Anda",
+              next: "/register/success?next=/login",
+              purpose: "registration",
+            });
+            setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
+            setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
+          } else {
+      setGlobalError(result.message || "Registrasi gagal.");
+    }
 
     } catch (err: any) {
       setGlobalError(err.message || "Terjadi kesalahan koneksi.");
@@ -385,7 +357,6 @@ if (result.success && result.data) {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Baris 1 */}
                   <InputField
                     id="fullName"
                     label="Nama Lengkap *"
