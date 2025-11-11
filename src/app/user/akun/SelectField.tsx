@@ -7,6 +7,13 @@ type SelectFieldProps = {
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   options: string[];
   disabled?: boolean; // ✅ tambahkan dukungan properti opsional
+  error?: string;
+  // Tampilkan ring oranye sebagai peringatan (tanpa teks error)
+  warning?: boolean;
+  // Sembunyikan teks error walaupun ada nilai error
+  hideErrorText?: boolean;
+  // Opsional: override class tambahan untuk <select>
+  className?: string;
 };
 
 export default function SelectField({
@@ -16,7 +23,24 @@ export default function SelectField({
   onChange,
   options,
   disabled = false, // ✅ default false
+  error,
+  warning = false,
+  hideErrorText = false,
+  className,
 }: SelectFieldProps) {
+  const baseClass =
+    "w-full rounded-xl border px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2";
+
+  const stateClass = disabled
+    ? "bg-gray-100 cursor-not-allowed text-gray-400"
+    : error
+    ? "border-red-500 focus:ring-red-500"
+    : warning
+    ? "border-orange-400 focus:ring-orange-400"
+    : "focus:ring-blue-500";
+
+  const selectClass = `${baseClass} ${stateClass}`;
+
   return (
     <label className="block">
       <span className="block text-sm text-gray-500 mb-1">{label}</span>
@@ -25,9 +49,7 @@ export default function SelectField({
         value={value}
         onChange={onChange}
         disabled={disabled} // ✅ gunakan di elemen <select>
-        className={`w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          disabled ? "bg-gray-100 cursor-not-allowed text-gray-400" : ""
-        }`}
+        className={`${selectClass} ${className ?? ""}`}
       >
         <option value="">Pilih...</option>
         {options.map((opt) => (
@@ -36,6 +58,9 @@ export default function SelectField({
           </option>
         ))}
       </select>
+      {error && !hideErrorText && (
+        <p className="mt-1 text-xs text-red-600">{error}</p>
+      )}
     </label>
   );
 }

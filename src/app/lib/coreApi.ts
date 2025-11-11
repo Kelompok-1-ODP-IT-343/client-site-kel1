@@ -599,11 +599,25 @@ export async function updateUserProfile(userId: number, payload: any) {
     });
 
     const json = await res.json();
+    // Treat non-2xx as failure
     if (!res.ok) {
-      return { success: false, message: json.message || "Gagal memperbarui profil." };
+      return {
+        success: false,
+        message: json?.message || "Gagal memperbarui profil.",
+        data: json?.data ?? null,
+      };
     }
 
-    return { success: true, message: json.message, data: json.data };
+    // Also honor API-level success flag even on 2xx
+    if (json?.success === true) {
+      return { success: true, message: json.message, data: json.data };
+    }
+
+    return {
+      success: false,
+      message: json?.message || "Gagal memperbarui profil.",
+      data: json?.data ?? null,
+    };
   } catch (e) {
     console.error("Update Profile Error:", e);
     return { success: false, message: "Terjadi kesalahan koneksi ke server." };

@@ -24,6 +24,7 @@ export default function ProfilContent() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const prevUrlRef = useRef<string | null>(null);
   const indonesiaData = rawData as {
@@ -176,6 +177,13 @@ useEffect(() => {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setFormData((s) => ({ ...s, [name]: value }));
+      // Clear error for this field upon change
+      setFieldErrors((prev) => {
+        if (!prev[name]) return prev;
+        const next = { ...prev };
+        delete (next as any)[name];
+        return next;
+      });
     },
     []
   );
@@ -217,9 +225,50 @@ useEffect(() => {
       setLoading(true);
       setSuccess("");
       setError("");
+      setFieldErrors({});
 
       try {
         if (!user?.id) throw new Error("User belum login.");
+
+        // ====== Validasi sisi-klien (Bahasa Indonesia) ======
+        const errs: Partial<Record<string, string>> = {};
+        const isEmpty = (v: string | number | null | undefined) => String(v ?? "").trim() === "";
+
+        // NIK & NPWP
+        if (isEmpty(formData.nik)) {
+          errs.nik = "NIK wajib diisi";
+        } else if (!/^\d{16}$/.test(String(formData.nik))) {
+          errs.nik = "NIK harus tepat 16 digit";
+        }
+
+        if (isEmpty(formData.npwp)) {
+          errs.npwp = "NPWP wajib diisi";
+        } else if (!/^\d{16}$/.test(String(formData.npwp))) {
+          errs.npwp = "NPWP harus tepat 16 digit";
+        }
+
+        // Alamat Domisili wajib
+        if (isEmpty(formData.address)) errs.address = "Alamat lengkap wajib diisi";
+        if (isEmpty(formData.province)) errs.province = "Provinsi wajib diisi";
+        if (isEmpty(formData.city)) errs.city = "Kota/Kabupaten wajib diisi";
+        if (isEmpty(formData.sub_district)) errs.sub_district = "Kecamatan wajib diisi";
+        // Kode Pos: wajib tetapi teks error disembunyikan → jangan isi pesan
+        // (akan ditandai dengan ring oranye pada komponen SelectField)
+        // if (isEmpty(formData.postal_code)) errs.postal_code = "Kode pos wajib diisi";
+
+        // Data Pekerjaan wajib
+        if (isEmpty(formData.occupation)) errs.occupation = "Pekerjaan wajib diisi";
+        if (isEmpty(formData.monthly_income)) {
+          errs.monthly_income = "Penghasilan bulanan wajib diisi";
+        } else if (Number(formData.monthly_income) <= 0) {
+          errs.monthly_income = "Penghasilan bulanan harus lebih dari 0";
+        }
+
+        if (Object.keys(errs).length > 0) {
+          setFieldErrors(errs);
+          setLoading(false);
+          return;
+        }
 
         const payload = {
           username: formData.username,
@@ -240,13 +289,59 @@ useEffect(() => {
           monthlyIncome: Number(formData.monthly_income),
         };
 
-        // const res = await updateUserProfile(user.id, payload);
         const res = await updateUserProfile(Number(user.id), payload);
-        if (res.success) setSuccess("Profil berhasil diperbarui!");
-        else setError(res.message || "Gagal memperbarui profil.");
-      } catch (err: any) {
+        if (res.success) {
+          setSuccess("Profil berhasil diperbarui!");
+        } else {
+          // Map API validation errors into field-level messages
+          const apiErrors = (res as any).data || {};
+          const keyMap: Record<string, string> = {
+            fullName: "full_name",
+            birthDate: "birth_date",
+            birthPlace: "birth_place",
+            maritalStatus: "marital_status",
+            postalCode: "postal_code",
+            companyName: "company_name",
+            monthlyIncome: "monthly_income",
+            // keep same for others
+            username: "username",
+            email: "email",
+            phone: "phone",
+            nik: "nik",
+            npwp: "npwp",
+            address: "address",
+            city: "city",
+            province: "province",
+            occupation: "occupation",
+          };
+
+          const normalized: Partial<Record<string, string>> = {};
+          if (apiErrors && typeof apiErrors === "object") {
+            Object.keys(apiErrors).forEach((k) => {
+              const mappedKey = keyMap[k] || k;
+              // Ensure value is string
+              const v = String((apiErrors as any)[k]);
+              normalized[mappedKey] = v;
+            });
+          }
+
+          // Hilangkan teks error untuk Kode Pos sesuai permintaan
+          if (normalized.postal_code) {
+            delete normalized.postal_code;
+          }
+
+          if (Object.keys(normalized).length > 0) {
+            setFieldErrors(normalized);
+            // Hide generic error near button if validation failed
+            setError("");
+          } else {
+            setError(res.message || "Gagal memperbarui profil.");
+          }
+        }
+      } catch (err: unknown) {
         console.error(err);
-        setError(err.message || "Terjadi kesalahan.");
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg || "Terjadi kesalahan.");
       } finally {
         setLoading(false);
       }
@@ -303,12 +398,14 @@ useEffect(() => {
               label="Nama Lengkap"
               value={formData.full_name}
               onChange={handleChange}
+              error={fieldErrors.full_name}
             />
             <Field
               name="username"
               label="Username"
               value={formData.username}
               onChange={handleChange}
+              error={fieldErrors.username}
             />
             <Field
               name="email"
@@ -316,30 +413,35 @@ useEffect(() => {
               value={formData.email}
               onChange={handleChange}
               type="email"
+              error={fieldErrors.email}
             />
             <Field
               name="phone"
               label="Nomor HP"
               value={formData.phone}
               onChange={handleChange}
+              error={fieldErrors.phone}
             />
             <Field
               name="nik"
               label="NIK"
               value={formData.nik}
               onChange={handleChange}
+              error={fieldErrors.nik}
             />
             <Field
               name="npwp"
               label="NPWP"
               value={formData.npwp}
               onChange={handleChange}
+              error={fieldErrors.npwp}
             />
             <Field
               name="birth_place"
               label="Tempat Lahir"
               value={formData.birth_place}
               onChange={handleChange}
+              error={fieldErrors.birth_place}
             />
             <Field
               name="birth_date"
@@ -347,6 +449,7 @@ useEffect(() => {
               value={formData.birth_date}
               onChange={handleChange}
               type="date"
+              error={fieldErrors.birth_date}
             />
             <SelectField
               name="gender"
@@ -354,6 +457,7 @@ useEffect(() => {
               value={formData.gender}
               onChange={handleChange}
               options={genderOptions}
+              error={fieldErrors.gender}
             />
             <SelectField
               name="marital_status"
@@ -361,6 +465,7 @@ useEffect(() => {
               value={formData.marital_status}
               onChange={handleChange}
               options={maritalOptions}
+              error={fieldErrors.marital_status}
             />
           </div>
         </section>
@@ -374,6 +479,7 @@ useEffect(() => {
               label="Alamat Lengkap"
               value={formData.address}
               onChange={handleChange}
+              error={fieldErrors.address}
             />
 
             <SelectField
@@ -382,6 +488,7 @@ useEffect(() => {
               value={formData.province}
               onChange={handleChange}
               options={provinsiList}
+              error={fieldErrors.province}
             />
 
             <SelectField
@@ -391,6 +498,7 @@ useEffect(() => {
               onChange={handleChange}
               options={kotaList}
               disabled={!formData.province}
+              error={fieldErrors.city}
             />
 
             <SelectField
@@ -400,6 +508,7 @@ useEffect(() => {
               onChange={handleChange}
               options={kecamatanList}
               disabled={!formData.city}
+              error={fieldErrors.sub_district}
             />
 
             <SelectField
@@ -409,6 +518,8 @@ useEffect(() => {
               onChange={handleChange}
               options={kodePosList}
               disabled={!formData.sub_district}
+              // Jangan tampilkan warning/merah untuk Kode Pos karena autofill
+              className="border-black"
             />
           </div>
         </section>
@@ -423,6 +534,7 @@ useEffect(() => {
               label="Pekerjaan"
               value={formData.occupation}
               onChange={handleChange}
+              error={fieldErrors.occupation}
             />
             <Field
               name="monthly_income"
@@ -430,12 +542,14 @@ useEffect(() => {
               value={formData.monthly_income}
               onChange={handleChange}
               type="number"
+              error={fieldErrors.monthly_income}
             />
             <Field
               name="company_name"
               label="Nama Perusahaan"
               value={formData.company_name}
               onChange={handleChange}
+              error={fieldErrors.company_name}
             />
           </div>
         </section>
@@ -460,7 +574,10 @@ useEffect(() => {
         </section>
 
         <div className="flex items-center justify-end gap-4">
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {/* Sembunyikan pesan global jika ada pesan per-field */}
+          {error && Object.keys(fieldErrors).length === 0 && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
           {success && <p className="text-green-600 text-sm">{success}</p>}
           <button
             type="submit"
