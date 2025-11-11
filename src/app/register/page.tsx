@@ -28,6 +28,7 @@ export default function RegisterSimple() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [showTerms, setShowTerms] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   type FormState = {
     fullName: string;
@@ -59,6 +60,12 @@ export default function RegisterSimple() {
 
   const [errors, setErrors] = useState<ErrorState>({});
   const [globalError, setGlobalError] = useState(""); 
+  const mapErrorMessage = (msg: string | undefined) => {
+    const lower = (msg || "").toLowerCase();
+    const phoneInvalid = /(nomor\s*telepon).*?(tidak\s*valid)/.test(lower) || /(phone).*?(invalid)/.test(lower);
+    if (phoneInvalid) return "Nomor telepon sudah pernah digunakan";
+    return msg || "Registrasi gagal.";
+  };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -224,30 +231,49 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
       const result = await registerUser(payload);
 
       if (result.status === 409 || result.message?.includes("sudah terdaftar")) {
+        const msg = (result.message || "").toLowerCase();
+        const isEmailDup = /email/.test(msg);
+        const isUsernameDup = /username|user name/.test(msg);
+
+        setErrors((prev) => ({
+          ...prev,
+          email: isEmailDup || (!isEmailDup && !isUsernameDup)
+            ? "Email sudah digunakan."
+            : prev.email,
+          username: isUsernameDup || (!isEmailDup && !isUsernameDup)
+            ? "Username sudah digunakan."
+            : prev.username,
+        }));
+
         setGlobalError("Akun dengan email atau username tersebut sudah terdaftar.");
         setStep(1);
+        setShowErrorModal(true);
         return;
       }
       if (result.status === 404 || result.message?.includes("tidak ditemukan")) {
         setGlobalError("Endpoint tidak ditemukan.");
+        setShowErrorModal(true);
         return;
       }
 
-    if (result.success && result.data) {
-            const params = new URLSearchParams({
-              identifier: form.email,
-              phone: form.phone || "nomor Anda",
-              next: "/register/success?next=/login",
-              purpose: "registration",
-            });
-            setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
-            setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
-          } else {
-      setGlobalError(result.message || "Registrasi gagal.");
-    }
+      if (result.success && result.data) {
+        const params = new URLSearchParams({
+          identifier: form.email,
+          phone: form.phone || "nomor Anda",
+          next: "/login",
+          purpose: "registration",
+        });
+        setMessage(`✅ ${result.message}. OTP telah dikirim ke WhatsApp Anda, mengarahkan ke verifikasi...`);
+        setTimeout(() => router.replace(`/OTP-verification?${params.toString()}`), 600);
+      } else {
+        setGlobalError(mapErrorMessage(result.message));
+        setShowErrorModal(true);
+      }
 
-    } catch (err: any) {
-      setGlobalError(err.message || "Terjadi kesalahan koneksi.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setGlobalError(mapErrorMessage(msg) || "Terjadi kesalahan koneksi.");
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -336,9 +362,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                   />
                 </div>
 
-                {globalError && step === 1 && (
-                  <p className="text-red-600 text-sm text-center">{globalError}</p>
-                )}
+                
 
                 <div className="flex justify-end pt-2">
                   <button
@@ -674,6 +698,63 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                   className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-4 py-2 rounded-md"
                 >
                   Saya Setuju
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Popup error untuk kegagalan registrasi setelah klik "Daftar Sekarang" */}
+      <AnimatePresence>
+        {showErrorModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 20, opacity: 0 }}
+              className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative"
+            >
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                aria-label="Tutup"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" className="w-6 h-6 text-red-600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 9v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M12 16.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M12 3a9 9 0 100 18 9 9 0 000-18z" stroke="currentColor" strokeWidth="2" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Registrasi Gagal</h3>
+              </div>
+
+              <p className="mt-3 text-sm text-gray-700">
+                {globalError || "Terjadi kesalahan saat memproses pendaftaran."}
+              </p>
+
+              <div className="mt-5 flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowErrorModal(false)}
+                  className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Tutup
+                </button>
+                <button
+                  onClick={() => setShowErrorModal(false)}
+                  className="px-4 py-2 rounded-md bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  Oke, mengerti
                 </button>
               </div>
             </motion.div>
