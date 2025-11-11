@@ -7,7 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { deleteCookie } from "@/app/lib/cookie";
+import { deleteCookie, getCookie } from "@/app/lib/cookie";
 
 type User = {
 id: number | string;
@@ -27,8 +27,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) setUser(JSON.parse(savedUser));
+    // Sinkronkan state user dengan keberadaan cookie token
+    const token = getCookie("token");
+    if (!token) {
+      // Jika token tidak ada, pastikan user dihapus agar menu profil tidak tampil
+      setUser(null);
+      localStorage.removeItem("user");
+    } else {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) setUser(JSON.parse(savedUser));
+    }
+
+    // Perbarui saat jendela mendapatkan fokus (mis. setelah logout di tab lain)
+    const syncOnFocus = () => {
+      const t = getCookie("token");
+      if (!t) {
+        setUser(null);
+        localStorage.removeItem("user");
+      }
+    };
+    window.addEventListener("focus", syncOnFocus);
+    return () => window.removeEventListener("focus", syncOnFocus);
   }, []);
 
   const login = (userData: User) => {

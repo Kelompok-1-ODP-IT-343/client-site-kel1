@@ -14,7 +14,7 @@ function LoginContent() {
   const nextAfterLogin = searchParams.get("next") || "/beranda";
   const finalRedirectPath = searchParams.get("next") || "/beranda";
   const otpVerificationPath = "/OTP-verification";
-  const { login } = useAuth();
+  const { login, user } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
@@ -25,14 +25,12 @@ function LoginContent() {
   });
 
   useEffect(() => {
-    const hasToken = document.cookie
-      .split("; ")
-      .some((c) => c.startsWith("token="));
-
-    if (hasToken) {
-      router.replace("/beranda"); 
+    // Hanya redirect bila sudah terautentikasi (user ada),
+    // bukan sekadar karena ada cookie token yang mungkin sudah invalid.
+    if (user) {
+      router.replace("/beranda");
     }
-  }, [router]);
+  }, [user, router]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

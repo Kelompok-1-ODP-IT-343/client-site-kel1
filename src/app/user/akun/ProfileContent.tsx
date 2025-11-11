@@ -10,6 +10,7 @@ import { updateUserProfile } from "@/app/lib/coreApi";
 
 import { getCookie } from "@/app/lib/cookie";
 import { API_BASE_URL } from "@/app/lib/apiConfig";
+import { fetchWithAuth } from "@/app/lib/authFetch";
 import rawData from "@/data/indonesia.json";
 
 import {
@@ -44,14 +45,10 @@ export default function ProfilContent() {
       try {
         if (!user?.id) return;
 
-        const token = getCookie("token");
-        const tokenType = getCookie("token_type") || "Bearer";
-
-        const res = await fetch(`${API_BASE_URL}/user/profile`, {
+        const res = await fetchWithAuth(`${API_BASE_URL}/user/profile`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `${tokenType} ${token}`,
           },
         });
 
