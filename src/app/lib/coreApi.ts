@@ -1,6 +1,7 @@
 import { API_BASE_URL, API_ENDPOINTS, DEFAULT_KPR_RATE_ID } from "./apiConfig";
 import type { PropertyDetail, PropertyListItem } from "./types";
 import { getCookie } from "./cookie";
+import { fetchWithAuth } from "./authFetch";
 
 function parseFeaturesList(
   featuresString: string | null
@@ -247,22 +248,9 @@ export async function submitKprApplication(
       multipartData.append("otherDocument", files.fileOther);
     }
 
-    const token = getCookie("token") || "";
-    const tokenType = getCookie("token_type") || "Bearer";
-
-    console.log("Debug KPR Submit - Token:", token);
-    console.log("Debug KPR Submit - Token Type:", tokenType);
-    console.log(
-      "Debug KPR Submit - Authorization Header:",
-      `${tokenType} ${token}`
-    );
-
-    const res = await fetch(url, {
+    const res = await fetchWithAuth(url, {
       method: "POST",
-      headers: {
-        // Don't set Content-Type for FormData, let browser set it with boundary
-        Authorization: token ? `${tokenType} ${token}` : "",
-      },
+      // don't set Content-Type for FormData, browser will add boundary
       body: multipartData,
     });
 
@@ -412,18 +400,10 @@ export async function fetchKprHistory() {
   const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_HISTORY}`;
 
   try {
-    const token = getCookie("token") || "";
-    const tokenType = getCookie("token_type") || "Bearer";
-
-    console.log("Debug - Token:", token);
-    console.log("Debug - Token Type:", tokenType);
-    console.log("Debug - Authorization Header:", `${tokenType} ${token}`);
-
-    const res = await fetch(url, {
+    const res = await fetchWithAuth(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `${tokenType} ${token}` : "",
       },
     });
 
@@ -453,15 +433,12 @@ export async function fetchKprHistory() {
 
 export async function fetchUserFavorites() {
   const url = `${API_BASE_URL}${API_ENDPOINTS.FETCH_FAVORITES}`;
-  const token = getCookie("token") || "";
-  const tokenType = getCookie("token_type") || "Bearer";
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithAuth(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `${tokenType} ${token}` : "",
       },
     });
 
@@ -551,15 +528,11 @@ export async function toggleFavorite(userId: number | string, propertyId: number
 
   const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?userId=${userId}&propertyId=${propertyId}`;
 
-  const token = getCookie("token") || "";
-  const tokenType = getCookie("token_type") || "Bearer";
-
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithAuth(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `${tokenType} ${token}` : "",
       },
     });
 
@@ -585,39 +558,22 @@ export async function toggleFavorite(userId: number | string, propertyId: number
 
 export async function updateUserProfile(userId: number, payload: any) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.UPDATE_PROFILE(userId)}`;
-  const token = getCookie("token") || "";
-  const tokenType = getCookie("token_type") || "Bearer";
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithAuth(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `${tokenType} ${token}` : "",
       },
       body: JSON.stringify(payload),
     });
 
     const json = await res.json();
-    // Treat non-2xx as failure
     if (!res.ok) {
-      return {
-        success: false,
-        message: json?.message || "Gagal memperbarui profil.",
-        data: json?.data ?? null,
-      };
+      return { success: false, message: json.message || "Gagal memperbarui profil." };
     }
 
-    // Also honor API-level success flag even on 2xx
-    if (json?.success === true) {
-      return { success: true, message: json.message, data: json.data };
-    }
-
-    return {
-      success: false,
-      message: json?.message || "Gagal memperbarui profil.",
-      data: json?.data ?? null,
-    };
+    return { success: true, message: json.message, data: json.data };
   } catch (e) {
     console.error("Update Profile Error:", e);
     return { success: false, message: "Terjadi kesalahan koneksi ke server." };
@@ -626,15 +582,12 @@ export async function updateUserProfile(userId: number, payload: any) {
 
 export async function fetchKprDetail(id: number | string) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_DETAIL(id)}`;
-  const token = getCookie("token") || "";
-  const tokenType = getCookie("token_type") || "Bearer";
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithAuth(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `${tokenType} ${token}` : "",
       },
     });
 

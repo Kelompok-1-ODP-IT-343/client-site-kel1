@@ -336,6 +336,25 @@ function HouseCard({
 
   const goToDetail = () => router.push(`/detail-rumah/${house.id}`);
 
+  // Normalisasi fitur agar bisa ditampilkan dengan ikon seperti di desain
+  const featureMap = new Map<string, string>();
+  (house.parsedFeatures || []).forEach((f) => {
+    if (f?.key) featureMap.set(String(f.key).toLowerCase(), String(f.value ?? ""));
+  });
+
+  const getFeature = (aliases: string[]) => {
+    for (const a of aliases) {
+      const v = featureMap.get(a.toLowerCase());
+      if (v) return v;
+    }
+    return null;
+  };
+
+  const bedroom = getFeature(["kamar tidur", "bedroom", "kamar_tidur", "bedrooms"]); // jumlah
+  const bathroom = getFeature(["kamar mandi", "bathroom", "kamar_mandi", "bathrooms"]);
+  const buildingArea = getFeature(["luas bangunan", "building area", "luas_bangunan", "lb"]);
+  const landArea = getFeature(["luas tanah", "land area", "luas_tanah", "lt"]);
+
   return (
     <motion.div
       whileHover={{ y: -5 }}
@@ -351,6 +370,10 @@ function HouseCard({
           className="object-cover rounded-t-xl"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
+        {/* Badge tipe properti di kiri atas */}
+        <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+          {(house.property_type || "Rumah").toString().toUpperCase()}
+        </span>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -385,22 +408,25 @@ function HouseCard({
           <MapPin size={14} className="mr-1 flex-shrink-0" />
           {house.city}
         </p>
-        <div className="grid grid-cols-3 gap-3 text-xs text-gray-600 mt-3 border-t pt-3 min-h-[44px]">
-          {" "}
-          {house.parsedFeatures.length > 0 ? (
-            house.parsedFeatures.slice(0, 3).map((feature) => (
-              <div key={feature.key} className="flex flex-col items-start">
-                <span className="font-semibold text-sm text-gray-800">
-                  {feature.value}
-                </span>
-                <span className="text-gray-500">{feature.key}</span>{" "}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-gray-600 mt-3 border-t pt-3 min-h-[56px]">
+          {[
+            { Icon: BedDouble, label: "Kamar Tidur", value: bedroom },
+            { Icon: Bath, label: "Kamar Mandi", value: bathroom },
+            { Icon: HomeIcon, label: "Luas Bangunan", value: buildingArea },
+            { Icon: HomeIcon, label: "Luas Tanah", value: landArea },
+          ].map(({ Icon, label, value }, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
+                <Icon size={16} className="text-green-600" />
               </div>
-            ))
-          ) : (
-            <span className="text-gray-400 col-span-3 text-center">
-              Fitur tidak tersedia
-            </span>
-          )}{" "}
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm text-gray-800">
+                  {value ?? "-"}
+                </span>
+                <span className="text-gray-500">{label}</span>
+              </div>
+            </div>
+          ))}
         </div>
         <div className="mt-4">
           <p className="text-sm text-gray-500">Harga mulai</p>
