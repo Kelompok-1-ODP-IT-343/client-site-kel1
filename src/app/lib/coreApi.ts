@@ -298,6 +298,52 @@ export function buildPropertyListQuery(params: {
   return sp.toString();
 }
 
+// export async function fetchPropertyList(params: {
+//   name?: string;
+//   city?: string;
+//   provinsi?: string;
+//   tipeProperti?: string;
+//   priceMin?: number;
+//   priceMax?: number;
+// }): Promise<{ items: PropertyListItem[]; raw: any }> {
+//   const qs = buildPropertyListQuery(params); // Asumsi fungsi ini ada di file ini
+
+//   const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_LIST}${
+//     qs ? `?${qs}` : ""
+//   }`;
+
+//   const res = await fetch(url, {
+//     headers: { Accept: "application/json" },
+//     cache: "no-store",
+//   });
+//   const json = await res.json();
+
+//   if (!res.ok || json?.success !== true) {
+//     throw new Error(json?.message || "Gagal mengambil daftar properti");
+//   }
+
+//   const data: PropertyListItem[] = Array.isArray(json.data)
+//     ? json.data.map((d: any) => {
+//         const dynamicFeatures = parseFeaturesList(d.features);
+
+//         return {
+//           id: d.id,
+//           title: d.title,
+//           city: d.city ?? null,
+//           property_code: d.property_code ?? null,
+//           property_type: d.property_type ?? null,
+//           listing_type: d.listing_type ?? null,
+//           price: Number(d.price ?? 0),
+//           main_image: d.file_path ?? null,
+//           nearby_places: d.nearby_places ?? null,
+//           parsedFeatures: dynamicFeatures,
+//         };
+//       })
+//     : [];
+
+//   return { items: data, raw: json };
+// }
+
 export async function fetchPropertyList(params: {
   name?: string;
   city?: string;
@@ -306,7 +352,7 @@ export async function fetchPropertyList(params: {
   priceMin?: number;
   priceMax?: number;
 }): Promise<{ items: PropertyListItem[]; raw: any }> {
-  const qs = buildPropertyListQuery(params); // Asumsi fungsi ini ada di file ini
+  const qs = buildPropertyListQuery(params);
 
   const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_LIST}${
     qs ? `?${qs}` : ""
@@ -326,6 +372,9 @@ export async function fetchPropertyList(params: {
     ? json.data.map((d: any) => {
         const dynamicFeatures = parseFeaturesList(d.features);
 
+        // --- LOGIKA PENENTUAN DEVELOPER ---
+        const isDeveloperPilihan = d.listing_type === "PRIMARY";
+
         return {
           id: d.id,
           title: d.title,
@@ -334,15 +383,18 @@ export async function fetchPropertyList(params: {
           property_type: d.property_type ?? null,
           listing_type: d.listing_type ?? null,
           price: Number(d.price ?? 0),
-          main_image: d.file_path ?? null,
+          main_image: (d.file_path ?? d.filePath ?? null),
           nearby_places: d.nearby_places ?? null,
           parsedFeatures: dynamicFeatures,
+          // Mengisi field baru berdasarkan logika di atas
+          is_developer_pilihan: isDeveloperPilihan,
         };
       })
     : [];
 
   return { items: data, raw: json };
 }
+
 function parseJsonArray<T = any>(input: unknown): T[] {
   if (Array.isArray(input)) return input as T[];
   if (typeof input === "string") {

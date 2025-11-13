@@ -12,6 +12,7 @@ export type PropertyListItem = {
     key: string;
     value: string;
   }[];
+  is_developer_pilihan: boolean;
 };
 export type PropertyDetail = {
   id: number;
