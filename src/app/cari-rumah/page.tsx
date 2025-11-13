@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 import { fetchPropertyList,toggleFavorite } from "@/app/lib/coreApi";
 import type { PropertyListItem } from "@/app/lib/types";
 import { useDebounce } from "@/app/lib/hooks/useDebounce";
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 6;
 
 export default function CariRumahPage() {
   const router = useRouter();
@@ -262,33 +262,27 @@ const handleToggleFavorite = async (houseId: number) => {
                 />
               ))}
             </div>
-            {
-              // Show all aja jadi koboi
-              /* {totalPages > 1 && (
-              <div className="mt-12 flex items-center justify-center gap-2 sm:gap-4">
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-3 sm:gap-4">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="pagination-button"
+                  className="px-4 py-2 rounded-lg bg-gray-100 text-gray-800 shadow hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Sebelumnya
+                  Back
                 </button>
                 <span className="text-sm text-gray-700">
-                  Hal <strong>{currentPage}</strong> dari{" "}
-                  <strong>{totalPages}</strong>
+                  Hal <strong>{currentPage}</strong> dari <strong>{totalPages}</strong>
                 </span>
                 <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="pagination-button"
+                  className="px-4 py-2 rounded-lg bg-gray-100 text-gray-800 shadow hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Selanjutnya
+                  Next
                 </button>
               </div>
-            )} */
-            }
+            )}
           </>
         ) : (
           <div className="text-center py-20 col-span-full">
@@ -354,6 +348,8 @@ function HouseCard({
   const bathroom = getFeature(["kamar mandi", "bathroom", "kamar_mandi", "bathrooms"]);
   const buildingArea = getFeature(["luas bangunan", "building area", "luas_bangunan", "lb"]);
   const landArea = getFeature(["luas tanah", "land area", "luas_tanah", "lt"]);
+  const isDeveloperPilihan = (house as any).is_developer_pilihan ?? String(house.listing_type || "").toUpperCase() === "PRIMARY";
+  const developerBadge = isDeveloperPilihan ? "Developer Pilihan" : "Developer Kerja Sama";
 
   return (
     <motion.div
@@ -361,7 +357,7 @@ function HouseCard({
       onClick={goToDetail}
       className="bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg flex flex-col cursor-pointer"
     >
-      <div className="relative w-full aspect-[4/3] min-h-[160px] sm:min-h-[180px] lg:min-h-[220px] max-h-[260px]">
+      <div className="relative w-full aspect-[4/3] min-h-[150px] sm:min-h-[170px] lg:min-h-[200px] max-h-[240px]">
         <Image
           src={house.main_image || "/placeholder.png"}
           alt={house.title}
@@ -374,12 +370,20 @@ function HouseCard({
         <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
           {(house.property_type || "Rumah").toString().toUpperCase()}
         </span>
+        {/* Badge developer pilihan/kerja sama di kanan atas */}
+        <span
+          className={`absolute top-3 right-3 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm ${
+            isDeveloperPilihan ? "bg-red-600" : "bg-gray-500"
+          }`}
+        >
+          {developerBadge}
+        </span>
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(house.id);
           }}
-          className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="absolute top-12 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
           aria-label="Toggle Favorite"
         >
           <svg
@@ -397,7 +401,7 @@ function HouseCard({
         </button>
       </div>
 
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-3 flex flex-col flex-grow">
         <p className="text-xs font-semibold text-bni-orange uppercase tracking-wider">
           {house.property_type}
         </p>
@@ -408,7 +412,7 @@ function HouseCard({
           <MapPin size={14} className="mr-1 flex-shrink-0" />
           {house.city}
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-gray-600 mt-3 border-t pt-3 min-h-[56px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 mt-2 border-t pt-3 min-h-[48px]">
           {[
             { Icon: BedDouble, label: "Kamar Tidur", value: bedroom },
             { Icon: Bath, label: "Kamar Mandi", value: bathroom },
@@ -416,7 +420,7 @@ function HouseCard({
             { Icon: HomeIcon, label: "Luas Tanah", value: landArea },
           ].map(({ Icon, label, value }, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
                 <Icon size={16} className="text-green-600" />
               </div>
               <div className="flex flex-col">
@@ -428,19 +432,19 @@ function HouseCard({
             </div>
           ))}
         </div>
-        <div className="mt-4">
+        <div className="mt-3">
           <p className="text-sm text-gray-500">Harga mulai</p>
           <p className="text-xl font-bold text-bni-orange">{formattedPrice}</p>
         </div>
 
-        <div className="mt-5 pt-4 border-t border-gray-100 flex-grow flex items-end">
-          <div className="grid grid-cols-2 gap-3 w-full">
+        <div className="mt-4 pt-3 border-t border-gray-100 flex-grow flex items-end">
+          <div className="grid grid-cols-2 gap-2 w-full">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onAjukan();
               }}
-              className="py-2.5 rounded-lg font-semibold text-sm text-white shadow transition hover:opacity-90"
+              className="py-2 rounded-lg font-semibold text-sm text-white shadow transition hover:opacity-90"
               style={{ backgroundColor: "#FF8500" }}
             >
               Ajukan
@@ -448,7 +452,7 @@ function HouseCard({
             <Link
               href={`/detail-rumah/${house.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="py-2.5 rounded-lg font-semibold text-sm text-center text-gray-900 shadow transition hover:opacity-90"
+              className="py-2 rounded-lg font-semibold text-sm text-center text-gray-900 shadow transition hover:opacity-90"
               style={{ backgroundColor: "#DDEE59" }}
             >
               Detail
