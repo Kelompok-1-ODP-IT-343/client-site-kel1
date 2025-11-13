@@ -1,4 +1,6 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+// export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+// export const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || "";
 export const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || "/api/v1";
 // Optional default KPR rate ID if backend requires it; set via env NEXT_PUBLIC_DEFAULT_KPR_RATE_ID
 export const DEFAULT_KPR_RATE_ID = process.env.NEXT_PUBLIC_DEFAULT_KPR_RATE_ID || "";
