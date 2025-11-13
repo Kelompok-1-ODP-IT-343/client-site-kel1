@@ -9,6 +9,10 @@ RUN apk add --no-cache libc6-compat
 COPY package*.json ./
 RUN npm ci
 
+# 🔁 --- tambahkan build args untuk API URL ---
+ARG NEXT_PUBLIC_API_URL                    # NEW
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL  
+
 ENV NODE_ENV=production
 ENV NEXT_DISABLE_ESLINT=1
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -36,5 +40,4 @@ COPY --from=builder /app/public ./public
 EXPOSE 3000
 USER nextjs
 
-# Jalankan output standalone dari Next.js
 CMD ["node", "server.js"]
