@@ -12,9 +12,11 @@ import {
   MessageCircle,
   Building,
 } from "lucide-react";
+import FeatureList from "@/app/components/FeatureList";
 import { fetchPropertyDetail } from "@/app/lib/coreApi";
 import type { PropertyDetail } from "@/app/lib/types";
 import PropertyGallery from "@/app/components/PropertyGallery";
+import DeveloperDetails from "@/app/components/DeveloperDetails";
 
 export const fmtIDR = (v: unknown): string => {
   const raw = typeof v === "string" ? v.replace(/[^0-9.-]/g, "") : v;
@@ -39,9 +41,10 @@ async function getDetail(id: number): Promise<PropertyDetail | null> {
 export default async function PropertyDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = Number(params.id);
+  const { id: idParam } = await params;
+  const id = Number(idParam);
   const detail = await getDetail(id);
 
   if (!detail) {
@@ -114,15 +117,11 @@ export default async function PropertyDetailPage({
                 label="Tipe Properti"
                 value={fmtNum(detail.property_type)}
               />
-              <DetailTile
-                icon={<FileText className="w-5 h-5" />}
-                label="Kadar sertifikat"
-                value={fmtNum(detail.property_code)}
-              />
+              <DeveloperDetails dev={detail.developer} />
               <DetailTile
                 icon={<Building className="w-5 h-5" />}
                 label="Tipe Developer"
-                value={String((detail.listing_type || "").toUpperCase() === "PRIMARY" ? "Pilihan" : "Kerja Sama")}
+                value={formatPartnership(detail.developer?.partnershipLevel)}
               />
               <DetailTile
                 icon={<Landmark className="w-5 h-5" />}
@@ -130,24 +129,8 @@ export default async function PropertyDetailPage({
                 value={fmtNum(detail.city)}
               />
             </div>{" "}
-            <h3 className="text-xl font-bold text-gray-800 mb-3">
-              Fitur & Spesifikasi
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm mb-6">
-              {" "}
-              {detail.features.length > 0 ? (
-                detail.features.map((f, idx) => (
-                  <InfoItem
-                    key={idx}
-                    label={f.featureName}
-                    value={f.featureValue}
-                    icon={<BadgeInfo size={16} />}
-                  />
-                ))
-              ) : (
-                <p className="text-gray-500">- Fitur tidak tersedia -</p>
-              )}{" "}
-            </div>{" "}
+            <h3 className="text-xl font-bold text-gray-800 mb-3">Fitur & Spesifikasi</h3>
+            <FeatureList features={detail.features} />
           </Card>{" "}
 
           {/* Lokasi dan Tempat Sekitar */}
@@ -251,6 +234,18 @@ export default async function PropertyDetailPage({
     </main>
   );
 }
+
+function formatPartnership(raw?: string | null): string {
+  if (!raw) return "-";
+  // Replace underscores/spaces, Title Case each word
+  return String(raw)
+    .toLowerCase()
+    .split(/[ _]+/g)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function Card({
   title,
   icon,

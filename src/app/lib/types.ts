@@ -30,5 +30,13 @@ export type PropertyDetail = {
   locations: Array<{ poiName: string; distanceKm: number }>;
   developer?: {
     companyName: string;
+    partnershipLevel?: string | null;
+    contactPerson?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    website?: string | null;
+    address?: string | null;
+    city?: string | null;
+    province?: string | null;
   } | null;
 };

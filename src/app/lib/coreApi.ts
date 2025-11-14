@@ -442,10 +442,40 @@ export async function fetchPropertyDetail(
 
   const d = json.data;
 
-  const features = buildFeaturesArray(d);
-  const locations: { poiName: string; distanceKm: number }[] = parseNearbyPlaces(
-    d.nearby_places ?? d.nearbyPlaces ?? null
-  );
+  // Merge features: prefer API-provided features if available, then add derived ones
+  const apiFeatures: Array<{ featureName: string; featureValue: string }> = Array.isArray(d.features)
+    ? (d.features as any[])
+        .map((x) => ({
+          featureName: String(x?.featureName ?? x?.name ?? x?.key ?? "").trim(),
+          featureValue: String(x?.featureValue ?? x?.value ?? "").trim(),
+        }))
+        .filter((x) => x.featureName.length > 0)
+    : [];
+  const derivedFeatures = buildFeaturesArray(d);
+  const featureMap = new Map<string, { featureName: string; featureValue: string }>();
+  // API features first
+  for (const f of apiFeatures) {
+    featureMap.set(f.featureName.toLowerCase(), f);
+  }
+  // Add derived features if not present
+  for (const f of derivedFeatures) {
+    const key = f.featureName.toLowerCase();
+    if (!featureMap.has(key)) featureMap.set(key, f);
+  }
+  const features = Array.from(featureMap.values());
+
+  // Locations: support either array from API or parse from string
+  let locations: { poiName: string; distanceKm: number }[] = [];
+  if (Array.isArray(d.locations)) {
+    locations = (d.locations as any[])
+      .map((l) => ({
+        poiName: String(l?.poiName ?? l?.name ?? "").trim(),
+        distanceKm: Number(l?.distanceKm ?? l?.distance ?? 0) || 0,
+      }))
+      .filter((l) => l.poiName.length > 0);
+  } else {
+    locations = parseNearbyPlaces(d.nearby_places ?? d.nearbyPlaces ?? null);
+  }
 
   const mainImage = (d.file_path ?? d.filePath ?? null);
   const galleryImages = Array.isArray(d.images) ? d.images : [];
