@@ -7,6 +7,7 @@ interface Props {
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   error?: string;
   required?: boolean;
+  disabled?: boolean;
   children: React.ReactNode;
 }
 
@@ -17,6 +18,7 @@ export default function SelectField({
   onChange,
   error,
   required,
+  disabled,
   children,
 }: Props) {
   return (
@@ -30,8 +32,10 @@ export default function SelectField({
         name={name}
         value={value}
         onChange={onChange}
+        disabled={disabled}
         className={`rounded-lg border border-gray-300 text-gray-900 focus:border-bni-teal focus:ring-1 focus:ring-bni-teal px-4 py-2.5 outline-none transition appearance-none bg-white
           ${error ? "border-red-500 ring-1 ring-red-200" : ""}
+          ${disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
         `}
       >
         {children}
