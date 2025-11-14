@@ -408,6 +408,24 @@ function parseJsonArray<T = any>(input: unknown): T[] {
   return [];
 }
 
+// Parse nearby places string: "Name (2.80 km), Place (1.2 km)"
+function parseNearbyPlaces(input: unknown): { poiName: string; distanceKm: number }[] {
+  if (!input) return [];
+  const s = String(input);
+  return s
+    .split(",")
+    .map((part) => part.trim())
+    .map((item) => {
+      const match = item.match(/^(.+?)\s*\(([0-9.,]+)\s*km\)$/i);
+      if (match) {
+        const name = match[1].trim();
+        const dist = Number(String(match[2]).replace(/,/g, "."));
+        return { poiName: name, distanceKm: Number.isFinite(dist) ? dist : 0 };
+      }
+      return { poiName: item, distanceKm: 0 };
+    });
+}
+
 export async function fetchPropertyDetail(
   id: number | string
 ): Promise<PropertyDetail> {
@@ -425,9 +443,11 @@ export async function fetchPropertyDetail(
   const d = json.data;
 
   const features = buildFeaturesArray(d);
-  const locations: { poiName: string; distanceKm: number }[] = [];
+  const locations: { poiName: string; distanceKm: number }[] = parseNearbyPlaces(
+    d.nearby_places ?? d.nearbyPlaces ?? null
+  );
 
-  const mainImage = d.filePath ?? null;
+  const mainImage = (d.file_path ?? d.filePath ?? null);
   const galleryImages = Array.isArray(d.images) ? d.images : [];
   const allImages = [mainImage, ...galleryImages].filter(Boolean) as string[];
   const result: PropertyDetail = {
@@ -438,6 +458,8 @@ export async function fetchPropertyDetail(
     property_type: d.property_type ?? null,
     listing_type: d.listing_type ?? null,
     property_code: d.property_code ?? null,
+    latitude: typeof d.latitude === "number" ? d.latitude : d.latitude ? Number(d.latitude) : null,
+    longitude: typeof d.longitude === "number" ? d.longitude : d.longitude ? Number(d.longitude) : null,
     price: Number(d.price ?? 0),
     images: allImages,
     features,

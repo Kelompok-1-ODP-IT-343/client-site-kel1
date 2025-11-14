@@ -22,6 +22,8 @@ export type PropertyDetail = {
   property_type?: string | null;
   listing_type?: string | null;
   property_code?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   price: number;
   images: string[];
   features: Array<{ featureName: string; featureValue: string }>;
