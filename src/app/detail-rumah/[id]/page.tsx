@@ -12,8 +12,11 @@ import {
   MessageCircle,
   Building,
 } from "lucide-react";
+import FeatureList from "@/app/components/FeatureList";
 import { fetchPropertyDetail } from "@/app/lib/coreApi";
 import type { PropertyDetail } from "@/app/lib/types";
+import PropertyGallery from "@/app/components/PropertyGallery";
+import DeveloperDetails from "@/app/components/DeveloperDetails";
 
 export const fmtIDR = (v: unknown): string => {
   const raw = typeof v === "string" ? v.replace(/[^0-9.-]/g, "") : v;
@@ -38,9 +41,10 @@ async function getDetail(id: number): Promise<PropertyDetail | null> {
 export default async function PropertyDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = Number(params.id);
+  const { id: idParam } = await params;
+  const id = Number(idParam);
   const detail = await getDetail(id);
 
   if (!detail) {
@@ -94,40 +98,7 @@ export default async function PropertyDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 flex flex-col gap-8">
           <Card title="Galeri Properti" icon={<Home />}>
-            {" "}
-            <div className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden mb-6 bg-gray-100">
-              {" "}
-              <Image
-                src={detail.images[0] || "/placeholder.png"} // <-- Akan 'null' sampai bug backend fix
-                alt={detail.title}
-                fill
-                className="object-cover"
-              />{" "}
-            </div>{" "}
-            {detail.images && detail.images.length > 1 && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {detail.images.slice(1).map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative h-28 rounded-lg overflow-hidden bg-gray-100"
-                  >
-                    {" "}
-                    <Image
-                      src={img}
-                      alt={`img-${idx}`}
-                      fill
-                      className="object-cover"
-                    />{" "}
-                  </div>
-                ))}{" "}
-              </div>
-            )}
-            {detail.images.length === 0 && (
-              <p className="text-gray-500 text-center text-sm">
-                (Gambar tidak tersedia. Data 'filePath' dari server bernilai
-                null)
-              </p>
-            )}{" "}
+            <PropertyGallery images={detail.images} title={detail.title} />
           </Card>
           <Card title="Deskripsi & Spesifikasi" icon={<FileText />}>
             {" "}
@@ -140,71 +111,76 @@ export default async function PropertyDetailPage({
             <h3 className="text-xl font-bold text-gray-800 mb-3">
               Detail Properti
             </h3>{" "}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm mb-6">
-              {" "}
-              <InfoItem
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <DetailTile
+                icon={<Home className="w-5 h-5" />}
                 label="Tipe Properti"
                 value={fmtNum(detail.property_type)}
-                icon={<BadgeInfo size={16} />}
-              />{" "}
-              <InfoItem
-                label="Tipe Listing"
-                value={fmtNum(detail.listing_type)}
-                icon={<BadgeInfo size={16} />}
-              />{" "}
-              <InfoItem
-                label="Kode Properti"
-                value={fmtNum(detail.property_code)}
-                icon={<FileText size={16} />}
-              />{" "}
-            </div>{" "}
-            <h3 className="text-xl font-bold text-gray-800 mb-3">Lokasi</h3>{" "}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm mb-6">
-              {" "}
-              <InfoItem
+              />
+              <DeveloperDetails dev={detail.developer} />
+              <DetailTile
+                icon={<Building className="w-5 h-5" />}
+                label="Tipe Developer"
+                value={formatPartnership(detail.developer?.partnershipLevel)}
+              />
+              <DetailTile
+                icon={<Landmark className="w-5 h-5" />}
                 label="Kota"
                 value={fmtNum(detail.city)}
-                icon={<Landmark size={16} />}
               />
             </div>{" "}
-            <h3 className="text-xl font-bold text-gray-800 mb-3">
-              Fitur & Spesifikasi
+            <h3 className="text-xl font-bold text-gray-800 mb-3">Fitur & Spesifikasi</h3>
+            <FeatureList features={detail.features} />
+          </Card>{" "}
+
+          {/* Lokasi dan Tempat Sekitar */}
+          <Card title="Lokasi dan Tempat Sekitar" icon={<Compass />}>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
+              Lihat Lokasi di Peta
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-sm mb-6">
-              {" "}
-              {detail.features.length > 0 ? (
-                detail.features.map((f, idx) => (
-                  <InfoItem
-                    key={idx}
-                    label={f.featureName}
-                    value={f.featureValue}
-                    icon={<BadgeInfo size={16} />}
+            <div className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden border border-gray-100 mb-6">
+              {/* Gunakan koordinat jika tersedia, jika tidak gunakan pencarian berdasarkan judul/kota */}
+              {(() => {
+                const hasCoords =
+                  typeof detail.latitude === "number" &&
+                  typeof detail.longitude === "number" &&
+                  Number.isFinite(detail.latitude) &&
+                  Number.isFinite(detail.longitude);
+                const q = hasCoords
+                  ? `${detail.latitude},${detail.longitude}`
+                  : `${detail.title} ${detail.city ?? ""}`;
+                const url = `https://www.google.com/maps?q=${encodeURIComponent(
+                  q
+                )}&hl=id&z=${hasCoords ? 15 : 12}&output=embed`;
+                return (
+                  <iframe
+                    src={url}
+                    width="100%"
+                    height="100%"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
                   />
-                ))
-              ) : (
-                <p className="text-gray-500">- Fitur tidak tersedia -</p>
-              )}{" "}
-            </div>{" "}
+                );
+              })()}
+            </div>
+
             <h3 className="text-xl font-bold text-gray-800 mb-3">
-              Lokasi Terdekat
+              Tempat Terdekat
             </h3>
-            <div className="grid grid-cols-1 gap-y-2 text-sm mb-6">
-              {" "}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               {detail.locations.length > 0 ? (
                 detail.locations.map((l, idx) => (
                   <InfoItem
                     key={idx}
                     label={l.poiName}
-                    value={`${l.distanceKm} km`}
+                    value={`${fmtNum(l.distanceKm)} km`}
                     icon={<Compass size={16} />}
                   />
                 ))
               ) : (
-                <p className="text-gray-500">
-                  - Tidak ada data lokasi terdekat -
-                </p>
-              )}{" "}
-            </div>{" "}
+                <p className="text-gray-500">- Tidak ada data lokasi terdekat -</p>
+              )}
+            </div>
           </Card>{" "}
         </div>
         <div className="flex flex-col gap-8">
@@ -258,6 +234,18 @@ export default async function PropertyDetailPage({
     </main>
   );
 }
+
+function formatPartnership(raw?: string | null): string {
+  if (!raw) return "-";
+  // Replace underscores/spaces, Title Case each word
+  return String(raw)
+    .toLowerCase()
+    .split(/[ _]+/g)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function Card({
   title,
   icon,
@@ -271,7 +259,7 @@ function Card({
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
       {" "}
       <div className="flex items-center gap-3 mb-5 border-b pb-3">
-        <div className="text-bni-orange">{icon}</div>{" "}
+        <div className="p-2 bg-orange-50 rounded-lg text-orange-500">{icon}</div>{" "}
         <h2 className="text-lg font-bold text-gray-800">{title}</h2>{" "}
       </div>
       {children}{" "}
@@ -289,12 +277,36 @@ function InfoItem({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-2">
-      {icon && <div className="text-gray-600 mt-0.5">{icon}</div>}{" "}
-      <div>
-        <p className="text-xs text-gray-500">{label}</p>{" "}
-        {value && <p className="font-semibold text-gray-800">{value}</p>}{" "}
+    <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2">
+      {icon && <div className="text-orange-500">{icon}</div>}{" "}
+      <div className="flex-1">
+        <p className="text-xs text-gray-600">{label}</p>{" "}
+        <p className="font-semibold text-gray-800">{value ?? "-"}</p>{" "}
       </div>{" "}
+    </div>
+  );
+}
+
+function DetailTile({
+  icon,
+  label,
+  value,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value?: string | number;
+}) {
+  return (
+    <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
+          {icon}
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 mb-1">{label}</p>
+          <p className="font-semibold text-gray-900">{value ?? "-"}</p>
+        </div>
+      </div>
     </div>
   );
 }
