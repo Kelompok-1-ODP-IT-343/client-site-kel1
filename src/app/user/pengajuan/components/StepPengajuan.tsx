@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { MapPin, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
 import StepContent from "./StepContent";
@@ -9,6 +9,10 @@ import SelectField from "../fields/SelectField";
 import FileInputField from "../fields/FileInputField";
 import TermsContent from "./TermsContent";
 import { formatCurrency, parseCurrency } from "../utils/format";
+import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
+import { fetchWithAuth } from "@/app/lib/authFetch";
+
+type DevCategory = "Top Selected Developer" | "Developer Kerja Sama";
 
 export default function StepPengajuan({ data, formData, handleChange, errors }: any) {
   const [showSimulasi, setShowSimulasi] = useState(false);
@@ -21,9 +25,49 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
 
   const loanAmount = hargaProperti - downPayment;
 
-  const [developerType, setDeveloperType] = useState<"A" | "B">("A");
+  // Developer category selector to distinguish different KPR plan IDs/rates
+  const [devCategory, setDevCategory] = useState<DevCategory>("Top Selected Developer");
   const [schemeType, setSchemeType] = useState<"single_fixed" | "tiered">("single_fixed");
   const [loanTerm, setLoanTerm] = useState(jangkaWaktu || 15);
+
+  // Auto-select developer category based on property details from backend
+  useEffect(() => {
+    const controller = new AbortController();
+    const run = async () => {
+      try {
+        const propId = (data?.propertiId as string) || "";
+        const id = propId && /\d+/.test(propId) ? propId : "5"; // fallback to given example id
+        const base = API_BASE_URL || "http://localhost:18080";
+        const url = `${base}${API_ENDPOINTS.PROPERTY_DETAIL(id)}`;
+        const res = await fetchWithAuth(url, { method: "GET", signal: controller.signal }).catch(() => null as any);
+        if (!res || !res.ok) return;
+        const json = await res.json().catch(() => null);
+        const partnershipLevel: string | undefined = json?.data?.developer?.partnershipLevel;
+        if (!partnershipLevel) return;
+        const map: Record<string, DevCategory> = {
+          TOP_SELECTED_DEVELOPER: "Top Selected Developer",
+          DEVELOPER_KERJA_SAMA: "Developer Kerja Sama",
+        };
+        const nextCat = map[partnershipLevel] || "Top Selected Developer";
+        setDevCategory((prev) => {
+          // If changed, ensure paket compatibility with current tenor
+          if (prev !== nextCat) {
+            const tenorNow = Number(formData.loanTerm || 0);
+            const ids = listPackagesByTenor(tenorNow).map((r) => r.id);
+            if (!ids.includes(Number(formData.kprRateId))) {
+              handleChange({ target: { name: "kprRateId", value: "" } });
+            }
+          }
+          return nextCat;
+        });
+      } catch (e) {
+        // ignore; keep default category
+      }
+    };
+    run();
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.propertiId]);
 
   // ===== Tenor & Paket KPR data (Top Selected Developer) =====
   const TENOR_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30];
@@ -49,7 +93,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
 
   type RateEntry = {
     id: number; // numeric KPR plan id expected by backend
-    developerCategory: "Top Selected Developer";
+    developerCategory: DevCategory;
     name:
       | "fixed_1y" | "fixed_2y" | "fixed_3y" | "fixed_4y" | "fixed_5y" | "fixed_6y" | "fixed_7y" | "fixed_8y" | "fixed_9y" | "fixed_10y"
       | "tiered_10y" | "tiered_15y" | "tiered_20y" | "tiered_25y" | "tiered_30y";
@@ -74,39 +118,69 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
     { id: 12, developerCategory: "Top Selected Developer", name: "fixed_3y", tenor: 10, rateType: "fixed", rates: [3.75, 3.75, 3.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 13, developerCategory: "Top Selected Developer", name: "fixed_5y", tenor: 10, rateType: "fixed", rates: [5.75, 5.75, 5.75, 5.75, 5.75, "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 14, developerCategory: "Top Selected Developer", name: "fixed_10y", tenor: 10, rateType: "fixed", rates: [8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25] },
-    { id: 53, developerCategory: "Top Selected Developer", name: "tiered_10y", tenor: 10, rateType: "tiered", rates: [2.75, 4.75, 6.75, 8.75, 10.75, 10.75, 10.75, 10.75, 10.75, 10.75] },
     { id: 15, developerCategory: "Top Selected Developer", name: "fixed_5y", tenor: 12, rateType: "fixed", rates: [4.75, 4.75, 4.75, 4.75, 4.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 16, developerCategory: "Top Selected Developer", name: "fixed_3y", tenor: 15, rateType: "fixed", rates: [2.75, 2.75, 2.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 17, developerCategory: "Top Selected Developer", name: "fixed_5y", tenor: 15, rateType: "fixed", rates: [3.75, 3.75, 3.75, 3.75, 3.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
-    { id: 54, developerCategory: "Top Selected Developer", name: "tiered_15y", tenor: 15, rateType: "tiered", rates: [2.75, 4.75, 4.75, 6.75, 6.75, 8.75, 8.75, 10.75, 10.75, 10.75, "—", "—", "—", "—", "—"] },
     { id: 18, developerCategory: "Top Selected Developer", name: "fixed_3y", tenor: 20, rateType: "fixed", rates: [4, 4, 4, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 19, developerCategory: "Top Selected Developer", name: "fixed_5y", tenor: 20, rateType: "fixed", rates: [6, 6, 6, 6, 6, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 20, developerCategory: "Top Selected Developer", name: "fixed_10y", tenor: 20, rateType: "fixed", rates: [8.5, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
-    { id: 55, developerCategory: "Top Selected Developer", name: "tiered_20y", tenor: 20, rateType: "tiered", rates: [3, 5, 5, 7, 7, 9, 9, 9, 9, 9, 10.5, 10.5, 10.5, 10.5, 10.5, 11, 11, 11, 11, 11] },
     { id: 21, developerCategory: "Top Selected Developer", name: "fixed_3y", tenor: 25, rateType: "fixed", rates: [4.25, 4.25, 4.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 22, developerCategory: "Top Selected Developer", name: "fixed_5y", tenor: 25, rateType: "fixed", rates: [6.25, 6.25, 6.25, 6.25, 6.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 23, developerCategory: "Top Selected Developer", name: "fixed_10y", tenor: 25, rateType: "fixed", rates: [8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
-    { id: 56, developerCategory: "Top Selected Developer", name: "tiered_25y", tenor: 25, rateType: "tiered", rates: [3.25, 5.25, 5.25, 7.25, 7.25, 9.25, 9.25, 9.25, 9.25, 9.25, 10.75, 10.75, 10.75, 10.75, 10.75, 11.25, 11.25, 11.25, 11.25, 11.25, 11.75, 11.75, 11.75, 11.75, 11.75] },
     { id: 24, developerCategory: "Top Selected Developer", name: "fixed_3y", tenor: 30, rateType: "fixed", rates: [4.5, 4.5, 4.5, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 25, developerCategory: "Top Selected Developer", name: "fixed_5y", tenor: 30, rateType: "fixed", rates: [6.5, 6.5, 6.5, 6.5, 6.5, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
     { id: 26, developerCategory: "Top Selected Developer", name: "fixed_10y", tenor: 30, rateType: "fixed", rates: [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    // Developer Kerja Sama variants (IDs 27-52 fixed, 58-62 tiered)
+    { id: 27, developerCategory: "Developer Kerja Sama", name: "fixed_1y", tenor: 1, rateType: "fixed", rates: [8] },
+    { id: 28, developerCategory: "Developer Kerja Sama", name: "fixed_2y", tenor: 2, rateType: "fixed", rates: [8, 8] },
+    { id: 29, developerCategory: "Developer Kerja Sama", name: "fixed_1y", tenor: 3, rateType: "fixed", rates: [3.25, "Floating", "Floating"] },
+    { id: 30, developerCategory: "Developer Kerja Sama", name: "fixed_3y", tenor: 3, rateType: "fixed", rates: [8, 8, 8] },
+    { id: 31, developerCategory: "Developer Kerja Sama", name: "fixed_4y", tenor: 4, rateType: "fixed", rates: [8.25, 8.25, 8.25, 8.25] },
+    { id: 32, developerCategory: "Developer Kerja Sama", name: "fixed_3y", tenor: 5, rateType: "fixed", rates: [7.25, 7.25, 7.25, "Floating", "Floating"] },
+    { id: 33, developerCategory: "Developer Kerja Sama", name: "fixed_5y", tenor: 5, rateType: "fixed", rates: [8.25, 8.25, 8.25, 8.25, 8.25] },
+    { id: 34, developerCategory: "Developer Kerja Sama", name: "fixed_6y", tenor: 6, rateType: "fixed", rates: [8.25, 8.25, 8.25, 8.25, 8.25, 8.25] },
+    { id: 35, developerCategory: "Developer Kerja Sama", name: "fixed_7y", tenor: 7, rateType: "fixed", rates: [8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25] },
+    { id: 36, developerCategory: "Developer Kerja Sama", name: "fixed_8y", tenor: 8, rateType: "fixed", rates: [8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25, 8.25] },
+    { id: 37, developerCategory: "Developer Kerja Sama", name: "fixed_9y", tenor: 9, rateType: "fixed", rates: [8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75] },
+    { id: 38, developerCategory: "Developer Kerja Sama", name: "fixed_3y", tenor: 10, rateType: "fixed", rates: [4.25, 4.25, 4.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 39, developerCategory: "Developer Kerja Sama", name: "fixed_5y", tenor: 10, rateType: "fixed", rates: [6.25, 6.25, 6.25, 6.25, 6.25, "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 40, developerCategory: "Developer Kerja Sama", name: "fixed_10y", tenor: 10, rateType: "fixed", rates: [8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75] },
+    { id: 41, developerCategory: "Developer Kerja Sama", name: "fixed_5y", tenor: 12, rateType: "fixed", rates: [5.25, 5.25, 5.25, 5.25, 5.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 42, developerCategory: "Developer Kerja Sama", name: "fixed_3y", tenor: 15, rateType: "fixed", rates: [3.25, 3.25, 3.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 43, developerCategory: "Developer Kerja Sama", name: "fixed_5y", tenor: 15, rateType: "fixed", rates: [4.25, 4.25, 4.25, 4.25, 4.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 44, developerCategory: "Developer Kerja Sama", name: "fixed_3y", tenor: 20, rateType: "fixed", rates: [4.75, 4.75, 4.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 45, developerCategory: "Developer Kerja Sama", name: "fixed_5y", tenor: 20, rateType: "fixed", rates: [6.75, 6.75, 6.75, 6.75, 6.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 46, developerCategory: "Developer Kerja Sama", name: "fixed_10y", tenor: 20, rateType: "fixed", rates: [9.25, 9.25, 9.25, 9.25, 9.25, 9.25, 9.25, 9.25, 9.25, 9.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 47, developerCategory: "Developer Kerja Sama", name: "fixed_3y", tenor: 25, rateType: "fixed", rates: [5.25, 5.25, 5.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 48, developerCategory: "Developer Kerja Sama", name: "fixed_5y", tenor: 25, rateType: "fixed", rates: [7.25, 7.25, 7.25, 7.25, 7.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 49, developerCategory: "Developer Kerja Sama", name: "fixed_10y", tenor: 25, rateType: "fixed", rates: [9.75, 9.75, 9.75, 9.75, 9.75, 9.75, 9.75, 9.75, 9.75, 9.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 50, developerCategory: "Developer Kerja Sama", name: "fixed_3y", tenor: 30, rateType: "fixed", rates: [5.75, 5.75, 5.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 51, developerCategory: "Developer Kerja Sama", name: "fixed_5y", tenor: 30, rateType: "fixed", rates: [7.75, 7.75, 7.75, 7.75, 7.75, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 52, developerCategory: "Developer Kerja Sama", name: "fixed_10y", tenor: 30, rateType: "fixed", rates: [10.25, 10.25, 10.25, 10.25, 10.25, 10.25, 10.25, 10.25, 10.25, 10.25, "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating", "Floating"] },
+    { id: 53, developerCategory: "Top Selected Developer", name: "tiered_10y", tenor: 10, rateType: "tiered", rates: [2.75, 4.75, 6.75, 8.75, 10.75, 10.75, 10.75, 10.75, 10.75, 10.75] },
+    { id: 54, developerCategory: "Top Selected Developer", name: "tiered_15y", tenor: 15, rateType: "tiered", rates: [2.75, 4.75, 4.75, 6.75, 6.75, 8.75, 8.75, 10.75, 10.75, 10.75, "—", "—", "—", "—", "—"] },
+    { id: 55, developerCategory: "Top Selected Developer", name: "tiered_20y", tenor: 20, rateType: "tiered", rates: [3, 5, 5, 7, 7, 9, 9, 9, 9, 9, 10.5, 10.5, 10.5, 10.5, 10.5, 11, 11, 11, 11, 11] },
+    { id: 56, developerCategory: "Top Selected Developer", name: "tiered_25y", tenor: 25, rateType: "tiered", rates: [3.25, 5.25, 5.25, 7.25, 7.25, 9.25, 9.25, 9.25, 9.25, 9.25, 10.75, 10.75, 10.75, 10.75, 10.75, 11.25, 11.25, 11.25, 11.25, 11.25, 11.75, 11.75, 11.75, 11.75, 11.75] },
     { id: 57, developerCategory: "Top Selected Developer", name: "tiered_30y", tenor: 30, rateType: "tiered", rates: [3.5, 5.5, 5.5, 7.5, 7.5, 9.5, 9.5, 9.5, 9.5, 9.5, 11, 11, 11, 11, 11, 11.5, 11.5, 11.5, 11.5, 11.5, 12, 12, 12, 12, 12, 12.5, 12.5, 12.5, 12.5, 12.5] },
+    { id: 58, developerCategory: "Developer Kerja Sama", name: "tiered_10y", tenor: 10, rateType: "tiered", rates: [3.25, 5.25, 7.25, 9.25, 11.25, 11.25, 11.25, 11.25, 11.25, 11.25] },
+    { id: 59, developerCategory: "Developer Kerja Sama", name: "tiered_15y", tenor: 15, rateType: "tiered", rates: [3.25, 5.25, 5.25, 7.25, 7.25, 9.25, 9.25, 11.25, 11.25, 11.25, "—", "—", "—", "—", "—"] },
+    { id: 60, developerCategory: "Developer Kerja Sama", name: "tiered_20y", tenor: 20, rateType: "tiered", rates: [3.5, 5.5, 5.5, 7.5, 7.5, 9.5, 9.5, 9.5, 9.5, 9.5, 11.5, 11.5, 11.5, 11.5, 11.5, 12, 12, 12, 12, 12] },
+    { id: 61, developerCategory: "Developer Kerja Sama", name: "tiered_25y", tenor: 25, rateType: "tiered", rates: [3.75, 5.75, 5.75, 7.75, 7.75, 9.75, 9.75, 9.75, 9.75, 9.75, 11.75, 11.75, 11.75, 11.75, 11.75, 12.25, 12.25, 12.25, 12.25, 12.25, 12.75, 12.75, 12.75, 12.75, 12.75] },
+    { id: 62, developerCategory: "Developer Kerja Sama", name: "tiered_30y", tenor: 30, rateType: "tiered", rates: [4.25, 6.25, 6.25, 8.25, 8.25, 10.25, 10.25, 10.25, 10.25, 10.25, 12.25, 12.25, 12.25, 12.25, 12.25, 12.75, 12.75, 12.75, 12.75, 12.75, 13.25, 13.25, 13.25, 13.25, 13.25, 13.75, 13.75, 13.75, 13.75, 13.75] },
   ];
-
-  const getPackageIdByNameTenor = (name: string, tenor: number): number | undefined => {
-    return RATE_TABLE.find((r) => r.name === name && r.tenor === tenor)?.id;
-  };
+  // Helper to list available rate entries for current developer category and tenor
+  const listPackagesByTenor = (tenor: number) =>
+    RATE_TABLE.filter((r) => r.developerCategory === devCategory && r.tenor === tenor);
 
   const tenorSelected = Number(formData.loanTerm || 0);
-  const availablePackages = useMemo(() => PACKAGES_BY_TENOR[tenorSelected] || [], [tenorSelected]);
+  const availableRateEntries = useMemo(() => listPackagesByTenor(tenorSelected), [tenorSelected, devCategory]);
   const selectedRate = useMemo(() => {
     const idNum = Number(formData.kprRateId);
     if (Number.isFinite(idNum) && idNum > 0) {
-      return RATE_TABLE.find((r) => r.id === idNum);
+      return RATE_TABLE.find((r) => r.id === idNum) || null;
     }
-    // fallback for legacy string values
-    return RATE_TABLE.find((r) => r.tenor === tenorSelected && r.name === formData.kprRateId);
-  }, [tenorSelected, formData.kprRateId]);
+    return null;
+  }, [formData.kprRateId]);
 
   const formatRate = (v: number | "Floating" | "—") =>
     typeof v === "number"
@@ -222,6 +296,27 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
           <div className="grid md:grid-cols-2 gap-x-6 gap-y-5">
             <InputField required label="Uang Muka (DP) (Rp)" name="downPayment" placeholder="Contoh: 150.000.000" value={formData.downPayment} onChange={handleChange} error={errors.downPayment} />
 
+            {/* Developer Category */}
+            <SelectField
+              required
+              label="Kategori Developer"
+              name="developerCategory"
+              value={devCategory}
+              onChange={(e: any) => {
+                // Disabled (auto-selected), but keep handler for safety
+                const newCat = e.target.value as DevCategory;
+                setDevCategory(newCat);
+                const ids = listPackagesByTenor(Number(formData.loanTerm || 0)).map((r) => r.id);
+                if (!ids.includes(Number(formData.kprRateId))) {
+                  handleChange({ target: { name: "kprRateId", value: "" } });
+                }
+              }}
+              disabled
+            >
+              <option value="Top Selected Developer">Top Selected Developer</option>
+              <option value="Developer Kerja Sama">Developer Kerja Sama</option>
+            </SelectField>
+
             <SelectField
               required
               label="Jangka Waktu (Tenor)"
@@ -231,9 +326,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
                 // Update tenor
                 handleChange(e);
                 const newTenor = Number(e.target.value || 0);
-                const nextIds = (PACKAGES_BY_TENOR[newTenor] || [])
-                  .map((n) => getPackageIdByNameTenor(n, newTenor))
-                  .filter((v): v is number => typeof v === "number");
+                const nextIds = listPackagesByTenor(newTenor).map((r) => r.id);
                 const currentId = Number(formData.kprRateId);
                 // Clear selected paket if no longer compatible with new tenor
                 if (!nextIds.includes(currentId)) {
@@ -257,13 +350,9 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
               error={errors.kprRateId}
             >
               <option value="">{tenorSelected ? "Pilih Paket..." : "Pilih tenor terlebih dahulu"}</option>
-              {availablePackages.map((name) => {
-                const id = getPackageIdByNameTenor(name, tenorSelected);
-                if (!id) return null;
-                return (
-                  <option key={name} value={id}>{labelForPackage(name)}</option>
-                );
-              })}
+              {availableRateEntries.map((r) => (
+                <option key={r.id} value={r.id}>{labelForPackage(r.name)}</option>
+              ))}
             </SelectField>
 
             <FileInputField required label="Upload KTP (.jpg/.pdf, max 2MB)" name="fileKTP" file={formData.fileKTP} onChange={handleChange} error={errors.fileKTP} />
