@@ -77,6 +77,8 @@ function Calendar({
           "bg-popover absolute inset-0 opacity-0",
           defaultClassNames.dropdown
         ),
+        // Styling dropdown select untuk bulan & tahun dikendalikan via CSS global
+        // (rdp-dropdown_month, rdp-dropdown_year)
         caption_label: cn(
           "select-none font-medium",
           captionLayout === "label"
