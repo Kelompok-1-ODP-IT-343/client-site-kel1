@@ -3,7 +3,7 @@
 import { useState, useMemo, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronDown,
   MapPin,
@@ -21,6 +21,8 @@ const ITEMS_PER_PAGE = 6;
 
 export default function CariRumahPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [filters, setFilters] = useState({
     name: "",
@@ -54,6 +56,34 @@ export default function CariRumahPage() {
       }
     }, []);
   const debouncedSearchName = useDebounce(filters.name, 500);
+
+  // Initialize filters from URL query on first load or when URL changes externally
+  useEffect(() => {
+    if (!searchParams) return;
+    const urlName = searchParams.get("name") || "";
+    const urlCity = searchParams.get("city") || "";
+    const urlType = searchParams.get("tipeProperti") || "";
+    const urlBudget = searchParams.get("budget") || "";
+
+    // Only set when different to avoid unnecessary renders
+    setFilters((prev) => {
+      if (
+        prev.name === urlName &&
+        prev.location === urlCity &&
+        // backend expects uppercase, UI shows capitalized; keep raw here
+        (prev.type?.toUpperCase?.() || "") === (urlType || "") &&
+        prev.budget === urlBudget
+      ) {
+        return prev;
+      }
+      return {
+        name: urlName,
+        location: urlCity,
+        type: urlType ? urlType.charAt(0) + urlType.slice(1).toLowerCase() : "",
+        budget: urlBudget,
+      };
+    });
+  }, [searchParams]);
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -76,6 +106,23 @@ export default function CariRumahPage() {
     })();
     // }, [filters.name, filters.location, filters.type, filters.budget]);
   }, [debouncedSearchName, filters.location, filters.type, filters.budget]);
+
+  // Sync filters to URL (address bar) using replace to avoid history spam
+  useEffect(() => {
+    const sp = new URLSearchParams();
+    if (debouncedSearchName) sp.set("name", debouncedSearchName);
+    if (filters.location) sp.set("city", filters.location);
+    if (filters.type) sp.set("tipeProperti", filters.type.toUpperCase());
+    if (filters.budget) sp.set("budget", filters.budget);
+
+    const newQuery = sp.toString();
+    const nextUrl = newQuery ? `${pathname}?${newQuery}` : pathname;
+    // Avoid unnecessary router.replace when URL already matches
+    const current = searchParams?.toString() || "";
+    if (current !== newQuery) {
+      router.replace(nextUrl);
+    }
+  }, [debouncedSearchName, filters.location, filters.type, filters.budget, pathname, router, searchParams]);
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
