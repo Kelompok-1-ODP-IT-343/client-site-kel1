@@ -366,24 +366,26 @@ function HouseCard({
           className="object-cover rounded-t-xl"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-        {/* Badge tipe properti di kiri atas */}
-        <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-          {(house.property_type || "Rumah").toString().toUpperCase()}
-        </span>
-        {/* Badge developer pilihan/kerja sama di kanan atas */}
-        <span
-          className={`absolute top-3 right-3 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm ${
-            isDeveloperPilihan ? "bg-red-600" : "bg-gray-500"
-          }`}
-        >
-          {developerBadge}
-        </span>
+        {/* Badge: tipe properti dan developer ditumpuk di kiri atas */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          <span className="inline-flex self-start bg-orange-500 text-white text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm">
+            {(house.property_type || "Rumah").toString().toUpperCase()}
+          </span>
+          <span
+            className={`inline-flex self-start text-white text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm ${
+              isDeveloperPilihan ? "bg-red-600" : "bg-gray-500"
+            }`}
+          >
+            {developerBadge}
+          </span>
+        </div>
+        {/* Tombol wishlist di kanan paling atas */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(house.id);
           }}
-          className="absolute top-12 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
           aria-label="Toggle Favorite"
         >
           <svg

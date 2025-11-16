@@ -62,8 +62,16 @@ export default function RegisterSimple() {
   const [globalError, setGlobalError] = useState(""); 
   const mapErrorMessage = (msg: string | undefined) => {
     const lower = (msg || "").toLowerCase();
+    const phoneDup = /(nomor\s*telepon).*?(sudah\s*pernah\s*digunakan|terdaftar)/.test(lower) || /(phone).*?(already|exists)/.test(lower);
     const phoneInvalid = /(nomor\s*telepon).*?(tidak\s*valid)/.test(lower) || /(phone).*?(invalid)/.test(lower);
-    if (phoneInvalid) return "Nomor telepon sudah pernah digunakan";
+    const emailDup = /(email).*?(sudah\s*pernah\s*digunakan|terdaftar|already|exists)/.test(lower);
+    const usernameDup = /(username|user\s*name).*?(sudah\s*pernah\s*digunakan|terdaftar|already|exists)/.test(lower);
+
+    if (phoneDup) return "Nomor telepon sudah pernah digunakan";
+    if (emailDup && usernameDup) return "Email dan username sudah pernah digunakan";
+    if (emailDup) return "Email sudah pernah digunakan";
+    if (usernameDup) return "Username sudah pernah digunakan";
+    if (phoneInvalid) return "Nomor telepon tidak valid";
     return msg || "Registrasi gagal.";
   };
   
@@ -230,22 +238,30 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     try {
       const result = await registerUser(payload);
 
-      if (result.status === 409 || result.message?.includes("sudah terdaftar")) {
+      if (result.status === 409 || result.message?.toLowerCase().includes("terdaftar") || result.message?.toLowerCase().includes("already") || result.message?.toLowerCase().includes("exists")) {
         const msg = (result.message || "").toLowerCase();
         const isEmailDup = /email/.test(msg);
-        const isUsernameDup = /username|user name/.test(msg);
+        const isUsernameDup = /username|user\s*name/.test(msg);
 
         setErrors((prev) => ({
           ...prev,
           email: isEmailDup || (!isEmailDup && !isUsernameDup)
-            ? "Email sudah digunakan."
+            ? "Email sudah pernah digunakan"
             : prev.email,
           username: isUsernameDup || (!isEmailDup && !isUsernameDup)
-            ? "Username sudah digunakan."
+            ? "Username sudah pernah digunakan"
             : prev.username,
         }));
 
-        setGlobalError("Akun dengan email atau username tersebut sudah terdaftar.");
+        setGlobalError(
+          isEmailDup && isUsernameDup
+            ? "Email dan username sudah pernah digunakan"
+            : isEmailDup
+            ? "Email sudah pernah digunakan"
+            : isUsernameDup
+            ? "Username sudah pernah digunakan"
+            : "Akun dengan email atau username tersebut sudah terdaftar."
+        );
         setStep(1);
         setShowErrorModal(true);
         return;

@@ -341,3 +341,22 @@ p {
   color: rgba(255, 255, 255, 0.9) !important;
   font-weight: 400;
 }
+
+/* DayPicker dropdowns: selaraskan warna dengan theme situs */
+.rdp-caption_dropdowns select,
+.rdp-dropdown_month,
+.rdp-dropdown_year {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 0.25rem 0.5rem; /* px-2 py-1 */
+}
+
+@media (prefers-color-scheme: dark) {
+  .rdp-caption_dropdowns select,
+  .rdp-dropdown_month,
+  .rdp-dropdown_year {
+    border-color: #374151; /* gray-700 */
+  }
+}
