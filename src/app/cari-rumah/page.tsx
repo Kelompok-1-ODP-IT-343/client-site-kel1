@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { fetchPropertyList,toggleFavorite } from "@/app/lib/coreApi";
+import { fetchPropertyList, toggleFavorite, fetchUserFavorites } from "@/app/lib/coreApi";
 import type { PropertyListItem } from "@/app/lib/types";
 import { useDebounce } from "@/app/lib/hooks/useDebounce";
 const ITEMS_PER_PAGE = 6;
@@ -55,6 +55,21 @@ export default function CariRumahPage() {
         }
       }
     }, []);
+  // Ambil wishlist awal agar ikon hati sesuai dengan status server
+  useEffect(() => {
+    (async () => {
+      if (!isLoggedIn) return;
+      try {
+        const res = await fetchUserFavorites();
+        if (res && res.success && Array.isArray(res.data)) {
+          const ids = Array.from(new Set(res.data.map((it: any) => Number(it.property_id)).filter(Boolean)));
+          setFavorites(ids);
+        }
+      } catch (e) {
+        console.warn("Gagal memuat wishlist awal", e as any);
+      }
+    })();
+  }, [isLoggedIn]);
   const debouncedSearchName = useDebounce(filters.name, 500);
 
   // Initialize filters from URL query on first load or when URL changes externally
@@ -137,21 +152,14 @@ const handleToggleFavorite = async (houseId: number) => {
       return;
     }
 
-    const userId = userData.id;
-
-    if (!userId) {
-        alert("Sesi pengguna tidak ditemukan (ID tidak ada), silakan login kembali.");
-        return;
-    }
-
     try {
-      const response = await toggleFavorite(userId, houseId);
+      const response = await toggleFavorite(houseId);
 
       if (response.success) {
         const status = response.data.status;
         
         if (status === "added") {
-          setFavorites((prev) => [...prev, houseId]);
+          setFavorites((prev) => Array.from(new Set([...prev, houseId])));
         } else if (status === "removed") {
           setFavorites((prev) => prev.filter((id) => id !== houseId));
         }
@@ -374,6 +382,8 @@ function HouseCard({
     currency: "IDR",
     minimumFractionDigits: 0,
   }).format(house.price);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgSrc, setImgSrc] = useState<string>(house.main_image || "/img.png");
 
   const goToDetail = () => router.push(`/detail-rumah/${house.id}`);
 
@@ -404,17 +414,40 @@ function HouseCard({
       onClick={goToDetail}
       className="bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg flex flex-col cursor-pointer"
     >
-      <div className="relative w-full aspect-[4/3] min-h-[150px] sm:min-h-[170px] lg:min-h-[200px] max-h-[240px]">
+      <div className="relative w-full aspect-[16/9]">
+        {!imgLoaded && (
+          <div className="absolute inset-0 z-10 grid place-items-center bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-sm shadow">
+              <span className="w-3 h-3 rounded-full border-2 border-gray-400 border-t-transparent animate-spin" />
+              <span className="text-sm font-semibold text-gray-700">Loading. . .</span>
+            </div>
+          </div>
+        )}
         <Image
-          src={house.main_image || "/placeholder.png"}
+          src={imgSrc}
+          alt="Background"
+          fill
+          priority={false}
+          className="object-cover blur-xl scale-105 brightness-95"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          unoptimized
+          aria-hidden
+        />
+        <Image
+          src={imgSrc}
           alt={house.title}
           fill
           priority={false}
-          className="object-cover rounded-t-xl"
+          className="object-contain"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          onLoadingComplete={() => setImgLoaded(true)}
+          onError={() => {
+            setImgLoaded(true);
+            setImgSrc("/img.png");
+          }}
+          unoptimized
         />
-        {/* Badge: tipe properti dan developer ditumpuk di kiri atas */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+        <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
           <span className="inline-flex self-start bg-orange-500 text-white text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm">
             {(house.property_type || "Rumah").toString().toUpperCase()}
           </span>
@@ -426,13 +459,12 @@ function HouseCard({
             {developerBadge}
           </span>
         </div>
-        {/* Tombol wishlist di kanan paling atas */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(house.id);
           }}
-          className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 z-20"
           aria-label="Toggle Favorite"
         >
           <svg
