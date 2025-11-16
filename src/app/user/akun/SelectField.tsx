@@ -29,7 +29,7 @@ export default function SelectField({
   className,
 }: SelectFieldProps) {
   const baseClass =
-    "w-full rounded-xl border px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2";
+    "w-full rounded-xl border border-gray-300 px-3 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2";
 
   const stateClass = disabled
     ? "bg-gray-100 cursor-not-allowed text-gray-400"
@@ -37,7 +37,7 @@ export default function SelectField({
     ? "border-red-500 focus:ring-red-500"
     : warning
     ? "border-orange-400 focus:ring-orange-400"
-    : "focus:ring-blue-500";
+  : "focus:ring-blue-500";
 
   const selectClass = `${baseClass} ${stateClass}`;
 
