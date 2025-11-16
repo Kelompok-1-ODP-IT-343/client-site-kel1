@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar as CalendarIcon,  X } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronDown, X } from "lucide-react";
 import { cn } from "@/app/lib/util";
 import { Button } from "@/app/components/Ui/Button";
 import { Calendar } from "@/app/components/Ui/calendar";
@@ -494,26 +494,28 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                     >
                       Pekerjaan *
                     </label>
-                    <select
-                      id="occupation"
-                      name="occupation"
-                      value={form.occupation}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 
-                                focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-                    >
-                      <option value="">Pilih Jenis Pekerjaan</option>
-                      {(() => {
-                        const labelMap = new Map(
-                          OCCUPATION_OPTIONS.map((o) => [o.value, o.label])
-                        );
-                        return OCCUPATION_KTP.map((job) => (
-                          <option key={job} value={job}>
-                            {labelMap.get(job) ?? job.replaceAll("_", " ")}
-                          </option>
-                        ));
-                      })()}
-                    </select>
+                    <div className="relative">
+                      <select
+                        id="occupation"
+                        name="occupation"
+                        value={form.occupation}
+                        onChange={handleChange}
+                        className="w-full px-4 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                      >
+                        <option value="">Pilih Jenis Pekerjaan</option>
+                        {(() => {
+                          const labelMap = new Map(
+                            OCCUPATION_OPTIONS.map((o) => [o.value, o.label])
+                          );
+                          return OCCUPATION_KTP.map((job) => (
+                            <option key={job} value={job}>
+                              {labelMap.get(job) ?? job.replaceAll("_", " ")}
+                            </option>
+                          ));
+                        })()}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                    </div>
                   </div>
 
                   <InputField
