@@ -542,7 +542,7 @@ export async function fetchUserFavorites() {
     const res = await fetchWithAuth(url, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
+        Accept: "application/json",
       },
     });
 
@@ -628,15 +628,16 @@ export async function verifyOtpApi(payload: {
     return { success: false, message: "Terjadi kesalahan koneksi." };
   }
 }
-export async function toggleFavorite(userId: number | string, propertyId: number | string) {
+export async function toggleFavorite(propertyId: number | string) {
 
-  const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?userId=${userId}&propertyId=${propertyId}`;
+  const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?propertyId=${propertyId}`;
 
   try {
     const res = await fetchWithAuth(url, {
       method: "POST",
+      // Jangan pakai Content-Type json tanpa body; beberapa backend menganggap ini error
       headers: {
-        "Content-Type": "application/json",
+        Accept: "application/json",
       },
     });
 

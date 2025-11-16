@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { fetchPropertyList,toggleFavorite } from "@/app/lib/coreApi";
+import { fetchPropertyList, toggleFavorite, fetchUserFavorites } from "@/app/lib/coreApi";
 import type { PropertyListItem } from "@/app/lib/types";
 import { useDebounce } from "@/app/lib/hooks/useDebounce";
 const ITEMS_PER_PAGE = 6;
@@ -53,6 +53,21 @@ export default function CariRumahPage() {
         }
       }
     }, []);
+  // Ambil wishlist awal agar ikon hati sesuai dengan status server
+  useEffect(() => {
+    (async () => {
+      if (!isLoggedIn) return;
+      try {
+        const res = await fetchUserFavorites();
+        if (res && res.success && Array.isArray(res.data)) {
+          const ids = Array.from(new Set(res.data.map((it: any) => Number(it.property_id)).filter(Boolean)));
+          setFavorites(ids);
+        }
+      } catch (e) {
+        console.warn("Gagal memuat wishlist awal", e as any);
+      }
+    })();
+  }, [isLoggedIn]);
   const debouncedSearchName = useDebounce(filters.name, 500);
   useEffect(() => {
     (async () => {
@@ -90,21 +105,14 @@ const handleToggleFavorite = async (houseId: number) => {
       return;
     }
 
-    const userId = userData.id;
-
-    if (!userId) {
-        alert("Sesi pengguna tidak ditemukan (ID tidak ada), silakan login kembali.");
-        return;
-    }
-
     try {
-      const response = await toggleFavorite(userId, houseId);
+      const response = await toggleFavorite(houseId);
 
       if (response.success) {
         const status = response.data.status;
         
         if (status === "added") {
-          setFavorites((prev) => [...prev, houseId]);
+          setFavorites((prev) => Array.from(new Set([...prev, houseId])));
         } else if (status === "removed") {
           setFavorites((prev) => prev.filter((id) => id !== houseId));
         }

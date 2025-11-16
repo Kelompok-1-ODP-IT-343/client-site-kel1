@@ -20,7 +20,7 @@ export const API_ENDPOINTS = {
   KPR_HISTORY: `${API_PREFIX}/kpr-applications/user/history`,
   TOGGLE_FAVORITE: `${API_PREFIX}/properties/favorites`,
   // TOGGLE_FAVORITE: (propertyId: number | string) => `/favorites/toggle/${propertyId}`,
-  FETCH_FAVORITES: `${API_PREFIX}/favorites/user`,
+  FETCH_FAVORITES: `${API_PREFIX}/properties/favorites`,
   VERIFY_OTP: `${API_PREFIX}/auth/verify-otp`,
   UPDATE_PROFILE: (userId: number | string) => `${API_PREFIX}/user/${userId}`,
   KPR_DETAIL: (id: number | string) => `${API_PREFIX}/kpr-applications/${id}`,
