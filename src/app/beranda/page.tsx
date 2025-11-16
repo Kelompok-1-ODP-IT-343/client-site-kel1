@@ -73,9 +73,51 @@ export default function BerandaPage() {
       <HeroSection />
       <FeatureSection />
       <ExploreSection items={items} loading={loading} error={err} />
+
+      <FloatingTantiAI />  
     </main>
   );
 }
+
+function FloatingTantiAI() {
+  return (
+    <button
+      onClick={() =>
+        window.open("https://wa.me/6287889100118", "_blank")
+      }
+      className="
+        fixed bottom-10 right-6 z-50 flex items-center gap-2
+        bg-[#FF8500] text-white font-semibold shadow-lg
+        rounded-full px-4 py-2.5
+        hover:bg-[#ff7300] transition-all
+        hover:scale-[1.05]
+      "
+    >
+      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          className='w-5 h-5 text-[#FF8500]'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+        >
+          <path
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            strokeWidth={2}
+            d='M7 8h10M7 12h6m-6 4h8m-4 4l-4-4H5a2 2 0 01-2-2V6c0-1.1.9-2 2-2h14a2 2 0 012 2v10c0 1.1-.9 2-2 2h-3l-3 4z'
+          />
+        </svg>
+      </div>
+
+      <span className="hidden sm:block text-sm">
+        Tanya KPR yuk ke Tanti AI!
+      </span>
+    </button>
+  );
+}
+
+
 
 function HeroSection() {
   return (

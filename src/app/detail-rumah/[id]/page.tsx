@@ -66,6 +66,13 @@ export default async function PropertyDetailPage({
     hargaProperti: String(detail.price),
   }).toString();
 
+  // Filter out Carport from features & specifications
+  const featuresNoCarport = Array.isArray(detail.features)
+    ? detail.features.filter(
+        (f) => !String(f?.featureName || "").toLowerCase().includes("carport")
+      )
+    : [];
+
   return (
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
@@ -82,9 +89,6 @@ export default async function PropertyDetailPage({
           {detail.title}
         </h1>{" "}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-gray-600">
-          <p className="flex items-center gap-1.5">
-            <MapPin size={16} /> {detail.city || "-"}
-          </p>
           {detail.developer && (
             <p className="flex items-center gap-1.5">
               <Building size={16} /> Dibangun oleh:
@@ -130,7 +134,7 @@ export default async function PropertyDetailPage({
               />
             </div>{" "}
             <h3 className="text-xl font-bold text-gray-800 mb-3">Fitur & Spesifikasi</h3>
-            <FeatureList features={detail.features} />
+            <FeatureList features={featuresNoCarport} />
           </Card>{" "}
 
           {/* Lokasi dan Tempat Sekitar */}
@@ -149,9 +153,7 @@ export default async function PropertyDetailPage({
                 const q = hasCoords
                   ? `${detail.latitude},${detail.longitude}`
                   : `${detail.title} ${detail.city ?? ""}`;
-                const url = `https://www.google.com/maps?q=${encodeURIComponent(
-                  q
-                )}&hl=id&z=${hasCoords ? 15 : 12}&output=embed`;
+                const url = `https://www.google.com/maps?q=${encodeURIComponent(q)}&hl=id&z=${hasCoords ? 15 : 12}&output=embed`;
                 return (
                   <iframe
                     src={url}
@@ -167,7 +169,7 @@ export default async function PropertyDetailPage({
             <h3 className="text-xl font-bold text-gray-800 mb-3">
               Tempat Terdekat
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               {detail.locations.length > 0 ? (
                 detail.locations.map((l, idx) => (
                   <InfoItem
@@ -277,12 +279,18 @@ function InfoItem({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2">
-      {icon && <div className="text-orange-500">{icon}</div>}{" "}
-      <div className="flex-1">
-        <p className="text-xs text-gray-600">{label}</p>{" "}
-        <p className="font-semibold text-gray-800">{value ?? "-"}</p>{" "}
-      </div>{" "}
+    <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex items-start gap-3">
+        {icon && (
+          <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
+            {icon}
+          </div>
+        )}
+        <div>
+          <p className="text-xs text-gray-500 mb-1">{label}</p>
+          <p className="font-semibold text-gray-900">{value ?? "-"}</p>
+        </div>
+      </div>
     </div>
   );
 }
