@@ -21,6 +21,17 @@ const nextConfig: NextConfig = {
       resolveAlias: {},
     },
   },
+  async rewrites() {
+    // Proxy backend API to avoid browser CORS during local/dev and production
+    // If NEXT_PUBLIC_API_PROXY_TARGET is provided, use it; otherwise default to local-dev domain
+    const target = process.env.NEXT_PUBLIC_API_PROXY_TARGET || "https://local-dev.satuatap.my.id";
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${target}/api/v1/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

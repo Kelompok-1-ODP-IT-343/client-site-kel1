@@ -91,13 +91,16 @@ function OTPVerificationContent() {
 
             const decodedToken = jwtDecode<JwtPayload & { fullName?: string; name?: string }>(token);
             const userId = decodedToken.userId ?? (decodedToken as any).sub ?? "";
-            const fallbackFromEmail = identifier && identifier.includes("@")
-              ? identifier.split("@")[0]
-              : identifier || "Pengguna";
+            // Avoid using email/local-part as a name; prefer API/claims or previous stored fullName
+            let previousFullName = "";
+            try {
+              const saved = localStorage.getItem("user");
+              if (saved) previousFullName = JSON.parse(saved)?.fullName || "";
+            } catch {}
             const displayName =
-              fullName || decodedToken.fullName || decodedToken.name || fallbackFromEmail || "Pengguna";
+              fullName || decodedToken.fullName || decodedToken.name || previousFullName || "Pengguna";
 
-            login({ id: userId || fallbackFromEmail, fullName: displayName, photoUrl: photoUrl || "/profile.png" });
+            login({ id: userId || identifier || "", fullName: displayName, photoUrl: photoUrl || "/profile.png" });
             router.replace(finalRedirectPath);
           } else {
             setError("");

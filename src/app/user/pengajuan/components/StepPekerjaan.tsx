@@ -31,7 +31,6 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
         <InputField required label="Provinsi Perusahaan" name="companyProvince" value={formData.companyProvince} onChange={handleChange} error={errors.companyProvince} />
         <InputField required label="Kode Pos Perusahaan" name="companyPostalCode" value={formData.companyPostalCode} maxLength={5} onChange={handleChange} error={errors.companyPostalCode} />
         <InputField required label="Pendapatan Bersih per Bulan (Rp)" name="monthlyIncome" placeholder="Contoh: 10.000.000" value={formData.monthlyIncome} onChange={handleChange} error={errors.monthlyIncome} />
-        <InputField required label="Lama Bekerja (Tahun)" name="workExperience" type="number" value={formData.workExperience} onChange={handleChange} error={errors.workExperience} placeholder="Contoh: 5"/>
       </div>
     </StepContent>
   );

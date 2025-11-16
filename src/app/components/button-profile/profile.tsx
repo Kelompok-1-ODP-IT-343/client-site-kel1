@@ -6,7 +6,8 @@ import Image from "next/image";
 import { User, Bell, FileText, Heart, LogOut } from "lucide-react";
 import { USER_ROUTES } from "@/app/routes/userRoutes";
 import { useAuth } from "@/app/lib/authContext";
-import { API_BASE_URL } from "@/app/lib/apiConfig";
+import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
+import { fetchWithAuth } from "@/app/lib/authFetch";
 
 function getOriginFromBase(base?: string) {
   try {
@@ -41,7 +42,7 @@ export default function UserMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
 
   if (!user) return null;
 
@@ -55,12 +56,47 @@ export default function UserMenu() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const safePhoto = useMemo(
-    () => normalizePhotoUrl(user.photoUrl),
-    [user?.photoUrl]
-  );
+  // Display name strictly uses fullName from auth context/localStorage
+  const displayName = useMemo(() => user?.fullName || "", [user?.fullName]);
+
+  // Prefer showing initials in header. If you ever want to re-enable photo, set preferInitials=false
+  const preferInitials = true;
+  const safePhoto = useMemo(() => {
+    if (preferInitials) return null;
+    const url = normalizePhotoUrl(user.photoUrl);
+    if (!url) return null;
+    // Treat obvious placeholders as "no photo" so initials are used
+    const isPlaceholder = /default|avatar|placeholder|profile\.png|user\.png/i.test(url);
+    return isPlaceholder ? null : url;
+  }, [user?.photoUrl]);
   const [imgOk, setImgOk] = useState(true);
   useEffect(() => setImgOk(true), [safePhoto]);
+
+  // Fetch profile to ensure full name is correct (uses Auth cookies)
+  useEffect(() => {
+    let mounted = true;
+    const fetchProfile = async () => {
+      try {
+        if (!user?.id) return;
+        const url = `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`;
+        const res = await fetchWithAuth(url, { method: "GET" });
+        if (!res.ok) return;
+        const json = await res.json().catch(() => null);
+        const d = json?.data;
+        if (!mounted || !d) return;
+        const name = d.fullName || d.name || "";
+        const photo = d.photoUrl || d.avatarUrl || user.photoUrl;
+        // Update when API has a different full name (replace email/username-based value)
+        if (name && name !== user.fullName) {
+          login({ id: user.id, fullName: name, photoUrl: photo });
+        }
+      } catch {}
+    };
+    fetchProfile();
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]);
 
   return (
     <div className="relative" ref={menuRef}>
@@ -80,11 +116,11 @@ export default function UserMenu() {
               priority={false}
             />
           ) : (
-            <span>{getInitials(user.fullName)}</span>
+            <span>{getInitials(displayName)}</span>
           )}
         </div>
         <span className="hidden md:inline font-semibold text-gray-800">
-          {`Hi, ${user.fullName?.split(" ")[0] || "Pengguna"}!`}
+          {`Hi, ${displayName || "Pengguna"}!`}
         </span>
       </button>
 

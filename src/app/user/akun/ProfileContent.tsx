@@ -9,7 +9,7 @@ import { useAuth } from "@/app/lib/authContext";
 import { updateUserProfile } from "@/app/lib/coreApi";
 
 import { getCookie } from "@/app/lib/cookie";
-import { API_BASE_URL } from "@/app/lib/apiConfig";
+import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
 import { fetchWithAuth } from "@/app/lib/authFetch";
 import rawData from "@/data/indonesia.json";
 
@@ -40,12 +40,30 @@ export default function ProfilContent() {
 
   const { user } = useAuth();
 
+  // Util: default and normalize phone number
+  const normalizePhone = (val?: string | null) => {
+    const raw = String(val || "").trim();
+    if (!raw) return "62"; // default prefix Indonesia
+    if (raw.startsWith("+62")) return raw.replace(/^\+/, "");
+    if (raw.startsWith("0")) return `62${raw.slice(1)}`;
+    return raw;
+  };
+
+  // Util: initials from full name
+  const getInitials = (fullName?: string | null) => {
+    if (!fullName) return "U";
+    const parts = fullName.trim().split(/\s+/);
+    const a = parts[0]?.[0] || "";
+    const b = parts[1]?.[0] || "";
+    return (a + b).toUpperCase() || "U";
+  };
+
   useEffect(() => {
     async function fetchUserProfile() {
       try {
         if (!user?.id) return;
 
-        const res = await fetchWithAuth(`${API_BASE_URL}/user/profile`, {
+        const res = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -55,7 +73,7 @@ export default function ProfilContent() {
         const json = await res.json();
         console.log("Response Profil:", json); 
         console.log("==== FETCH USER PROFILE RESPONSE ====");
-        console.log("URL:", `${API_BASE_URL}/user/${user.id}`);
+  console.log("URL:", `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`);
         console.log("TOKEN:", getCookie("token"));
         console.log("USER ID:", user.id);
         console.log("RESPONSE JSON:", json);
@@ -68,22 +86,24 @@ export default function ProfilContent() {
             full_name: d.fullName || "",
             username: d.username || "",
             email: d.email || "",
-            phone: d.phone || "",
+            phone: normalizePhone(d.phone),
             nik: d.nik || "",
             npwp: d.npwp || "",
             birth_date: d.birthDate || "",
             birth_place: d.birthPlace || "",
-            gender: d.gender === "FEMALE" ? "Perempuan" : "Laki-laki",
-            marital_status:
-              d.maritalStatus === "SINGLE"
-                ? "Belum Menikah"
-                : d.maritalStatus === "MARRIED"
-                ? "Menikah"
-                : "Cerai",
+            gender: String(d.gender || "").toUpperCase() === "FEMALE" ? "Perempuan" : "Laki-laki",
+            marital_status: (() => {
+              const ms = String(d.maritalStatus || "").toUpperCase();
+              if (ms === "SINGLE") return "Belum Menikah";
+              if (ms === "MARRIED") return "Menikah";
+              if (ms === "DIVORCED") return "Cerai";
+              return "Belum Menikah";
+            })(),
             address: d.address || "",
             city: d.city || "",
             province: d.province || "",
-            postal_code: d.postalCode || "",
+            sub_district: d.subDistrict || d.sub_district || "",
+            postal_code: d.postalCode || d.postal_code || "",
             occupation: d.occupation || "",
             company_name: d.companyName || "",
             monthly_income: String(d.monthlyIncome || ""),
@@ -260,34 +280,17 @@ useEffect(() => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-6">Ubah Profil</h2>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-full bg-bni-orange text-white grid place-items-center font-bold">
+          {getInitials(formData.full_name || user?.fullName)}
+        </div>
+        <div>
+          <h2 className="text-xl font-bold leading-tight">Ubah Profil</h2>
+          <p className="text-xs text-gray-500">{formData.full_name || user?.fullName || "Pengguna"}</p>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-10">
-        {/* FOTO PROFIL */}
-        <section>
-          <h3 className="font-semibold text-gray-800 mb-4">Foto Profil</h3>
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 relative">
-              <Image
-                src={profilePreview || "/profile.png"}
-                alt="Foto Profil"
-                fill
-                className="object-cover"
-                sizes="96px"
-              />
-            </div>
-            <div>
-              <span className="block text-sm text-gray-600 font-medium mb-2">
-                Upload JPG/PNG ≤ 2MB
-              </span>
-              <FileUpload
-                name="profile_photo"
-                label="Pilih File"
-                onChange={handleFileChange}
-              />
-            </div>
-          </div>
-        </section>
 
         {/* INFORMASI PRIBADI */}
         <section>

@@ -1,4 +1,6 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+// Prefer using Next.js rewrite proxy in the browser to avoid CORS
+const USE_REWRITE = process.env.NEXT_PUBLIC_API_USE_REWRITE === "1";
+export const API_BASE_URL = USE_REWRITE ? "" : process.env.NEXT_PUBLIC_API_BASE_URL || "";
 // export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 // export const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || "";
 export const API_PREFIX = process.env.NEXT_PUBLIC_API_PREFIX || "/api/v1";
@@ -8,6 +10,8 @@ export const API_ENDPOINTS = {
   REGISTER: `${API_PREFIX}/auth/register`,
   LOGIN: `${API_PREFIX}/auth/login`,
   REFRESH: `${API_PREFIX}/auth/refresh`,
+  USER_PROFILE: `${API_PREFIX}/user/profile`,
+  NOTIFICATIONS_USER: `${API_PREFIX}/notifications/user`,
 
   PROPERTY_LIST: `${API_PREFIX}/properties`,
   PROPERTY_DETAIL: (id: number | string) => `${API_PREFIX}/properties/${id}/details`,

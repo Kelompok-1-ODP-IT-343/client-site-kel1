@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { allHouses } from "@/app/lib/propertyData";
 import { submitKprApplication } from "@/app/lib/coreApi";
+import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
+import { fetchWithAuth } from "@/app/lib/authFetch";
 
 import StepContent from "./components/StepContent";
 import StepDataDiri from "./components/StepDataDiri";
@@ -67,6 +69,7 @@ function FormPengajuanContent() {
   const [step, setStep] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<ErrorMap>({});
+  const [errorSummary, setErrorSummary] = useState<string[]>([]);
   const [resultModal, setResultModal] = useState<{
     open: boolean;
     status: "success" | "fail";
@@ -131,6 +134,55 @@ function FormPengajuanContent() {
 
     agreeTerms: false,
   });
+
+  // Prefill form with user profile (editable). Only fills matching fields; others remain empty
+  useEffect(() => {
+    const controller = new AbortController();
+    const run = async () => {
+      try {
+        const base = API_BASE_URL || "";
+        const url = `${base}${API_ENDPOINTS.USER_PROFILE}`;
+        const res = await fetchWithAuth(url, { method: "GET", signal: controller.signal });
+        if (!res.ok) return;
+        const json = await res.json().catch(() => null as any);
+        const d = json?.data as any;
+        if (!d) return;
+
+        const genderMap: Record<string, string> = {
+          MALE: "Laki-laki",
+          FEMALE: "Perempuan",
+          L: "Laki-laki",
+          P: "Perempuan",
+        };
+
+        setFormData((prev) => ({
+          ...prev,
+          fullName: d.fullName ?? prev.fullName,
+          nik: d.nik ?? prev.nik,
+          npwp: d.npwp ?? prev.npwp,
+          birthPlace: d.birthPlace ?? prev.birthPlace,
+          birthDate: d.birthDate ? String(d.birthDate).slice(0, 10) : prev.birthDate,
+          gender: genderMap[(d.gender || "").toString().toUpperCase()] || prev.gender,
+          maritalStatus: d.maritalStatus ?? prev.maritalStatus,
+          phone: d.phone ?? prev.phone,
+          email: d.email ?? prev.email,
+
+          address: d.address ?? prev.address,
+          city: d.city ?? prev.city,
+          province: d.province ?? prev.province,
+          postalCode: d.postalCode ?? prev.postalCode,
+
+          occupation: d.occupation ?? prev.occupation,
+          companyName: d.companyName ?? prev.companyName,
+          monthlyIncome: typeof d.monthlyIncome === "number" ? formatCurrency(String(d.monthlyIncome)) : (d.monthlyIncome ?? prev.monthlyIncome),
+        }));
+      } catch (_) {
+        // ignore errors - form remains editable
+      }
+    };
+    run();
+    return () => controller.abort();
+  }, []);
 
   // --- data properti dari query ---
   const applicationData = {
@@ -221,7 +273,7 @@ function FormPengajuanContent() {
       if (!d.companyPostalCode || d.companyPostalCode.length !== 5)
         newErr.companyPostalCode = "Kode pos perusahaan 5 digit";
       if (!d.monthlyIncome) newErr.monthlyIncome = "Pendapatan wajib diisi";
-      if (!d.workExperience) newErr.workExperience = "Lama bekerja wajib diisi";
+      // workExperience dibuat opsional (tidak wajib diisi)
     } else if (idx === 3) {
       if (!d.downPayment || parseCurrency(d.downPayment) <= 0)
         newErr.downPayment = "Uang muka tidak valid";
@@ -236,6 +288,28 @@ function FormPengajuanContent() {
     }
 
     setErrors(newErr);
+
+    // Build friendly error summary for current step
+    const labelMapStep2: Record<string, string> = {
+      occupation: "Pekerjaan Utama",
+      companyName: "Nama Perusahaan / Instansi",
+      companyAddress: "Alamat Perusahaan",
+      companySubdistrict: "Kelurahan Perusahaan",
+      companyDistrict: "Kecamatan Perusahaan",
+      companyCity: "Kota / Kabupaten Perusahaan",
+      companyProvince: "Provinsi Perusahaan",
+      companyPostalCode: "Kode Pos Perusahaan",
+      monthlyIncome: "Pendapatan Bersih per Bulan",
+      workExperience: "Lama Bekerja (Tahun)",
+    };
+    if (idx === 2) {
+      const summary = Object.keys(newErr)
+        .map((k) => labelMapStep2[k] || k)
+        .slice(0, 4); // batasi agar ringkas
+      setErrorSummary(summary);
+    } else {
+      setErrorSummary([]);
+    }
 
     // Fokus dan scroll ke field pertama yang error agar user tahu apa yang harus diisi
     const firstKey = Object.keys(newErr)[0];
@@ -445,6 +519,11 @@ function FormPengajuanContent() {
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
+          {step === 2 && errorSummary.length > 0 && (
+            <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              Mohon lengkapi: {errorSummary.join(", ")}.
+            </div>
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
