@@ -1,106 +1,177 @@
-name: Build and Push to Docker Hub
+name: client-side-ci
 
 on:
   push:
     branches: ["master"]
     tags: ["v*"]
+  workflow_dispatch:
 
+env:
+  IMAGE_NAME: client-side-kel1
+  REGISTRY: docker.io
+
+# ───────────────────────────────────────────────
+# 🟧 JOB 1 — BUILD NEXT.JS
+# ───────────────────────────────────────────────
 jobs:
-  docker:
+  build_nextjs:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
+    name: "🟧 Build Next.js"
 
     steps:
-      # [1] Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # [2] Setup Node.js
-      - name: Setup Node (for caching and potential pre-steps)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          # cache: "npm"
-      
-      # [3] Install dependencies
-      # - name: Install dependencies
-      #   run: npm ci
+          cache: npm
 
-      # [4] Lint and Unit Test (optional but recommended)
-      # - name: Run Linter
-      #   run: npm run lint
-      # - name: Run Unit Tests with Coverage
-      #   run: npm test -- --coverage
+      - name: Install Dependencies
+        run: npm ci
 
-      # [5] SonarCloud Scan (Code Quality)
-      # - name: SonarCloud Scan
-      #   uses: SonarSource/sonarcloud-github-action@v2
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #   with:
-      #     args: >
-      #       -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-      #       -Dsonar.organization=${{ secrets.SONAR_ORG }}
-      #       -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+      - name: Build Next.js App
+        run: npm run build
 
-      # [6] Trivy Scan (Filesystem)
-      # - name: Trivy FS Scan (Project Files)
-      #   uses: aquasecurity/trivy-action@0.28.0
-      #   with:
-      #     scan-type: 'fs'
-      #     scanners: 'vuln,secret,misconfig'
-      #     ignore-unfixed: true
-      #     severity: 'HIGH,CRITICAL'
-      #     exit-code: '1'
-      #     skip-dirs: 'node_modules,.git'
 
-      # [7] Extract Docker metadata
-      - name: Extract metadata (tags, labels) for Docker
+
+# ───────────────────────────────────────────────
+# 🧪 JOB 2 — RUN TESTS
+# ───────────────────────────────────────────────
+  run_tests:
+    runs-on: ubuntu-latest
+    name: "🧪 Run Tests"
+    needs: build_nextjs
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test --if-present
+
+
+
+# ───────────────────────────────────────────────
+# 🐳 JOB 3 — BUILD DOCKER IMAGE
+# ───────────────────────────────────────────────
+  build_docker:
+    runs-on: ubuntu-latest
+    name: "🐳 Build Docker Image"
+    needs: run_tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
             type=sha
 
-      # [8] Setup Docker Build Environment
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
-      # [9] Docker Hub Login
+
+# ───────────────────────────────────────────────
+# 📤 JOB 4 — PUSH DOCKER IMAGE
+# ───────────────────────────────────────────────
+  push_docker:
+    runs-on: ubuntu-latest
+    name: "📤 Push Docker Image"
+    needs: build_docker
+
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # [10] Trivy Scan (Docker Image)
-      # - name: Trivy Image Scan
-      #   uses: aquasecurity/trivy-action@0.28.0
-      #   with:
-      #     image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1:latest
-      #     format: 'table'
-      #     ignore-unfixed: true
-      #     severity: 'HIGH,CRITICAL'
-      #     exit-code: '1'
-
-      # [11] Build and Push Docker Image
-      - name: Build and push
+      - name: Push image to Docker Hub
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1:buildcache,mode=max
+          tags: ${{ needs.build_docker.steps.meta.outputs.tags }}
+          labels: ${{ needs.build_docker.steps.meta.outputs.labels }}
+
+
+
+# ───────────────────────────────────────────────
+# 🔍 JOB 5 — TRIVY SCAN IMAGE
+# ───────────────────────────────────────────────
+  trivy_scan:
+    runs-on: ubuntu-latest
+    name: "🔍 Trivy Scan Image"
+    needs: push_docker
+
+    steps:
+      - name: Trivy Scan
+        id: trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          format: table
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: 0
+          output: trivy-report.txt
+
+      - name: Upload Trivy Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.txt
+
+
+
+# ───────────────────────────────────────────────
+# 📄 JOB 6 — UPLOAD SUMMARY
+# ───────────────────────────────────────────────
+  trivy_summary:
+    runs-on: ubuntu-latest
+    name: "📄 Upload Trivy Summary"
+    needs: trivy_scan
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: trivy-report
+
+      - name: Write GitHub Summary
+        run: |
+          echo "## 🔍 Trivy Vulnerability Scan Report" >> $GITHUB_STEP_SUMMARY
+          echo "**Image scanned:** \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📄 Full Report:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat trivy-report.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
