@@ -7,6 +7,7 @@ import SelectField from "@/app/user/akun/SelectField";
 import FileUpload from "@/app/user/akun/FileUpload";
 import { useAuth } from "@/app/lib/authContext";
 import { updateUserProfile } from "@/app/lib/coreApi";
+import { OCCUPATION_OPTIONS } from "@/app/user/constants/occupationOptions";
 
 import { getCookie } from "@/app/lib/cookie";
 import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
@@ -418,11 +419,15 @@ useEffect(() => {
         <section>
           <h3 className="font-semibold text-gray-800 mb-4">Data Pekerjaan</h3>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field
+            <SelectField
               name="occupation"
               label="Pekerjaan"
               value={formData.occupation}
               onChange={handleChange}
+              options={OCCUPATION_OPTIONS.map((o) => o.value)}
+              labelMap={Object.fromEntries(
+                OCCUPATION_OPTIONS.map((o) => [o.value, o.label])
+              )}
             />
             <Field
               name="monthly_income"

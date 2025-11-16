@@ -17,6 +17,7 @@ import { formatCurrency } from "@/app/user/pengajuan/utils/format";
 import { format, isValid } from "date-fns"; 
 import { useAuth } from "@/app/lib/authContext";
 import { OCCUPATION_KTP } from "./constants";
+import { OCCUPATION_OPTIONS } from "@/app/user/constants/occupationOptions";
 
 
 export default function RegisterSimple() {
@@ -502,11 +503,16 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                                 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
                     >
                       <option value="">Pilih Jenis Pekerjaan</option>
-                      {OCCUPATION_KTP.map((job) => (
-                        <option key={job} value={job}>
-                          {job.replaceAll("_", " ")}
-                        </option>
-                      ))}
+                      {(() => {
+                        const labelMap = new Map(
+                          OCCUPATION_OPTIONS.map((o) => [o.value, o.label])
+                        );
+                        return OCCUPATION_KTP.map((job) => (
+                          <option key={job} value={job}>
+                            {labelMap.get(job) ?? job.replaceAll("_", " ")}
+                          </option>
+                        ));
+                      })()}
                     </select>
                   </div>
 

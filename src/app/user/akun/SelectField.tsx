@@ -6,6 +6,8 @@ type SelectFieldProps = {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   options: string[];
+  // Opsional: peta untuk menampilkan label berbeda dari nilai option
+  labelMap?: Record<string, string>;
   disabled?: boolean; // ✅ tambahkan dukungan properti opsional
   error?: string;
   // Tampilkan ring oranye sebagai peringatan (tanpa teks error)
@@ -22,6 +24,7 @@ export default function SelectField({
   value,
   onChange,
   options,
+  labelMap,
   disabled = false, // ✅ default false
   error,
   warning = false,
@@ -52,11 +55,14 @@ export default function SelectField({
         className={`${selectClass} ${className ?? ""}`}
       >
         <option value="">Pilih...</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
+        {options.map((opt) => {
+          const labelText = labelMap?.[opt] ?? opt.replaceAll("_", " ");
+          return (
+            <option key={opt} value={opt}>
+              {labelText}
+            </option>
+          );
+        })}
       </select>
       {error && !hideErrorText && (
         <p className="mt-1 text-xs text-red-600">{error}</p>
