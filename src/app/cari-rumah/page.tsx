@@ -48,6 +48,7 @@ function CariRumahContent() {
     const [userData, setUserData] = useState<{ id: number | string } | null>(null);
     const [showLoginDialog, setShowLoginDialog] = useState(false);
     const [loginNextUrl, setLoginNextUrl] = useState<string>("");
+    const [loginPromptReason, setLoginPromptReason] = useState<"ajukan" | "favorite">("ajukan");
     useEffect(() => {
         if (typeof window !== "undefined") {
             const userString = localStorage.getItem("user");
@@ -200,7 +201,13 @@ function CariRumahContent() {
 
     const handleToggleFavorite = async (houseId: number) => {
         if (!isLoggedIn || !userData) {
-            alert("Silakan login untuk menyimpan favorit.");
+            const current = typeof window !== "undefined"
+                ? window.location.search.replace(/^\?/, "")
+                : "";
+            const nextPath = current ? `${pathname}?${current}` : pathname;
+            setLoginNextUrl(nextPath);
+            setLoginPromptReason("favorite");
+            setShowLoginDialog(true);
             return;
         }
 
@@ -216,11 +223,11 @@ function CariRumahContent() {
                     setFavorites((prev) => prev.filter((id) => id !== houseId));
                 }
             } else {
-                alert(response.message);
+                setError(response.message || "Terjadi kesalahan.");
             }
         } catch (error) {
             console.error(error);
-            alert("Terjadi kesalahan koneksi saat mengubah favorit.");
+            setError("Terjadi kesalahan koneksi saat mengubah favorit.");
         }
     };
     const handleAjukan = (house: PropertyListItem) => {
@@ -232,6 +239,7 @@ function CariRumahContent() {
         const target = `/user/pengajuan?${params.toString()}`;
         if (!isLoggedIn) {
             setLoginNextUrl(target);
+            setLoginPromptReason("ajukan");
             setShowLoginDialog(true);
             return;
         }
@@ -430,7 +438,13 @@ function CariRumahContent() {
             <Dialog
               open={showLoginDialog}
               title="Masuk ke Akun"
-              description={<p>Untuk mengajukan KPR, silakan masuk terlebih dahulu.</p>}
+              description={
+                <p>
+                  {loginPromptReason === "favorite"
+                    ? "Silakan login untuk menyimpan favorit."
+                    : "Untuk mengajukan KPR, silakan masuk terlebih dahulu."}
+                </p>
+              }
               onClose={() => setShowLoginDialog(false)}
               actions={
                 <button

@@ -275,19 +275,10 @@ export default async function PropertyDetailPage({
               {/* Menggunakan client component untuk kontrol interaksi */}
               <AjukanCTA
                 href={`/user/pengajuan?${targetAjukanParams}`}
-                className="mt-4 w-full text-white font-semibold py-3 rounded-lg transition-all block text-center"
+                className="mt-4 w-full bg-[#FF8500] hover:bg-[#e67800] text-white font-semibold py-3 rounded-lg transition-all block text-center shadow"
               >
                 Ajukan KPR Sekarang
               </AjukanCTA>
-
-              <Link
-                href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20terkait%20KPR%20properti%20ini."
-                target="_blank"
-                className="mt-3 inline-flex items-center justify-center gap-2 w-full bg-[#DFF7F4] hover:bg-[#C8EFEA] text-[#006654] font-semibold py-2 rounded-lg border border-[#A9E3DD] transition-all shadow-sm"
-              >
-                <MessageCircle size={18} className="text-[#006654]" />
-                Hubungi via WhatsApp
-              </Link>
             </Card>
 
             <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
