@@ -248,6 +248,14 @@ p {
   border-color: var(--bni-broken-white) !important;
 }
 
+/* Removed footer-broken-white to avoid hydration mismatches */
+
+/* Enforce broken white text inside footer when root has text-broken-white */
+footer.text-broken-white,
+footer.text-broken-white * {
+  color: var(--bni-broken-white) !important;
+}
+
 /* Utility: text color using the new gray-900 variable */
 .text-gray-900-var {
   color: var(--color-gray-900) !important;
