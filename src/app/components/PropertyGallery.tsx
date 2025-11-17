@@ -96,37 +96,20 @@ export default function PropertyGallery({ images, title }: Props) {
           setImgLoaded(true);
         }}
       />
-      {/* Controls */}
+      {/* Dots only (no arrow buttons) */}
       {total > 1 && (
-        <>
-          <button
-            aria-label="Prev"
-            onClick={goPrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow transition z-20"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            aria-label="Next"
-            onClick={goNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow transition z-20"
-          >
-            <ChevronRight size={18} />
-          </button>
-          {/* Dots */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/70 px-3 py-1 rounded-full z-20">
-            {displayImages.map((_, i) => (
-              <button
-                key={i}
-                aria-label={`Slide ${i + 1}`}
-                onClick={() => setIndex(i)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === index ? "bg-emerald-500 w-6" : "bg-gray-300 w-2"
-                }`}
-              />
-            ))}
-          </div>
-        </>
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/70 px-3 py-1 rounded-full z-20">
+          {displayImages.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Slide ${i + 1}`}
+              onClick={() => setIndex(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === index ? "bg-[#FF8500] w-6" : "bg-gray-300 w-2"
+              }`}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

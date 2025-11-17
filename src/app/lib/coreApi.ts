@@ -4,441 +4,398 @@ import { getCookie } from "./cookie";
 import { fetchWithAuth } from "./authFetch";
 
 function parseFeaturesList(
-  featuresString: string | null
+    featuresString: string | null
 ): { key: string; value: string }[] {
-  if (!featuresString) return [];
-  try {
-    return featuresString
-      .split(",")
-      .map((part) => {
-        const pieces = part.split(":");
-        if (pieces.length < 2) return null;
-        const key = pieces[0].trim();
-        const value = pieces.slice(1).join(":").trim();
-        return { key, value };
-      })
-      .filter(Boolean) as { key: string; value: string }[];
-  } catch (e) {
-    console.error("Gagal mem-parsing string fitur list:", featuresString, e);
-    return [];
-  }
+    if (!featuresString) return [];
+    try {
+        return featuresString
+            .split(",")
+            .map((part) => {
+                const pieces = part.split(":");
+                if (pieces.length < 2) return null;
+                const key = pieces[0].trim();
+                const value = pieces.slice(1).join(":").trim();
+                return { key, value };
+            })
+            .filter(Boolean) as { key: string; value: string }[];
+    } catch (e) {
+        console.error("Gagal mem-parsing string fitur list:", featuresString, e);
+        return [];
+    }
 }
 function buildFeaturesArray(
-  d: any
+    d: any
 ): { featureName: string; featureValue: string }[] {
-  const features = [];
-  if (d.bedrooms) {
-    features.push({
-      featureName: "Kamar Tidur",
-      featureValue: String(d.bedrooms),
-    });
-  }
-  if (d.bathrooms) {
-    features.push({
-      featureName: "Kamar Mandi",
-      featureValue: String(d.bathrooms),
-    });
-  }
-  if (d.buildingArea) {
-    features.push({
-      featureName: "Luas Bangunan",
-      featureValue: `${d.buildingArea} m²`,
-    });
-  }
-  if (d.landArea) {
-    features.push({
-      featureName: "Luas Tanah",
-      featureValue: `${d.landArea} m²`,
-    });
-  }
-  if (d.floors) {
-    features.push({
-      featureName: "Jumlah Lantai",
-      featureValue: String(d.floors),
-    });
-  }
-  if (d.garage) {
-    features.push({
-      featureName: "Garasi/Carport",
-      featureValue: String(d.garage),
-    });
-  }
-  if (d.certificateType) {
-    features.push({
-      featureName: "Sertifikat",
-      featureValue: d.certificateType,
-    });
-  }
-  if (d.yearBuilt) {
-    features.push({
-      featureName: "Tahun Dibangun",
-      featureValue: String(d.yearBuilt),
-    });
-  }
-
-  return features;
-}
-export async function registerUser(payload: any) {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const json = await res.json();
-
-    if (res.ok && json.success) {
-      return {
-        success: true,
-        message: json.message,
-        data: json.data,
-        status: res.status,
-      };
+    const features = [];
+    if (d.bedrooms) {
+        features.push({
+            featureName: "Kamar Tidur",
+            featureValue: String(d.bedrooms),
+        });
+    }
+    if (d.bathrooms) {
+        features.push({
+            featureName: "Kamar Mandi",
+            featureValue: String(d.bathrooms),
+        });
+    }
+    if (d.buildingArea) {
+        features.push({
+            featureName: "Luas Bangunan",
+            featureValue: `${d.buildingArea} m²`,
+        });
+    }
+    if (d.landArea) {
+        features.push({
+            featureName: "Luas Tanah",
+            featureValue: `${d.landArea} m²`,
+        });
+    }
+    if (d.floors) {
+        features.push({
+            featureName: "Jumlah Lantai",
+            featureValue: String(d.floors),
+        });
+    }
+    if (d.garage) {
+        features.push({
+            featureName: "Garasi/Carport",
+            featureValue: String(d.garage),
+        });
+    }
+    if (d.certificateType) {
+        features.push({
+            featureName: "Sertifikat",
+            featureValue: d.certificateType,
+        });
+    }
+    if (d.yearBuilt) {
+        features.push({
+            featureName: "Tahun Dibangun",
+            featureValue: String(d.yearBuilt),
+        });
     }
 
-    return {
-      success: false,
-      message: json.message || "Registrasi gagal.",
-      status: res.status,
-    };
-  } catch (e) {
-    return {
-      success: false,
-      message: "Terjadi kesalahan koneksi ke server.",
-      status: 500,
-    };
-  }
+    return features;
+}
+export async function registerUser(payload: any) {
+    const url = `${API_BASE_URL}${API_ENDPOINTS.REGISTER}`;
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+            return {
+                success: true,
+                message: json.message,
+                data: json.data,
+                status: res.status,
+            };
+        }
+
+        return {
+            success: false,
+            message: json.message || "Registrasi gagal.",
+            status: res.status,
+        };
+    } catch (e) {
+        return {
+            success: false,
+            message: "Terjadi kesalahan koneksi ke server.",
+            status: 500,
+        };
+    }
 }
 
 export async function loginApi(payload: any) {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (res.ok && json.success) {
-      return { success: true, message: json.message, data: json.data };
+    const url = `${API_BASE_URL}${API_ENDPOINTS.LOGIN}`;
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+            return { success: true, message: json.message, data: json.data };
+        }
+        return { success: false, message: json.message || "Login gagal." };
+    } catch (e) {
+        return { success: false, message: "Terjadi kesalahan koneksi ke server." };
     }
-    return { success: false, message: json.message || "Login gagal." };
-  } catch (e) {
-    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
-  }
 }
 
 export async function submitKprApplication(
-  formData: any,
-  files: { [key: string]: File | null }
+    formData: any,
+    files: { [key: string]: File | null }
 ) {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_APPLICATION}`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_APPLICATION}`;
 
-  try {
-    const multipartData = new FormData();
+    try {
+        const multipartData = new FormData();
 
-    // Property and simulation data
-    multipartData.append("propertyId", formData.propertyId || "");
-    // Append kprRateId if provided by client or a default from env is set
-    const kprRateId = formData.kprRateId || DEFAULT_KPR_RATE_ID;
-    if (kprRateId) {
-      multipartData.append("kprRateId", String(kprRateId));
+        // Property and simulation data
+        multipartData.append("propertyId", formData.propertyId || "");
+        // Append kprRateId if provided by client or a default from env is set
+        const kprRateId = formData.kprRateId || DEFAULT_KPR_RATE_ID;
+        if (kprRateId) {
+            multipartData.append("kprRateId", String(kprRateId));
+        }
+        multipartData.append(
+            "simulationData.propertyValue",
+            formData.hargaProperti || ""
+        );
+        multipartData.append(
+            "simulationData.downPayment",
+            formData.downPayment?.replace(/[^0-9]/g, "") || ""
+        );
+        multipartData.append(
+            "simulationData.loanAmount",
+            String(
+                Math.max(
+                    0,
+                    Number(formData.hargaProperti?.replace(/[^0-9]/g, "") || 0) -
+                    Number(formData.downPayment?.replace(/[^0-9]/g, "") || 0)
+                )
+            )
+        );
+        multipartData.append(
+            "simulationData.loanTermYears",
+            formData.loanTerm || ""
+        );
+
+        // Personal data
+        multipartData.append("personalData.fullName", formData.fullName || "");
+        multipartData.append("personalData.nik", formData.nik || "");
+        multipartData.append("personalData.npwp", formData.npwp || "");
+        multipartData.append("personalData.birthDate", formData.birthDate || "");
+        multipartData.append("personalData.birthPlace", formData.birthPlace || "");
+        multipartData.append(
+            "personalData.gender",
+            formData.gender === "Laki-laki" ? "male" : "female"
+        );
+        multipartData.append(
+            "personalData.maritalStatus",
+            formData.maritalStatus?.toLowerCase() || ""
+        );
+        multipartData.append("personalData.address", formData.address || "");
+        // New adjustments: send full address details including district and subDistrict
+        multipartData.append("personalData.district", formData.district || "");
+        multipartData.append("personalData.subDistrict", formData.subdistrict || "");
+        multipartData.append("personalData.city", formData.city || "");
+        multipartData.append("personalData.province", formData.province || "");
+        multipartData.append("personalData.postalCode", formData.postalCode || "");
+
+        // Employment data
+        multipartData.append(
+            "employmentData.occupation",
+            formData.occupation || ""
+        );
+        multipartData.append(
+            "employmentData.monthlyIncome",
+            formData.monthlyIncome?.replace(/[^0-9]/g, "") || ""
+        );
+        multipartData.append(
+            "employmentData.companyName",
+            formData.companyName || ""
+        );
+        multipartData.append(
+            "employmentData.companyAddress",
+            formData.companyAddress || ""
+        );
+        // New adjustments: use dedicated company location fields
+        multipartData.append(
+            "employmentData.companyCity",
+            formData.companyCity || ""
+        );
+        multipartData.append(
+            "employmentData.companyProvince",
+            formData.companyProvince || ""
+        );
+        multipartData.append(
+            "employmentData.companyPostalCode",
+            formData.companyPostalCode || ""
+        );
+        multipartData.append(
+            "employmentData.workExperience",
+            formData.workExperience || ""
+        );
+        multipartData.append(
+            "employmentData.companyDistrict",
+            formData.companyDistrict || ""
+        );
+        multipartData.append(
+            "employmentData.companySubdistrict",
+            formData.companySubdistrict || ""
+        );
+
+        // File uploads
+        if (files.fileKTP) {
+            multipartData.append("ktpDocument", files.fileKTP);
+        }
+        if (files.fileSlipGaji) {
+            multipartData.append("salarySlipDocument", files.fileSlipGaji);
+        }
+        if (files.fileNPWP) {
+            multipartData.append("npwpDocument", files.fileNPWP);
+        }
+        if (files.fileOther) {
+            multipartData.append("otherDocument", files.fileOther);
+        }
+
+        const res = await fetchWithAuth(url, {
+            method: "POST",
+            // don't set Content-Type for FormData, browser will add boundary
+            body: multipartData,
+        });
+
+        const json = await res.json();
+
+        const statusText = (json?.status ?? json?.result ?? "").toString().toLowerCase();
+        const messageText = (json?.message ?? "").toString();
+        const successFlag = Boolean(
+            json?.success === true ||
+            statusText === "success" ||
+            (res.ok && /berhasil|success/i.test(messageText))
+        );
+
+        if (successFlag) {
+            return {
+                success: true,
+                message: messageText || "Pengajuan KPR berhasil dikirim",
+                data: json.data ?? json.result ?? json,
+            };
+        }
+        return { success: false, message: messageText || "Pengajuan KPR gagal.", data: json.data ?? null };
+    } catch (e) {
+        console.error("KPR Application Error:", e);
+        return { success: false, message: "Terjadi kesalahan koneksi ke server." };
     }
-    multipartData.append(
-      "simulationData.propertyValue",
-      formData.hargaProperti || ""
-    );
-    multipartData.append(
-      "simulationData.downPayment",
-      formData.downPayment?.replace(/[^0-9]/g, "") || ""
-    );
-    multipartData.append(
-      "simulationData.loanAmount",
-      String(
-        Math.max(
-          0,
-          Number(formData.hargaProperti?.replace(/[^0-9]/g, "") || 0) -
-            Number(formData.downPayment?.replace(/[^0-9]/g, "") || 0)
-        )
-      )
-    );
-    multipartData.append(
-      "simulationData.loanTermYears",
-      formData.loanTerm || ""
-    );
-
-    // Personal data
-    multipartData.append("personalData.fullName", formData.fullName || "");
-    multipartData.append("personalData.nik", formData.nik || "");
-    multipartData.append("personalData.npwp", formData.npwp || "");
-    multipartData.append("personalData.birthDate", formData.birthDate || "");
-    multipartData.append("personalData.birthPlace", formData.birthPlace || "");
-    multipartData.append(
-      "personalData.gender",
-      formData.gender === "Laki-laki" ? "male" : "female"
-    );
-    multipartData.append(
-      "personalData.maritalStatus",
-      formData.maritalStatus?.toLowerCase() || ""
-    );
-    multipartData.append("personalData.address", formData.address || "");
-  // New adjustments: send full address details including district and subDistrict
-  multipartData.append("personalData.district", formData.district || "");
-  multipartData.append("personalData.subDistrict", formData.subdistrict || "");
-    multipartData.append("personalData.city", formData.city || "");
-    multipartData.append("personalData.province", formData.province || "");
-    multipartData.append("personalData.postalCode", formData.postalCode || "");
-
-    // Employment data
-    multipartData.append(
-      "employmentData.occupation",
-      formData.occupation || ""
-    );
-    multipartData.append(
-      "employmentData.monthlyIncome",
-      formData.monthlyIncome?.replace(/[^0-9]/g, "") || ""
-    );
-    multipartData.append(
-      "employmentData.companyName",
-      formData.companyName || ""
-    );
-    multipartData.append(
-      "employmentData.companyAddress",
-      formData.companyAddress || ""
-    );
-    // New adjustments: use dedicated company location fields
-    multipartData.append(
-      "employmentData.companyCity",
-      formData.companyCity || ""
-    );
-    multipartData.append(
-      "employmentData.companyProvince",
-      formData.companyProvince || ""
-    );
-    multipartData.append(
-      "employmentData.companyPostalCode",
-      formData.companyPostalCode || ""
-    );
-    multipartData.append(
-      "employmentData.workExperience",
-      formData.workExperience || ""
-    );
-    multipartData.append(
-      "employmentData.companyDistrict",
-      formData.companyDistrict || ""
-    );
-    multipartData.append(
-      "employmentData.companySubdistrict",
-      formData.companySubdistrict || ""
-    );
-
-    // File uploads
-    if (files.fileKTP) {
-      multipartData.append("ktpDocument", files.fileKTP);
-    }
-    if (files.fileSlipGaji) {
-      multipartData.append("salarySlipDocument", files.fileSlipGaji);
-    }
-    if (files.fileNPWP) {
-      multipartData.append("npwpDocument", files.fileNPWP);
-    }
-    if (files.fileOther) {
-      multipartData.append("otherDocument", files.fileOther);
-    }
-
-    const res = await fetchWithAuth(url, {
-      method: "POST",
-      // don't set Content-Type for FormData, browser will add boundary
-      body: multipartData,
-    });
-
-    const json = await res.json();
-
-    const statusText = (json?.status ?? json?.result ?? "").toString().toLowerCase();
-    const messageText = (json?.message ?? "").toString();
-    const successFlag = Boolean(
-      json?.success === true ||
-      statusText === "success" ||
-      (res.ok && /berhasil|success/i.test(messageText))
-    );
-
-    if (successFlag) {
-      return {
-        success: true,
-        message: messageText || "Pengajuan KPR berhasil dikirim",
-        data: json.data ?? json.result ?? json,
-      };
-    }
-    return { success: false, message: messageText || "Pengajuan KPR gagal.", data: json.data ?? null };
-  } catch (e) {
-    console.error("KPR Application Error:", e);
-    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
-  }
 }
 
 export function buildPropertyListQuery(params: {
-  name?: string;
-  city?: string;
-  provinsi?: string;
-  tipeProperti?: string;
-  priceMin?: number;
-  priceMax?: number;
+    title?: string;
+    description?: string;
+    city?: string;
+    provinsi?: string;
+    tipeProperti?: string;
+    priceMin?: number;
+    priceMax?: number;
 }) {
-  const sp = new URLSearchParams();
-  if (params.name) sp.set("name", params.name);
-  if (params.city) sp.set("city", params.city);
-  if (params.provinsi) sp.set("provinsi", params.provinsi);
-  if (params.tipeProperti) sp.set("tipeProperti", params.tipeProperti);
-  if (typeof params.priceMin === "number")
-    sp.set("priceMin", String(params.priceMin));
-  if (typeof params.priceMax === "number")
-    sp.set("priceMax", String(params.priceMax));
-  return sp.toString();
+    const sp = new URLSearchParams();
+    if (params.title) sp.set("title", params.title);
+    if (params.description) sp.set("description", params.description);
+    if (params.city) sp.set("city", params.city);
+    if (params.provinsi) sp.set("provinsi", params.provinsi);
+    if (params.tipeProperti) sp.set("tipeProperti", params.tipeProperti);
+    if (typeof params.priceMin === "number")
+        sp.set("priceMin", String(params.priceMin));
+    if (typeof params.priceMax === "number")
+        sp.set("priceMax", String(params.priceMax));
+    return sp.toString();
 }
 
-// export async function fetchPropertyList(params: {
-//   name?: string;
-//   city?: string;
-//   provinsi?: string;
-//   tipeProperti?: string;
-//   priceMin?: number;
-//   priceMax?: number;
-// }): Promise<{ items: PropertyListItem[]; raw: any }> {
-//   const qs = buildPropertyListQuery(params); // Asumsi fungsi ini ada di file ini
-
-//   const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_LIST}${
-//     qs ? `?${qs}` : ""
-//   }`;
-
-//   const res = await fetch(url, {
-//     headers: { Accept: "application/json" },
-//     cache: "no-store",
-//   });
-//   const json = await res.json();
-
-//   if (!res.ok || json?.success !== true) {
-//     throw new Error(json?.message || "Gagal mengambil daftar properti");
-//   }
-
-//   const data: PropertyListItem[] = Array.isArray(json.data)
-//     ? json.data.map((d: any) => {
-//         const dynamicFeatures = parseFeaturesList(d.features);
-
-//         return {
-//           id: d.id,
-//           title: d.title,
-//           city: d.city ?? null,
-//           property_code: d.property_code ?? null,
-//           property_type: d.property_type ?? null,
-//           listing_type: d.listing_type ?? null,
-//           price: Number(d.price ?? 0),
-//           main_image: d.file_path ?? null,
-//           nearby_places: d.nearby_places ?? null,
-//           parsedFeatures: dynamicFeatures,
-//         };
-//       })
-//     : [];
-
-//   return { items: data, raw: json };
-// }
-
 export async function fetchPropertyList(params: {
-  name?: string;
-  city?: string;
-  provinsi?: string;
-  tipeProperti?: string;
-  priceMin?: number;
-  priceMax?: number;
+    title?: string;
+    description?: string;
+    city?: string;
+    provinsi?: string;
+    tipeProperti?: string;
+    priceMin?: number;
+    priceMax?: number;
 }): Promise<{ items: PropertyListItem[]; raw: any }> {
-  const qs = buildPropertyListQuery(params);
+    const qs = buildPropertyListQuery(params);
 
-  const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_LIST}${
-    qs ? `?${qs}` : ""
-  }`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_LIST}${
+        qs ? `?${qs}` : ""
+    }`;
 
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
-  const json = await res.json();
+    const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+    });
+    const json = await res.json();
 
-  if (!res.ok || json?.success !== true) {
-    throw new Error(json?.message || "Gagal mengambil daftar properti");
-  }
+    if (!res.ok || json?.success !== true) {
+        throw new Error(json?.message || "Gagal mengambil daftar properti");
+    }
 
-  const data: PropertyListItem[] = Array.isArray(json.data)
-    ? json.data.map((d: any) => {
-        const dynamicFeatures = parseFeaturesList(d.features);
+    const data: PropertyListItem[] = Array.isArray(json.data)
+        ? json.data.map((d: any) => {
+            const dynamicFeatures = parseFeaturesList(d.features);
 
-        // --- LOGIKA PENENTUAN DEVELOPER ---
-        const isDeveloperPilihan = d.listing_type === "PRIMARY";
+            // --- LOGIKA PENENTUAN DEVELOPER ---
+            const isDeveloperPilihan = d.listing_type === "PRIMARY";
 
-        return {
-          id: d.id,
-          title: d.title,
-          city: d.city ?? null,
-          property_code: d.property_code ?? null,
-          property_type: d.property_type ?? null,
-          listing_type: d.listing_type ?? null,
-          price: Number(d.price ?? 0),
-          main_image: (d.file_path ?? d.filePath ?? null),
-          nearby_places: d.nearby_places ?? null,
-          parsedFeatures: dynamicFeatures,
-          // Mengisi field baru berdasarkan logika di atas
-          is_developer_pilihan: isDeveloperPilihan,
-        };
-      })
-    : [];
+            return {
+                id: d.id,
+                title: d.title,
+                city: d.city ?? null,
+                property_code: d.property_code ?? null,
+                property_type: d.property_type ?? null,
+                listing_type: d.listing_type ?? null,
+                price: Number(d.price ?? 0),
+                main_image: (d.file_path ?? d.filePath ?? null),
+                nearby_places: d.nearby_places ?? null,
+                parsedFeatures: dynamicFeatures,
+                // Mengisi field baru berdasarkan logika di atas
+                is_developer_pilihan: isDeveloperPilihan,
+            };
+        })
+        : [];
 
-  return { items: data, raw: json };
+    return { items: data, raw: json };
 }
 
 function parseJsonArray<T = any>(input: unknown): T[] {
-  if (Array.isArray(input)) return input as T[];
-  if (typeof input === "string") {
-    try {
-      const arr = JSON.parse(input);
-      return Array.isArray(arr) ? (arr as T[]) : [];
-    } catch {
-      return [];
+    if (Array.isArray(input)) return input as T[];
+    if (typeof input === "string") {
+        try {
+            const arr = JSON.parse(input);
+            return Array.isArray(arr) ? (arr as T[]) : [];
+        } catch {
+            return [];
+        }
     }
-  }
-  return [];
+    return [];
 }
 
 // Parse nearby places string: "Name (2.80 km), Place (1.2 km)"
 function parseNearbyPlaces(input: unknown): { poiName: string; distanceKm: number }[] {
-  if (!input) return [];
-  const s = String(input);
-  return s
-    .split(",")
-    .map((part) => part.trim())
-    .map((item) => {
-      const match = item.match(/^(.+?)\s*\(([0-9.,]+)\s*km\)$/i);
-      if (match) {
-        const name = match[1].trim();
-        const dist = Number(String(match[2]).replace(/,/g, "."));
-        return { poiName: name, distanceKm: Number.isFinite(dist) ? dist : 0 };
-      }
-      return { poiName: item, distanceKm: 0 };
-    });
+    if (!input) return [];
+    const s = String(input);
+    return s
+        .split(",")
+        .map((part) => part.trim())
+        .map((item) => {
+            const match = item.match(/^(.+?)\s*\(([0-9.,]+)\s*km\)$/i);
+            if (match) {
+                const name = match[1].trim();
+                const dist = Number(String(match[2]).replace(/,/g, "."));
+                return { poiName: name, distanceKm: Number.isFinite(dist) ? dist : 0 };
+            }
+            return { poiName: item, distanceKm: 0 };
+        });
 }
 
 export async function fetchPropertyDetail(
-  id: number | string
+    id: number | string
 ): Promise<PropertyDetail> {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_DETAIL(id)}`;
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
-  const json = await res.json();
+    const url = `${API_BASE_URL}${API_ENDPOINTS.PROPERTY_DETAIL(id)}`;
+    const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+    });
+    const json = await res.json();
 
-  if (!res.ok || json?.success !== true || !json?.data) {
-    throw new Error(json?.message || "Gagal mengambil detail properti");
-  }
+    if (!res.ok || json?.success !== true || !json?.data) {
+        throw new Error(json?.message || "Gagal mengambil detail properti");
+    }
 
   const d = json.data;
 
@@ -459,40 +416,40 @@ export async function fetchPropertyDetail(
     return hasAny ? obj : null;
   })();
 
-  // Merge features: prefer API-provided features if available, then add derived ones
-  const apiFeatures: Array<{ featureName: string; featureValue: string }> = Array.isArray(d.features)
-    ? (d.features as any[])
-        .map((x) => ({
-          featureName: String(x?.featureName ?? x?.name ?? x?.key ?? "").trim(),
-          featureValue: String(x?.featureValue ?? x?.value ?? "").trim(),
-        }))
-        .filter((x) => x.featureName.length > 0)
-    : [];
-  const derivedFeatures = buildFeaturesArray(d);
-  const featureMap = new Map<string, { featureName: string; featureValue: string }>();
-  // API features first
-  for (const f of apiFeatures) {
-    featureMap.set(f.featureName.toLowerCase(), f);
-  }
-  // Add derived features if not present
-  for (const f of derivedFeatures) {
-    const key = f.featureName.toLowerCase();
-    if (!featureMap.has(key)) featureMap.set(key, f);
-  }
-  const features = Array.from(featureMap.values());
+    // Merge features: prefer API-provided features if available, then add derived ones
+    const apiFeatures: Array<{ featureName: string; featureValue: string }> = Array.isArray(d.features)
+        ? (d.features as any[])
+            .map((x) => ({
+                featureName: String(x?.featureName ?? x?.name ?? x?.key ?? "").trim(),
+                featureValue: String(x?.featureValue ?? x?.value ?? "").trim(),
+            }))
+            .filter((x) => x.featureName.length > 0)
+        : [];
+    const derivedFeatures = buildFeaturesArray(d);
+    const featureMap = new Map<string, { featureName: string; featureValue: string }>();
+    // API features first
+    for (const f of apiFeatures) {
+        featureMap.set(f.featureName.toLowerCase(), f);
+    }
+    // Add derived features if not present
+    for (const f of derivedFeatures) {
+        const key = f.featureName.toLowerCase();
+        if (!featureMap.has(key)) featureMap.set(key, f);
+    }
+    const features = Array.from(featureMap.values());
 
-  // Locations: support either array from API or parse from string
-  let locations: { poiName: string; distanceKm: number }[] = [];
-  if (Array.isArray(d.locations)) {
-    locations = (d.locations as any[])
-      .map((l) => ({
-        poiName: String(l?.poiName ?? l?.name ?? "").trim(),
-        distanceKm: Number(l?.distanceKm ?? l?.distance ?? 0) || 0,
-      }))
-      .filter((l) => l.poiName.length > 0);
-  } else {
-    locations = parseNearbyPlaces(d.nearby_places ?? d.nearbyPlaces ?? null);
-  }
+    // Locations: support either array from API or parse from string
+    let locations: { poiName: string; distanceKm: number }[] = [];
+    if (Array.isArray(d.locations)) {
+        locations = (d.locations as any[])
+            .map((l) => ({
+                poiName: String(l?.poiName ?? l?.name ?? "").trim(),
+                distanceKm: Number(l?.distanceKm ?? l?.distance ?? 0) || 0,
+            }))
+            .filter((l) => l.poiName.length > 0);
+    } else {
+        locations = parseNearbyPlaces(d.nearby_places ?? d.nearbyPlaces ?? null);
+    }
 
   const mainImage = (d.file_path ?? d.filePath ?? null);
   const galleryImages = Array.isArray(d.images) ? d.images : [];
@@ -540,38 +497,38 @@ export async function fetchPropertyDetail(
     developer,
   };
 
-  return result;
+    return result;
 }
 
 export async function fetchKprHistory() {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_HISTORY}`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_HISTORY}`;
 
-  try {
-    const res = await fetchWithAuth(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+        const res = await fetchWithAuth(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
 
-    const json = await res.json();
+        const json = await res.json();
 
-    if (res.ok && json.success) {
-      return { success: true, data: json.data || [], message: json.message };
+        if (res.ok && json.success) {
+            return { success: true, data: json.data || [], message: json.message };
+        }
+        return {
+            success: false,
+            data: [],
+            message: json.message || "Gagal mengambil riwayat pengajuan KPR.",
+        };
+    } catch (e) {
+        console.error("KPR History Error:", e);
+        return {
+            success: false,
+            data: [],
+            message: "Terjadi kesalahan koneksi ke server.",
+        };
     }
-    return {
-      success: false,
-      data: [],
-      message: json.message || "Gagal mengambil riwayat pengajuan KPR.",
-    };
-  } catch (e) {
-    console.error("KPR History Error:", e);
-    return {
-      success: false,
-      data: [],
-      message: "Terjadi kesalahan koneksi ke server.",
-    };
-  }
 }
 
 // ==============================
@@ -579,178 +536,144 @@ export async function fetchKprHistory() {
 // ==============================
 
 export async function fetchUserFavorites() {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.FETCH_FAVORITES}`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.FETCH_FAVORITES}`;
 
-  try {
-    const res = await fetchWithAuth(url, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    try {
+        const res = await fetchWithAuth(url, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+            },
+        });
 
-    const json = await res.json();
+        const json = await res.json();
 
-    if (res.ok && json.success) {
-      return { success: true, data: json.data || [] };
-    } else {
-      return { success: false, data: [], message: json.message };
+        if (res.ok && json.success) {
+            return { success: true, data: json.data || [] };
+        } else {
+            return { success: false, data: [], message: json.message };
+        }
+    } catch (error) {
+        console.error("Fetch Wishlist Error:", error);
+        return { success: false, data: [], message: "Gagal memuat wishlist." };
     }
-  } catch (error) {
-    console.error("Fetch Wishlist Error:", error);
-    return { success: false, data: [], message: "Gagal memuat wishlist." };
-  }
 }
 
-// export async function toggleFavorite(propertyId: number | string) {
-//   const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE(propertyId)}`;
-//   const token = getCookie("token") || "";
-//   const tokenType = getCookie("token_type") || "Bearer";
-
-//   try {
-//     const res = await fetch(url, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: token ? `${tokenType} ${token}` : "",
-//       },
-//     });
-
-//     const json = await res.json();
-
-//     if (res.ok && json.success) {
-//       return {
-//         success: true,
-//         message: json.message || "Toggle favorite success",
-//         data: json.data,
-//       };
-//     } else {
-//       return {
-//         success: false,
-//         message: json.message || "Gagal mengubah status favorit.",
-//       };
-//     }
-//   } catch (error) {
-//     console.error("Toggle Favorite Error:", error);
-//     return { success: false, message: "Terjadi kesalahan koneksi ke server." };
-//   }
-// }
-
 export async function verifyOtpApi(payload: {
-  identifier: string;
-  otp: string;
-  purpose: string;
+    identifier: string;
+    otp: string;
+    purpose: string;
 }) {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.VERIFY_OTP}`; // Tambahkan VERIFY_OTP ke ENDPOINTS
-  
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    const url = `${API_BASE_URL}${API_ENDPOINTS.VERIFY_OTP}`; // Tambahkan VERIFY_OTP ke ENDPOINTS
 
-    const json = await res.json();
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
 
-    if (res.ok && json.success) {
-      return {
-        success: true,
-        message: json.message,
-        data: json.data,
-      };
-    } else {
-      return {
-        success: false,
-        message: json.message || "Verifikasi OTP gagal.",
-      };
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+            return {
+                success: true,
+                message: json.message,
+                data: json.data,
+            };
+        } else {
+            return {
+                success: false,
+                message: json.message || "Verifikasi OTP gagal.",
+            };
+        }
+    } catch (error) {
+        console.error("Verify OTP Error:", error);
+        return { success: false, message: "Terjadi kesalahan koneksi." };
     }
-  } catch (error) {
-    console.error("Verify OTP Error:", error);
-    return { success: false, message: "Terjadi kesalahan koneksi." };
-  }
 }
 export async function toggleFavorite(propertyId: number | string) {
 
-  const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?propertyId=${propertyId}`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?propertyId=${propertyId}`;
 
-  try {
-    const res = await fetchWithAuth(url, {
-      method: "POST",
-      // Jangan pakai Content-Type json tanpa body; beberapa backend menganggap ini error
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    try {
+        const res = await fetchWithAuth(url, {
+            method: "POST",
+            // Jangan pakai Content-Type json tanpa body; beberapa backend menganggap ini error
+            headers: {
+                Accept: "application/json",
+            },
+        });
 
-    const json = await res.json();
+        const json = await res.json();
 
-    if (res.ok && json.success) {
-      return {
-        success: true,
-        message: json.message || "Toggle favorite success",
-        data: json.data,
-      };
-    } else {
-      return {
-        success: false,
-        message: json.message || "Gagal mengubah status favorit.",
-      };
+        if (res.ok && json.success) {
+            return {
+                success: true,
+                message: json.message || "Toggle favorite success",
+                data: json.data,
+            };
+        } else {
+            return {
+                success: false,
+                message: json.message || "Gagal mengubah status favorit.",
+            };
+        }
+    } catch (error) {
+        console.error("Toggle Favorite Error:", error);
+        return { success: false, message: "Terjadi kesalahan koneksi ke server." };
     }
-  } catch (error) {
-    console.error("Toggle Favorite Error:", error);
-    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
-  }
 }
 
 export async function updateUserProfile(userId: number, payload: any) {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.UPDATE_PROFILE(userId)}`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.UPDATE_PROFILE(userId)}`;
 
-  try {
-    const res = await fetchWithAuth(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+        const res = await fetchWithAuth(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
 
-    const json = await res.json();
-    if (!res.ok) {
-      return { success: false, message: json.message || "Gagal memperbarui profil." };
+        const json = await res.json();
+        if (!res.ok) {
+            return { success: false, message: json.message || "Gagal memperbarui profil." };
+        }
+
+        return { success: true, message: json.message, data: json.data };
+    } catch (e) {
+        console.error("Update Profile Error:", e);
+        return { success: false, message: "Terjadi kesalahan koneksi ke server." };
     }
-
-    return { success: true, message: json.message, data: json.data };
-  } catch (e) {
-    console.error("Update Profile Error:", e);
-    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
-  }
 }
 
 export async function fetchKprDetail(id: number | string) {
-  const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_DETAIL(id)}`;
+    const url = `${API_BASE_URL}${API_ENDPOINTS.KPR_DETAIL(id)}`;
 
-  try {
-    const res = await fetchWithAuth(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+        const res = await fetchWithAuth(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
 
-    const json = await res.json();
+        const json = await res.json();
 
-    if (res.ok && json.success && json.data) {
-      return { success: true, data: json.data, message: json.message };
-    } else {
-      return {
-        success: false,
-        message: json.message || "Gagal memuat detail pengajuan.",
-      };
+        if (res.ok && json.success && json.data) {
+            return { success: true, data: json.data, message: json.message };
+        } else {
+            return {
+                success: false,
+                message: json.message || "Gagal memuat detail pengajuan.",
+            };
+        }
+    } catch (error) {
+        console.error("Fetch KPR Detail Error:", error);
+        return { success: false, message: "Terjadi kesalahan koneksi ke server." };
     }
-  } catch (error) {
-    console.error("Fetch KPR Detail Error:", error);
-    return { success: false, message: "Terjadi kesalahan koneksi ke server." };
-  }
 }

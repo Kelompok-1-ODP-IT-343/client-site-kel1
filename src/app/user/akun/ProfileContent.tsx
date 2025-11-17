@@ -13,6 +13,7 @@ import { getCookie } from "@/app/lib/cookie";
 import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
 import { fetchWithAuth } from "@/app/lib/authFetch";
 import rawData from "@/data/indonesia.json";
+import { formatRegionLabel } from "@/app/lib/util";
 
 import {
   ALLOWED_TYPES,
@@ -29,15 +30,35 @@ export default function ProfilContent() {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const prevUrlRef = useRef<string | null>(null);
   const indonesiaData = rawData as {
-  province: string;
-  city: string;
-  sub_district: string;
-  postal_code: string;
+    province: string;
+    city: string;
+    district: string;
+    sub_district: string; // kelurahan
+    postal_code: string;
   }[];
   const [provinsiList, setProvinsiList] = useState<string[]>([]);
   const [kotaList, setKotaList] = useState<string[]>([]);
   const [kecamatanList, setKecamatanList] = useState<string[]>([]);
+  const [kelurahanList, setKelurahanList] = useState<string[]>([]);
   const [kodePosList, setKodePosList] = useState<string[]>([]);
+
+  // Label map untuk Title Case tampilan dropdown wilayah
+  const provinceLabelMap = useMemo(
+    () => Object.fromEntries(provinsiList.map((v) => [v, formatRegionLabel(v)])),
+    [provinsiList]
+  );
+  const cityLabelMap = useMemo(
+    () => Object.fromEntries(kotaList.map((v) => [v, formatRegionLabel(v)])),
+    [kotaList]
+  );
+  const districtLabelMap = useMemo(
+    () => Object.fromEntries(kecamatanList.map((v) => [v, formatRegionLabel(v)])),
+    [kecamatanList]
+  );
+  const subDistrictLabelMap = useMemo(
+    () => Object.fromEntries(kelurahanList.map((v) => [v, formatRegionLabel(v)])),
+    [kelurahanList]
+  );
 
   const { user } = useAuth();
 
@@ -103,6 +124,7 @@ export default function ProfilContent() {
             address: d.address || "",
             city: d.city || "",
             province: d.province || "",
+            district: d.district || "",
             sub_district: d.subDistrict || d.sub_district || "",
             postal_code: d.postalCode || d.postal_code || "",
             occupation: d.occupation || "",
@@ -127,23 +149,49 @@ export default function ProfilContent() {
   }, []);
 
   useEffect(() => {
-    if (!formData.province) return;
+    if (!formData.province) {
+      setKotaList([]);
+      setKecamatanList([]);
+      setKelurahanList([]);
+      setKodePosList([]);
+      return;
+    }
     const cities = indonesiaData
       .filter((d) => d.province === formData.province)
       .map((d) => d.city);
     setKotaList([...new Set(cities)]);
     setKecamatanList([]);
+    setKelurahanList([]);
     setKodePosList([]);
   }, [formData.province]);
 
   useEffect(() => {
-    if (!formData.city) return;
+    if (!formData.city) {
+      setKecamatanList([]);
+      setKelurahanList([]);
+      setKodePosList([]);
+      return;
+    }
     const districts = indonesiaData
       .filter((d) => d.city === formData.city)
-      .map((d) => d.sub_district);
+      .map((d) => d.district);
     setKecamatanList([...new Set(districts)]);
+    setKelurahanList([]);
     setKodePosList([]);
   }, [formData.city]);
+
+  useEffect(() => {
+    if (!formData.district) {
+      setKelurahanList([]);
+      setKodePosList([]);
+      return;
+    }
+    const subs = indonesiaData
+      .filter((d) => d.district === formData.district)
+      .map((d) => d.sub_district);
+    setKelurahanList([...new Set(subs)]);
+    setKodePosList([]);
+  }, [formData.district]);
 
 useEffect(() => {
   if (!formData.sub_district) return;
@@ -252,6 +300,8 @@ useEffect(() => {
           address: formData.address,
           city: formData.city,
           province: formData.province,
+          district: formData.district,
+          subDistrict: formData.sub_district,
           postalCode: formData.postal_code,
           occupation: formData.occupation,
           companyName: formData.company_name,
@@ -385,6 +435,7 @@ useEffect(() => {
               value={formData.province}
               onChange={handleChange}
               options={provinsiList}
+              labelMap={provinceLabelMap}
             />
 
             <SelectField
@@ -393,16 +444,28 @@ useEffect(() => {
               value={formData.city}
               onChange={handleChange}
               options={kotaList}
+              labelMap={cityLabelMap}
               disabled={!formData.province}
             />
 
             <SelectField
-              name="sub_district"
+              name="district"
               label="Kecamatan"
-              value={formData.sub_district}
+              value={formData.district}
               onChange={handleChange}
               options={kecamatanList}
+              labelMap={districtLabelMap}
               disabled={!formData.city}
+            />
+
+            <SelectField
+              name="sub_district"
+              label="Kelurahan"
+              value={formData.sub_district}
+              onChange={handleChange}
+              options={kelurahanList}
+              labelMap={subDistrictLabelMap}
+              disabled={!formData.district}
             />
 
             <SelectField

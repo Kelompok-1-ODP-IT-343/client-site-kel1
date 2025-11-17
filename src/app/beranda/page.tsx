@@ -228,13 +228,72 @@ function ExploreSection({
   error: string;
 }) {
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [dotCount, setDotCount] = useState(1);
+  const [activeDot, setActiveDot] = useState(0);
+  const autoplayIdRef = useRef<number | null>(null);
+
+  // Helper untuk menghitung lebar 1 langkah scroll (lebar kartu + gap)
+  const getStep = () => {
+    const el = sliderRef.current;
+    if (!el) return 340; // fallback
+    const firstChild = el.firstElementChild as HTMLElement | null;
+    const width = firstChild?.clientWidth ?? 340;
+    // Ambil gap dari flex container (Tailwind gap-8 ~= 2rem => 32px)
+    const gapStr = getComputedStyle(el).gap || getComputedStyle(el).columnGap || "0";
+    const gap = Number.parseFloat(gapStr) || 32;
+    return width + gap;
+  };
 
   const scroll = (direction: "left" | "right") => {
     if (sliderRef.current) {
-      const scrollAmount = direction === "left" ? -340 : 340;
+      const step = getStep();
+      const scrollAmount = direction === "left" ? -step : step;
       sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
+
+  // Hitung jumlah dot dan indeks aktif berdasarkan posisi scroll
+  useEffect(() => {
+    const el = sliderRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const step = getStep();
+      const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+      const total = maxScroll > 0 ? Math.floor(maxScroll / step) + 1 : 1;
+      setDotCount(total);
+      setActiveDot(Math.max(0, Math.min(total - 1, Math.round(el.scrollLeft / step))));
+    };
+
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const onResize = () => update();
+    window.addEventListener("resize", onResize);
+    return () => {
+      el.removeEventListener("scroll", update as EventListener);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [items]);
+
+  // Autoplay: geser otomatis setiap 5 detik, kembali ke awal saat mencapai akhir
+  useEffect(() => {
+    const el = sliderRef.current;
+    if (!el) return;
+    const tick = () => {
+      const step = getStep();
+      const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+      const nearEnd = el.scrollLeft >= maxScroll - 2;
+      const nextLeft = nearEnd ? 0 : Math.min(el.scrollLeft + step, maxScroll);
+      el.scrollTo({ left: nextLeft, behavior: "smooth" });
+    };
+    autoplayIdRef.current = window.setInterval(tick, 5000);
+    return () => {
+      if (autoplayIdRef.current) {
+        clearInterval(autoplayIdRef.current);
+        autoplayIdRef.current = null;
+      }
+    };
+  }, [items]);
 
   return (
     <section className="py-20 sm:py-24" style={{ backgroundColor: "#FFFEEB" }}>
@@ -266,23 +325,11 @@ function ExploreSection({
           </div>
         ) : (
           <div className="relative">
-            <button
-              onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition"
-            >
-              <ChevronLeft className="w-6 h-6 text-gray-700" />
-            </button>
-
-            <button
-              onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition"
-            >
-              <ChevronRight className="w-6 h-6 text-gray-700" />
-            </button>
+            {/* Arrow buttons removed as requested */}
 
             <div
               ref={sliderRef}
-              className="flex gap-8 overflow-x-auto pb-4 scroll-smooth scrollbar-hide px-10"
+              className="flex gap-8 overflow-x-auto pb-4 scroll-smooth no-scrollbar px-10"
             >
               {items.map((it) => (
                 <div
@@ -297,6 +344,27 @@ function ExploreSection({
                     image={absoluteImg(it.main_image)}
                   />
                 </div>
+              ))}
+            </div>
+
+            {/* Dots indicator */}
+            <div className="mt-4 flex items-center justify-center gap-2">
+              {Array.from({ length: dotCount }).map((_, i) => (
+                <button
+                  key={i}
+                  aria-label={`Halaman ${i + 1}`}
+                  onClick={() => {
+                    const el = sliderRef.current;
+                    if (!el) return;
+                    const step = getStep();
+                    const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+                    const target = Math.min(i * step, maxScroll);
+                    el.scrollTo({ left: target, behavior: "smooth" });
+                  }}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === activeDot ? "bg-[#FF8500] w-6" : "bg-gray-300 w-2"
+                  }`}
+                />
               ))}
             </div>
           </div>
