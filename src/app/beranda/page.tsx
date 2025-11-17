@@ -415,7 +415,10 @@ function PropertyCard({
         <p className="flex items-center text-gray-600 mt-2 text-sm">
           <MapPin size={16} className="mr-1.5 text-gray-500" /> {location}
         </p>
-        <p className="mt-4 text-2xl font-extrabold text-[#FF8500]">{price}</p>
+        <p className="mt-4 text-2xl font-extrabold">
+          <span className="text-[#FF8500]">Rp</span>{" "}
+          <span className="text-[#FF8500]">{price.replace(/^Rp\s*/, "")}</span>
+        </p>
       </div>
     </motion.div>
   );

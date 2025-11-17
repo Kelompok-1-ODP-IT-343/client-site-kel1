@@ -109,6 +109,11 @@ h3 {
   /* Hapus 'font-size' dan 'font-weight' */
 }
 
+/* Hide page-level horizontal scrollbar */
+html, body {
+  overflow-x: hidden;
+}
+
 p {
   color: #495057;
   /* Hapus 'font-size' dan 'line-height' */

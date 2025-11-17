@@ -490,17 +490,20 @@ function HouseCard({
                         e.stopPropagation();
                         onToggleFavorite(house.id);
                     }}
-                    className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 z-20"
+                    className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 z-20"
                     aria-label="Toggle Favorite"
+                    aria-pressed={isFavorite}
                 >
                     <svg
                         viewBox="0 0 24 24"
                         width="20"
                         height="20"
+                        stroke="currentColor"
+                        strokeWidth="2"
                         className={
                             isFavorite
                                 ? "fill-red-500 text-red-500"
-                                : "fill-transparent text-gray-600"
+                                : "fill-transparent text-red-600"
                         }
                     >
                         <path d="M12 21s-6.716-4.438-9.333-7.056C.517 11.794.5 9.5 2.1 7.9c1.6-1.6 4.2-1.6 5.8 0L12 12l4.1-4.1c1.6-1.6 4.2-1.6 5.8 0 1.6 1.6 1.583 3.894-.567 6.044C18.716 16.562 12 21 12 21z" />
@@ -512,11 +515,11 @@ function HouseCard({
                 <h3 className="font-bold text-gray-800 text-lg truncate mt-1">
                     {house.title}
                 </h3>
-                <p className="text-sm text-gray-500 flex items-center mt-1">
+                <p className="text-sm text-gray-500 flex items-center mt-1 mb-0.5">
                     <MapPin size={14} className="mr-1 flex-shrink-0" />
                     {house.city}
                 </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 mt-3 py-3 border-y border-black/60 min-h-[48px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 mt-0.5 py-1 border-y border-black min-h-[48px]">
                     {[
                         { Icon: BedDouble, label: "Kamar Tidur", value: bedroom },
                         { Icon: Bath, label: "Kamar Mandi", value: bathroom },
@@ -531,17 +534,20 @@ function HouseCard({
                 <span className="font-semibold text-sm text-gray-800">
                   {value ?? "-"}
                 </span>
-                <span className="text-gray-500 uppercase">{label}</span>
+                <span className="text-gray-500">{label}</span>
               </div>
             </div>
           ))}
         </div>
                 <div className="mt-3">
-                    <p className="text-sm text-gray-500">Harga mulai</p>
-                    <p className="text-xl font-bold text-bni-orange">{formattedPrice}</p>
+                    <p className="text-sm text-gray-500 mb-0.5">Harga mulai</p>
+                    <p className="text-xl font-bold mb-0.5">
+                      <span className="text-bni-orange">Rp</span>{" "}
+                      <span className="text-bni-orange">{formattedPrice.replace(/^Rp\s*/, "")}</span>
+                    </p>
                 </div>
 
-        <div className="mt-4 pt-3 flex-grow flex items-end">
+        <div className="mt-0.5 pt-0.5 flex-grow flex items-end">
           <div className="grid grid-cols-2 gap-2 w-full">
             <button
               onClick={(e) => {

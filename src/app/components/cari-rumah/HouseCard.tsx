@@ -36,7 +36,10 @@ export default function HouseCard({ house, isFavorite, onToggleFavorite }: House
           <div className="flex items-center gap-1"><Bath size={16}/> {house.bathrooms}</div>
           <div className="flex items-center gap-1"><Home size={16}/> {house.building_area} m²</div>
         </div>
-        <p className="mt-4 text-2xl font-extrabold text-bni-dark-blue">{formattedPrice}</p>
+        <p className="mt-4 text-2xl font-extrabold">
+          <span className="text-bni-orange">Rp</span>{" "}
+          <span className="text-bni-orange">{formattedPrice.replace(/^Rp\s*/, "")}</span>
+        </p>
           <Link href={`/user/detail-pengajuan/${house.id}`} passHref>
             <button className="w-full bg-bni-orange text-white font-semibold py-2.5 rounded-lg hover:bg-bni-orange/90 transition-all">
               Lihat Detail & Simulasi
