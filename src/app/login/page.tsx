@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock } from "lucide-react";
 import { loginApi } from "@/app/lib/coreApi";
+import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
+import { fetchWithAuth } from "@/app/lib/authFetch";
 import { useAuth } from "@/app/lib/authContext";
 import { setCookie } from "@/app/lib/cookie";
 
@@ -92,12 +94,24 @@ function LoginContent() {
         if (res.data.otpRequired === false) {
           setCookie("token", res.data.token, 86400);
           setCookie("token_type", res.data.tokenType || "Bearer", 86400);
-          login({
-            id: res.data.id,
-            fullName: res.data.fullName,
-            photoUrl: res.data.photoUrl || "",
-          });
-          router.replace(finalRedirectPath);
+          // Fetch profile once after login to ensure we store the canonical full name
+          (async () => {
+            try {
+              const prof = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`, { method: "GET" });
+              const json = await prof.json().catch(() => ({}));
+              const d = json?.data || {};
+              login({
+                id: d.id ?? res.data.id,
+                fullName: d.fullName || res.data.fullName || form.email,
+                photoUrl: d.photoUrl || res.data.photoUrl || "",
+              });
+            } catch {
+              // Fallback to response data if profile fetch fails
+              login({ id: res.data.id, fullName: res.data.fullName || form.email, photoUrl: res.data.photoUrl || "" });
+            } finally {
+              router.replace(finalRedirectPath);
+            }
+          })();
         } else {
           // default: arahkan ke OTP
           router.replace(`${otpVerificationPath}?${params.toString()}`);

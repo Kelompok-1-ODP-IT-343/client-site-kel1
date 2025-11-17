@@ -11,12 +11,26 @@ import {
   Compass,
   MessageCircle,
   Building,
+  Calendar,
+  Hash,
+  Ruler,
+  BedDouble,
+  Bath,
+  Car,
+  Receipt,
+  ShieldCheck,
+  Eye,
+  Heart,
+  MessageSquare,
+  Phone,
+  Mail,
+  Globe,
 } from "lucide-react";
 import FeatureList from "@/app/components/FeatureList";
 import { fetchPropertyDetail } from "@/app/lib/coreApi";
 import type { PropertyDetail } from "@/app/lib/types";
 import PropertyGallery from "@/app/components/PropertyGallery";
-import DeveloperDetails from "@/app/components/DeveloperDetails";
+// Removed modal-based DeveloperDetails in favor of inline compact rows
 
 export const fmtIDR = (v: unknown): string => {
   const raw = typeof v === "string" ? v.replace(/[^0-9.-]/g, "") : v;
@@ -58,6 +72,14 @@ export default async function PropertyDetailPage({
   }
 
   const formattedPrice = fmtIDR(detail.price);
+  const fullAddress = [
+    detail.address,
+    [detail.subdistrict, detail.district].filter(Boolean).join(", ") || null,
+    [detail.city, detail.province].filter(Boolean).join(", ") || null,
+    detail.postalCode ? `Kode Pos ${detail.postalCode}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const targetAjukanParams = new URLSearchParams({
     propertiId: String(detail.id),
@@ -104,41 +126,63 @@ export default async function PropertyDetailPage({
           <Card title="Galeri Properti" icon={<Home />}>
             <PropertyGallery images={detail.images} title={detail.title} />
           </Card>
-          <Card title="Deskripsi & Spesifikasi" icon={<FileText />}>
-            {" "}
-            <h3 className="text-xl font-bold text-gray-800 mb-2">
-              Deskripsi
-            </h3>{" "}
-            <p className="mb-6 text-gray-600 prose prose-sm max-w-none">
+          <div className="mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <div className="space-y-2">
+                <DevRow label="Alamat" value={detail.address} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
+                <DevRow label="Kelurahan/Desa" value={detail.subdistrict} icon={<FileText className="w-4 h-4 text-orange-500" />} />
+                <DevRow label="Kecamatan" value={detail.district} icon={<FileText className="w-4 h-4 text-orange-500" />} />
+              </div>
+              <div className="space-y-2">
+                <DevRow label="Kota/Kabupaten" value={detail.city} icon={<FileText className="w-4 h-4 text-orange-500" />} />
+                <DevRow label="Provinsi" value={detail.province} icon={<FileText className="w-4 h-4 text-orange-500" />} />
+              </div>
+            </div>
+          </div>
+          {/* Keterangan Properti */}
+          <Card title="Keterangan Properti" icon={<FileText />}>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Deskripsi</h3>
+            <p className="mb-6 text-gray-600 whitespace-pre-line">
               {fmtNum(detail.description)}
-            </p>{" "}
-            <h3 className="text-xl font-bold text-gray-800 mb-3">
-              Detail Properti
-            </h3>{" "}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <DetailTile
-                icon={<Home className="w-5 h-5" />}
-                label="Tipe Properti"
-                value={fmtNum(detail.property_type)}
-              />
-              <DeveloperDetails dev={detail.developer} />
-              <DetailTile
-                icon={<Building className="w-5 h-5" />}
-                label="Tipe Developer"
-                value={formatPartnership(detail.developer?.partnershipLevel)}
-              />
-              <DetailTile
-                icon={<Landmark className="w-5 h-5" />}
-                label="Kota"
-                value={fmtNum(detail.city)}
-              />
-            </div>{" "}
-            <h3 className="text-xl font-bold text-gray-800 mb-3">Fitur & Spesifikasi</h3>
-            <FeatureList features={featuresNoCarport} />
-          </Card>{" "}
+            </p>
+            <h3 className="text-xl font-bold text-gray-800 mb-3">Detail Umum</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+              <DetailTile icon={<Home className="w-5 h-5" />} label="Tipe Properti" value={fmtNum(detail.property_type)} />
+              <DetailTile icon={<Landmark className="w-5 h-5" />} label="Kota" value={fmtNum(detail.city)} />
+              <DetailTile icon={<Hash className="w-5 h-5" />} label="Kode Properti" value={fmtNum(detail.property_code)} />
+              <DetailTile icon={<Calendar className="w-5 h-5" />} label="Tahun Dibangun" value={detail.yearBuilt ?? "-"} />
+              <DetailTile icon={<Calendar className="w-5 h-5" />} label="Serah Terima" value={fmtNum(detail.handoverDate)} />
+              <DetailTile icon={<Calendar className="w-5 h-5" />} label="Ketersediaan" value={fmtNum(detail.availabilityDate)} />
+            </div>
+          </Card>
+
+          {/* Spesifikasi Teknis */}
+          <Card title="Fitur Rumah" icon={<Ruler />}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoItem label="Kamar Tidur" value={detail.bedrooms ?? "-"} icon={<BedDouble className="w-5 h-5" />} />
+              <InfoItem label="Harga per m²" value={detail.pricePerSqm ? fmtIDR(detail.pricePerSqm) : "-"} icon={<Receipt className="w-5 h-5" />} />
+              <InfoItem label="Jumlah Lantai" value={detail.floors ?? "-"} icon={<Ruler className="w-5 h-5" />} />
+              <InfoItem label="Luas Tanah" value={detail.landArea ? `${detail.landArea} m²` : "-"} icon={<Home className="w-5 h-5" />} />
+              <InfoItem label="Kamar Mandi" value={detail.bathrooms ?? "-"} icon={<Bath className="w-5 h-5" />} />
+              <InfoItem label="Luas Bangunan" value={detail.buildingArea ? `${detail.buildingArea} m²` : "-"} icon={<Home className="w-5 h-5" />} />
+
+              <InfoItem label="Garasi/Carport" value={detail.garage ?? "-"} icon={<Car className="w-5 h-5" />} />
+            </div>
+          </Card>
+
+          {/* Legalitas & Pajak */}
+          <Card title="Legalitas & Pajak" icon={<ShieldCheck />}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoItem label="Jenis Sertifikat" value={fmtNum(detail.certificate_type)} icon={<ShieldCheck className="w-5 h-5" />} />
+              <InfoItem label="Luas Sertifikat" value={detail.certificateArea ? `${detail.certificateArea} m²` : "-"} icon={<Ruler className="w-5 h-5" />} />
+              <InfoItem label="PBB (per tahun)" value={detail.pbb_value ? fmtIDR(detail.pbb_value) : "-"} icon={<Receipt className="w-5 h-5" />} />
+              <InfoItem label="Biaya Pemeliharaan" value={detail.maintenanceFee != null ? fmtIDR(detail.maintenanceFee) : "-"} icon={<Receipt className="w-5 h-5" />} />
+
+            </div>
+          </Card>
 
           {/* Lokasi dan Tempat Sekitar */}
-          <Card title="Lokasi dan Tempat Sekitar" icon={<Compass />}>
+          <Card title="Lokasi & Sekitar" icon={<Compass />}>
             <h3 className="text-lg font-bold text-gray-800 mb-2">
               Lihat Lokasi di Peta
             </h3>
@@ -184,6 +228,30 @@ export default async function PropertyDetailPage({
               )}
             </div>
           </Card>{" "}
+
+          {/* Developer */}
+          {detail.developer && (
+            <Card title="Developer" icon={<Building />}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div className="space-y-2">
+                  <DevRow label="Nama Perusahaan" value={detail.developer.companyName} icon={<Building className="w-4 h-4 text-orange-500" />} />
+                  <DevRow label="Kemitraan" value={formatPartnership(detail.developer.partnershipLevel)} icon={<FileText className="w-4 h-4 text-orange-500" />} />
+                  <DevRow label="Contact Person" value={detail.developer.contactPerson} icon={<FileText className="w-4 h-4 text-orange-500" />} />
+                  <DevRow label="Telepon" value={detail.developer.phone} icon={<Phone className="w-4 h-4 text-orange-500" />} href={detail.developer.phone ? `tel:${detail.developer.phone}` : undefined} />
+                </div>
+                <div className="space-y-2">
+                  <DevRow label="Email" value={detail.developer.email} icon={<Mail className="w-4 h-4 text-orange-500" />} href={detail.developer.email ? `mailto:${detail.developer.email}` : undefined} />
+                  <DevRow label="Website" value={detail.developer.website} icon={<Globe className="w-4 h-4 text-orange-500" />} href={detail.developer.website ? (detail.developer.website.startsWith("http") ? detail.developer.website : `https://${detail.developer.website}`) : undefined} external />
+                  <DevRow
+                          label="Alamat"
+                          value={`${detail.developer.address}, ${detail.developer.city}, ${detail.developer.province}`}
+                          icon={<MapPin className="w-4 h-4 text-orange-500" />}
+                  />
+
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
         <div className="flex flex-col gap-8">
           {" "}
@@ -196,6 +264,16 @@ export default async function PropertyDetailPage({
                 </p>
               </div>
             </Card>
+            {/* KPR & Simulasi */}
+            <Card title="KPR & Simulasi" icon={<CreditCard />}>
+              <div className="grid grid-cols-1 gap-3 text-sm">
+                <InfoItem label="Tipe Listing" value={fmtNum(detail.listing_type)} icon={<FileText className="w-5 h-5" />} />
+                <InfoItem label="Tipe Properti" value={fmtNum(detail.property_type)} icon={<Home className="w-5 h-5" />} />
+                <InfoItem label="Uang Muka Minimum" value={detail.minDownPaymentPercent != null ? `${detail.minDownPaymentPercent}%` : "-"} icon={<Receipt className="w-5 h-5" />} />
+                <InfoItem label="Tenor Maksimum" value={detail.maxLoanTermYears != null ? `${detail.maxLoanTermYears} tahun` : "-"} icon={<Calendar className="w-5 h-5" />} />
+              </div>
+            </Card>
+
             <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
               <h3 className="font-bold text-lg text-gray-800 text-center">
                 Siap Mengajukan KPR?
@@ -315,6 +393,41 @@ function DetailTile({
           <p className="font-semibold text-gray-900">{value ?? "-"}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function DevRow({
+  label,
+  value,
+  icon,
+  href,
+  external,
+}: {
+  label: string;
+  value?: string | null;
+  icon?: React.ReactNode;
+  href?: string;
+  external?: boolean;
+}) {
+  const display = value && String(value).trim().length > 0 ? String(value) : "-";
+  const content = href && display !== "-" ? (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className="text-gray-800 font-semibold hover:text-bni-orange break-words"
+    >
+      {display}
+    </a>
+  ) : (
+    <span className="text-gray-800 font-semibold break-words">{display}</span>
+  );
+  return (
+    <div className="flex items-start gap-2 py-1">
+      {icon && <span className="mt-0.5">{icon}</span>}
+      <span className="w-40 shrink-0 text-gray-500">{label}</span>
+      <div className="flex-1 min-w-0">{content}</div>
     </div>
   );
 }

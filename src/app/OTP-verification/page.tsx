@@ -4,6 +4,8 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { verifyOtpApi } from "@/app/lib/coreApi";
+import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
+import { fetchWithAuth } from "@/app/lib/authFetch";
 import { useAuth } from "@/app/lib/authContext";
 import { setCookie } from "@/app/lib/cookie";
 
@@ -97,11 +99,21 @@ function OTPVerificationContent() {
               const saved = localStorage.getItem("user");
               if (saved) previousFullName = JSON.parse(saved)?.fullName || "";
             } catch {}
-            const displayName =
-              fullName || decodedToken.fullName || decodedToken.name || previousFullName || "Pengguna";
-
-            login({ id: userId || identifier || "", fullName: displayName, photoUrl: photoUrl || "/profile.png" });
-            router.replace(finalRedirectPath);
+            // Try to fetch canonical profile once after login
+            (async () => {
+              try {
+                const prof = await fetchWithAuth(`${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`, { method: "GET" });
+                const json = await prof.json().catch(() => ({}));
+                const d = json?.data || {};
+                const displayName = d.fullName || fullName || decodedToken.fullName || decodedToken.name || previousFullName || "Pengguna";
+                login({ id: d.id ?? userId ?? identifier ?? "", fullName: displayName, photoUrl: d.photoUrl || photoUrl || "/profile.png" });
+              } catch {
+                const displayName = fullName || decodedToken.fullName || decodedToken.name || previousFullName || "Pengguna";
+                login({ id: userId || identifier || "", fullName: displayName, photoUrl: photoUrl || "/profile.png" });
+              } finally {
+                router.replace(finalRedirectPath);
+              }
+            })();
           } else {
             setError("");
             setNotice("Verifikasi berhasil. Silakan login untuk melanjutkan.");

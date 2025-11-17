@@ -442,6 +442,23 @@ export async function fetchPropertyDetail(
 
   const d = json.data;
 
+  // Normalize developer object with safe fallbacks
+  const developer = (() => {
+    const src = d && d.developer && typeof d.developer === "object" ? d.developer : {};
+    const companyName = src.companyName ?? src.name ?? d.developer_name ?? d.developerName ?? null;
+    const partnershipLevel = src.partnershipLevel ?? src.level ?? d.partnership_level ?? d.developer_level ?? null;
+    const contactPerson = src.contactPerson ?? src.contact ?? d.developer_contact ?? null;
+    const phone = src.phone ?? src.telephone ?? src.telepon ?? d.developer_phone ?? null;
+    const email = src.email ?? d.developer_email ?? null;
+    const website = src.website ?? d.developer_website ?? null;
+    const address = src.address ?? d.developer_address ?? null;
+    const city = src.city ?? d.developer_city ?? null;
+    const province = src.province ?? d.developer_province ?? null;
+    const obj = { companyName, partnershipLevel, contactPerson, phone, email, website, address, city, province };
+    const hasAny = Object.values(obj).some((v) => v != null && String(v).trim() !== "");
+    return hasAny ? obj : null;
+  })();
+
   // Merge features: prefer API-provided features if available, then add derived ones
   const apiFeatures: Array<{ featureName: string; featureValue: string }> = Array.isArray(d.features)
     ? (d.features as any[])
@@ -485,16 +502,42 @@ export async function fetchPropertyDetail(
     title: d.title,
     description: d.description ?? null,
     city: d.city ?? null,
+    address: d.address ?? d.alamat ?? null,
+    district: d.district ?? d.kecamatan ?? null,
+  subdistrict: d.subdistrict ?? d.subDistrict ?? d.sub_district ?? d.village ?? d.kelurahan ?? d.desa ?? null,
+    province: d.province ?? d.provinsi ?? null,
+    postalCode: d.postalCode ?? d.postal_code ?? d.kodePos ?? null,
     property_type: d.property_type ?? null,
     listing_type: d.listing_type ?? null,
     property_code: d.property_code ?? null,
     latitude: typeof d.latitude === "number" ? d.latitude : d.latitude ? Number(d.latitude) : null,
     longitude: typeof d.longitude === "number" ? d.longitude : d.longitude ? Number(d.longitude) : null,
+    yearBuilt: (typeof d.yearBuilt === "number" ? d.yearBuilt : Number(d.year_built)) || null,
+    handoverDate: d.handoverDate ?? d.handover_date ?? null,
+    availabilityDate: d.availabilityDate ?? d.availability_date ?? null,
+    buildingArea: (typeof d.buildingArea === "number" ? d.buildingArea : Number(d.building_area)) || null,
+    landArea: (typeof d.landArea === "number" ? d.landArea : Number(d.land_area)) || null,
+    pricePerSqm: (typeof d.pricePerSqm === "number" ? d.pricePerSqm : Number(d.price_per_sqm)) || null,
+    floors: (typeof d.floors === "number" ? d.floors : Number(d.total_floors)) || null,
+    bedrooms: (typeof d.bedrooms === "number" ? d.bedrooms : Number(d.total_bedrooms)) || null,
+    bathrooms: (typeof d.bathrooms === "number" ? d.bathrooms : Number(d.total_bathrooms)) || null,
+    garage: (typeof d.garage === "number" ? d.garage : Number(d.carport ?? d.garage_count)) || null,
+    certificateArea: (typeof d.certificateArea === "number" ? d.certificateArea : Number(d.certificate_area)) || null,
+    certificate_type: d.certificate_type ?? d.certificateType ?? null,
+    certificate_number: d.certificate_number ?? d.certificateNumber ?? null,
+    pbb_value: (typeof d.pbb_value === "number" ? d.pbb_value : Number(d.pbbValue)) || null,
     price: Number(d.price ?? 0),
     images: allImages,
     features,
     locations,
-    developer: d.developer ?? null,
+    minDownPaymentPercent: (typeof d.minDownPaymentPercent === "number" ? d.minDownPaymentPercent : Number(d.min_down_payment_percent)) || null,
+    maxLoanTermYears: (typeof d.maxLoanTermYears === "number" ? d.maxLoanTermYears : Number(d.max_loan_term_years)) || null,
+    maintenanceFee: (typeof d.maintenanceFee === "number" ? d.maintenanceFee : Number(d.maintenance_fee)) || null,
+    inquiryCount: (typeof d.inquiryCount === "number" ? d.inquiryCount : Number(d.inquiry_count)) || null,
+    favoriteCount: (typeof d.favoriteCount === "number" ? d.favoriteCount : Number(d.favorite_count)) || null,
+    viewCount: (typeof d.viewCount === "number" ? d.viewCount : Number(d.view_count)) || null,
+    status: d.status ?? null,
+    developer,
   };
 
   return result;

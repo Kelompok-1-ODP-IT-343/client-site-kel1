@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { User, Bell, FileText, Heart, LogOut } from "lucide-react";
 import { USER_ROUTES } from "@/app/routes/userRoutes";
 import { useAuth } from "@/app/lib/authContext";
-import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
-import { fetchWithAuth } from "@/app/lib/authFetch";
+// No profile fetch here to avoid extra API calls on pages; we sync on login only
 
 function getOriginFromBase(base?: string) {
   try {
@@ -26,7 +25,6 @@ function normalizePhotoUrl(src?: string | null) {
 
   if (s.startsWith("/")) return s;
 
-  const apiOrigin = getOriginFromBase(API_BASE_URL);
   return `/${s}`;
 }
 
@@ -42,6 +40,7 @@ export default function UserMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout, login } = useAuth();
 
   if (!user) return null;
@@ -72,31 +71,7 @@ export default function UserMenu() {
   const [imgOk, setImgOk] = useState(true);
   useEffect(() => setImgOk(true), [safePhoto]);
 
-  // Fetch profile to ensure full name is correct (uses Auth cookies)
-  useEffect(() => {
-    let mounted = true;
-    const fetchProfile = async () => {
-      try {
-        if (!user?.id) return;
-        const url = `${API_BASE_URL}${API_ENDPOINTS.USER_PROFILE}`;
-        const res = await fetchWithAuth(url, { method: "GET" });
-        if (!res.ok) return;
-        const json = await res.json().catch(() => null);
-        const d = json?.data;
-        if (!mounted || !d) return;
-        const name = d.fullName || d.name || "";
-        const photo = d.photoUrl || d.avatarUrl || user.photoUrl;
-        // Update when API has a different full name (replace email/username-based value)
-        if (name && name !== user.fullName) {
-          login({ id: user.id, fullName: name, photoUrl: photo });
-        }
-      } catch {}
-    };
-    fetchProfile();
-    return () => {
-      mounted = false;
-    };
-  }, [user?.id]);
+  // Intentionally no profile fetch here.
 
   return (
     <div className="relative" ref={menuRef}>

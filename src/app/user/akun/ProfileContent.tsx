@@ -256,6 +256,8 @@ useEffect(() => {
           occupation: formData.occupation,
           companyName: formData.company_name,
           monthlyIncome: Number(formData.monthly_income),
+          status: "ACTIVE",
+          fullName: formData.full_name,
         };
 
         // const res = await updateUserProfile(user.id, payload);
