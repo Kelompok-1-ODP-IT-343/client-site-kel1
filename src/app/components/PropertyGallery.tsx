@@ -31,6 +31,8 @@ export default function PropertyGallery({ images, title }: Props) {
 
   const [index, setIndex] = useState(0);
   const [failedSrcs, setFailedSrcs] = useState<Set<string>>(new Set());
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [loadedSrcs, setLoadedSrcs] = useState<Set<string>>(new Set());
   const total = displayImages.length;
   const goPrev = () => setIndex((i) => (i - 1 + total) % total);
   const goNext = () => setIndex((i) => (i + 1) % total);
@@ -46,19 +48,53 @@ export default function PropertyGallery({ images, title }: Props) {
     ? "/rumah-1.jpg"
     : displayImages[index];
 
+  useEffect(() => {
+    setImgLoaded(loadedSrcs.has(currentSrc));
+  }, [index, currentSrc, loadedSrcs]);
+
   return (
-    <div className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden bg-gray-100">
+    <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-gray-100">
+      <Image
+        src={currentSrc}
+        alt="Background"
+        fill
+        className="object-cover blur-xl scale-105 brightness-95"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 66vw, 66vw"
+        priority={false}
+        unoptimized
+        aria-hidden
+      />
+
+      {!imgLoaded && (
+        <div className="absolute inset-0 z-10 grid place-items-center bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-sm shadow">
+            <span className="w-3 h-3 rounded-full border-2 border-gray-400 border-t-transparent animate-spin" />
+            <span className="text-sm font-semibold text-gray-700">Loading. . .</span>
+          </div>
+        </div>
+      )}
+
       <Image
         src={currentSrc}
         alt={title || "Property Image"}
         fill
-        className="object-cover"
+        className="object-contain"
+        key={currentSrc}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 66vw, 66vw"
         priority={false}
         unoptimized
-        onError={() =>
-          setFailedSrcs((prev) => new Set([...prev, displayImages[index]]))
-        }
+        onLoadingComplete={() => {
+          setLoadedSrcs((prev) => {
+            const next = new Set(prev);
+            next.add(currentSrc);
+            return next;
+          });
+          setImgLoaded(true);
+        }}
+        onError={() => {
+          setFailedSrcs((prev) => new Set([...prev, displayImages[index]]));
+          setImgLoaded(true);
+        }}
       />
       {/* Controls */}
       {total > 1 && (
@@ -66,19 +102,19 @@ export default function PropertyGallery({ images, title }: Props) {
           <button
             aria-label="Prev"
             onClick={goPrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow transition"
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow transition z-20"
           >
             <ChevronLeft size={18} />
           </button>
           <button
             aria-label="Next"
             onClick={goNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow transition"
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow transition z-20"
           >
             <ChevronRight size={18} />
           </button>
           {/* Dots */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/70 px-3 py-1 rounded-full">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/70 px-3 py-1 rounded-full z-20">
             {displayImages.map((_, i) => (
               <button
                 key={i}
