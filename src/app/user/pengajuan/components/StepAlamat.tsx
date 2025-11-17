@@ -4,6 +4,7 @@ import StepContent from "./StepContent";
 import TextAreaField from "../fields/TextAreaField";
 import SelectField from "../fields/SelectField";
 import rawData from "@/data/indonesia.json";
+import { formatRegionLabel } from "@/app/lib/util";
 
 type Row = {
   province: string;
@@ -111,28 +112,28 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
         <SelectField required label="Provinsi" name="province" value={formData.province} onChange={handleChange} error={errors.province}>
           <option value="">Pilih...</option>
           {provinsiList.map((p) => (
-            <option key={p} value={p}>{p}</option>
+            <option key={p} value={p}>{formatRegionLabel(p)}</option>
           ))}
         </SelectField>
 
         <SelectField required label="Kota / Kabupaten" name="city" value={formData.city} onChange={handleChange} error={errors.city} disabled={!formData.province}>
           <option value="">Pilih...</option>
           {kotaList.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>{formatRegionLabel(c)}</option>
           ))}
         </SelectField>
 
         <SelectField required label="Kecamatan" name="district" value={formData.district} onChange={handleChange} error={errors.district} disabled={!formData.city}>
           <option value="">Pilih...</option>
           {kecamatanList.map((k) => (
-            <option key={k} value={k}>{k}</option>
+            <option key={k} value={k}>{formatRegionLabel(k)}</option>
           ))}
         </SelectField>
 
         <SelectField required label="Kelurahan" name="subdistrict" value={formData.subdistrict} onChange={handleChange} error={errors.subdistrict} disabled={!formData.district}>
           <option value="">Pilih...</option>
           {kelurahanList.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>{formatRegionLabel(s)}</option>
           ))}
         </SelectField>
 
