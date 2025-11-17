@@ -248,6 +248,15 @@ p {
   margin-bottom: 2rem;
 }
 
+/* Utility: hide scrollbar across browsers */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;            /* Chrome, Safari, Opera */
+}
+
 /* Feature Cards */
 .feature-card h3 {
   color: #1a1a1a !important;
