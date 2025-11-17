@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, ReactNode, useEffect } from "react";
+import { useState, useMemo, ReactNode, useEffect, Suspense, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -19,7 +19,14 @@ import type { PropertyListItem } from "@/app/lib/types";
 import { useDebounce } from "@/app/lib/hooks/useDebounce";
 const ITEMS_PER_PAGE = 6;
 
-export default function CariRumahPage() {
+function CariRumahContent() {
+    // Normalize property type labels to a single canonical form used by the UI
+    const normalizeTypeLabel = (v: string | null | undefined) => {
+        const s = (v || "").toString();
+        if (/apart/i.test(s)) return "Apartemen";
+        if (!s) return "";
+        return "Rumah"; // default bucket for non-apartemen values
+    };
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -79,8 +86,12 @@ export default function CariRumahPage() {
         const urlTitle = searchParams.get("title") || searchParams.get("name") || ""; // Tambahkan fallback 'name'
         const urlDescription = searchParams.get("description") || urlTitle; // Gunakan urlTitle sebagai fallback untuk description
         const urlCity = searchParams.get("city") || "";
-        const urlType = searchParams.get("tipeProperti") || "";
-        const urlBudget = searchParams.get("budget") || "";
+        // Support both old 'tipeProperti' and new 'propertyType'
+    const urlType = searchParams.get("propertyType") || searchParams.get("tipeProperti") || "";
+        // Prefer new minPrice/maxPrice; fallback to legacy 'budget'
+        const urlMinPrice = searchParams.get("minPrice");
+        const urlMaxPrice = searchParams.get("maxPrice");
+        const urlBudget = deriveBudgetValueFromQuery(urlMinPrice, urlMaxPrice) || searchParams.get("budget") || "";
 
         // Only set when different to avoid unnecessary renders
         setFilters((prev) => {
@@ -98,7 +109,7 @@ export default function CariRumahPage() {
                 title: urlTitle,
                 description: urlDescription,
                 location: urlCity,
-                type: urlType ? urlType.charAt(0) + urlType.slice(1).toLowerCase() : "",
+                type: normalizeTypeLabel(urlType),
                 budget: urlBudget,
             };
         });
@@ -113,9 +124,9 @@ export default function CariRumahPage() {
                     title: debouncedSearchName || undefined,
                     description: debouncedSearchName || undefined, // Menggunakan nilai input yang sama untuk title dan description
                     city: filters.location || undefined,
-                    tipeProperti: filters.type ? filters.type.toUpperCase() : undefined,
-                    priceMin: priceRange?.min,
-                    priceMax: priceRange?.max,
+                    propertyType: filters.type ? filters.type.toLowerCase() : undefined,
+                    minPrice: priceRange?.min,
+                    maxPrice: priceRange?.max,
                 });
                 setItems(items);
             } catch (e: any) {
@@ -126,23 +137,38 @@ export default function CariRumahPage() {
         })();
     }, [debouncedSearchName, filters.location, filters.type, filters.budget]);
 
-    // Sync filters to URL (address bar) using replace to avoid history spam
-    useEffect(() => {
+    // Build URL query from current filters
+    const buildQueryFromFilters = () => {
         const sp = new URLSearchParams();
         if (filters.title) sp.set("title", filters.title);
         if (filters.description) sp.set("description", filters.description);
         if (filters.location) sp.set("city", filters.location);
-        if (filters.type) sp.set("tipeProperti", filters.type.toUpperCase());
-        if (filters.budget) sp.set("budget", filters.budget);
+        if (filters.type) sp.set("propertyType", filters.type.toLowerCase());
+        const range = parseBudget(filters.budget);
+        if (range?.min !== undefined) sp.set("minPrice", String(range.min));
+        if (range?.max !== undefined) sp.set("maxPrice", String(range.max));
+        return sp.toString();
+    };
 
-        const newQuery = sp.toString();
+    // Debounce URL updates to prevent hitting replaceState limits
+    const debouncedUrlQuery = useDebounce(buildQueryFromFilters(), 400);
+    const lastUrlQueryRef = useRef<string>("");
+
+    // Sync filters to URL (address bar) with debounced updates and loop guard
+    useEffect(() => {
+        const newQuery = debouncedUrlQuery;
         const nextUrl = newQuery ? `${pathname}?${newQuery}` : pathname;
-        // Avoid unnecessary router.replace when URL already matches
-        const current = searchParams?.toString() || "";
+        // Prefer window.location for current value to avoid object identity churn
+        const current = typeof window !== "undefined"
+            ? window.location.search.replace(/^\?/, "")
+            : "";
+        if (newQuery && lastUrlQueryRef.current === newQuery) return;
         if (current !== newQuery) {
+            lastUrlQueryRef.current = newQuery;
             router.replace(nextUrl);
         }
-    }, [filters.title, filters.description, filters.location, filters.type, filters.budget, pathname, router, searchParams]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedUrlQuery, pathname, router]);
 
     const handleFilterChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -158,6 +184,8 @@ export default function CariRumahPage() {
                     title: value,
                     description: value // Menyinkronkan nilai ke description untuk ditampilkan di URL
                 }));
+        } else if (name === 'type') {
+            setFilters((prev) => ({ ...prev, type: normalizeTypeLabel(value) }));
         } else {
             // Filter lain (location, type, budget)
             setFilters((prev) => ({ ...prev, [name]: value }));
@@ -203,11 +231,29 @@ export default function CariRumahPage() {
 
     const locationOptions = useMemo(() => {
         const s = new Set<string>();
+        // Always include the currently selected location so the select doesn't reset when no results
+        if (filters.location) s.add(filters.location);
         items.forEach((i) => i.city && s.add(i.city));
         return Array.from(s);
-    }, [items]);
+    }, [items, filters.location]);
 
-    const typeOptions = ["Rumah", "Apartemen"];
+    const typeOptions = useMemo(() => {
+        const s = new Set<string>();
+        // Preserve current selection even if not present in items
+        if (filters.type) s.add(normalizeTypeLabel(filters.type));
+        items.forEach((i) => {
+            const raw = (i.property_type || i.listing_type || "").toString();
+            if (!raw) return;
+            // Normalize to user-facing labels
+            s.add(normalizeTypeLabel(raw));
+        });
+        // Fallback to common types if still empty
+        if (s.size === 0) {
+            s.add("Rumah");
+            s.add("Apartemen");
+        }
+        return Array.from(s);
+    }, [items, filters.type]);
     const budgetOptions = [
         { label: "< Rp 1 Miliar", value: "0-1000000000" },
         { label: "Rp 1 M - 2 M", value: "1000000000-2000000000" },
@@ -375,6 +421,15 @@ export default function CariRumahPage() {
     );
 }
 
+// Helper to rebuild dropdown value from URL's minPrice/maxPrice
+function deriveBudgetValueFromQuery(minStr: string | null, maxStr: string | null) {
+    const min = minStr ? parseInt(minStr, 10) : undefined;
+    const max = maxStr ? parseInt(maxStr, 10) : undefined;
+    if (Number.isFinite(min) && Number.isFinite(max)) return `${min}-${max}`;
+    if (Number.isFinite(min) && !Number.isFinite(max)) return `${min}`;
+    return "";
+}
+
 function parseBudget(v: string) {
     if (!v) return null;
     const [minStr, maxStr] = v.split("-");
@@ -490,17 +545,20 @@ function HouseCard({
                         e.stopPropagation();
                         onToggleFavorite(house.id);
                     }}
-                    className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 z-20"
+                    className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 z-20"
                     aria-label="Toggle Favorite"
+                    aria-pressed={isFavorite}
                 >
                     <svg
                         viewBox="0 0 24 24"
                         width="20"
                         height="20"
+                        stroke="currentColor"
+                        strokeWidth="2"
                         className={
                             isFavorite
                                 ? "fill-red-500 text-red-500"
-                                : "fill-transparent text-gray-600"
+                                : "fill-transparent text-red-600"
                         }
                     >
                         <path d="M12 21s-6.716-4.438-9.333-7.056C.517 11.794.5 9.5 2.1 7.9c1.6-1.6 4.2-1.6 5.8 0L12 12l4.1-4.1c1.6-1.6 4.2-1.6 5.8 0 1.6 1.6 1.583 3.894-.567 6.044C18.716 16.562 12 21 12 21z" />
@@ -512,11 +570,11 @@ function HouseCard({
                 <h3 className="font-bold text-gray-800 text-lg truncate mt-1">
                     {house.title}
                 </h3>
-                <p className="text-sm text-gray-500 flex items-center mt-1">
+                <p className="text-sm text-gray-500 flex items-center mt-1 mb-0.5">
                     <MapPin size={14} className="mr-1 flex-shrink-0" />
                     {house.city}
                 </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 mt-3 py-3 border-y border-black/60 min-h-[48px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 mt-0.5 py-1 border-y border-black min-h-[48px]">
                     {[
                         { Icon: BedDouble, label: "Kamar Tidur", value: bedroom },
                         { Icon: Bath, label: "Kamar Mandi", value: bathroom },
@@ -531,17 +589,20 @@ function HouseCard({
                 <span className="font-semibold text-sm text-gray-800">
                   {value ?? "-"}
                 </span>
-                <span className="text-gray-500 uppercase">{label}</span>
+                <span className="text-gray-500">{label}</span>
               </div>
             </div>
           ))}
         </div>
                 <div className="mt-3">
-                    <p className="text-sm text-gray-500">Harga mulai</p>
-                    <p className="text-xl font-bold text-bni-orange">{formattedPrice}</p>
+                    <p className="text-sm text-gray-500 mb-0.5">Harga mulai</p>
+                    <p className="text-xl font-bold mb-0.5">
+                      <span className="text-bni-orange">Rp</span>{" "}
+                      <span className="text-bni-orange">{formattedPrice.replace(/^Rp\s*/, "")}</span>
+                    </p>
                 </div>
 
-        <div className="mt-4 pt-3 flex-grow flex items-end">
+        <div className="mt-0.5 pt-0.5 flex-grow flex items-end">
           <div className="grid grid-cols-2 gap-2 w-full">
             <button
               onClick={(e) => {
@@ -565,5 +626,13 @@ function HouseCard({
                 </div>
             </div>
         </motion.div>
+    );
+}
+
+export default function CariRumahPage() {
+    return (
+        <Suspense fallback={<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">Memuat halaman…</div>}>
+            <CariRumahContent />
+        </Suspense>
     );
 }

@@ -283,6 +283,11 @@ export function buildPropertyListQuery(params: {
     description?: string;
     city?: string;
     provinsi?: string;
+    // New API expects `propertyType`, `minPrice`, `maxPrice` (lowercase type values like 'rumah')
+    propertyType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    // Back-compat with older callers
     tipeProperti?: string;
     priceMin?: number;
     priceMax?: number;
@@ -292,11 +297,16 @@ export function buildPropertyListQuery(params: {
     if (params.description) sp.set("description", params.description);
     if (params.city) sp.set("city", params.city);
     if (params.provinsi) sp.set("provinsi", params.provinsi);
-    if (params.tipeProperti) sp.set("tipeProperti", params.tipeProperti);
-    if (typeof params.priceMin === "number")
-        sp.set("priceMin", String(params.priceMin));
-    if (typeof params.priceMax === "number")
-        sp.set("priceMax", String(params.priceMax));
+
+    // Prefer new keys; fall back to old ones if provided
+    const propertyType = (params.propertyType ?? params.tipeProperti)?.toLowerCase();
+    if (propertyType) sp.set("propertyType", propertyType);
+
+    const minPrice = params.minPrice ?? params.priceMin;
+    const maxPrice = params.maxPrice ?? params.priceMax;
+    if (typeof minPrice === "number") sp.set("minPrice", String(minPrice));
+    if (typeof maxPrice === "number") sp.set("maxPrice", String(maxPrice));
+
     return sp.toString();
 }
 
@@ -305,6 +315,10 @@ export async function fetchPropertyList(params: {
     description?: string;
     city?: string;
     provinsi?: string;
+    propertyType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    // Back-compat
     tipeProperti?: string;
     priceMin?: number;
     priceMax?: number;
