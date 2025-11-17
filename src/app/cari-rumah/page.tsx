@@ -477,11 +477,11 @@ function HouseCard({
           <span className="inline-flex self-start bg-orange-500 text-white text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm">
             {(house.property_type || "Rumah").toString().toUpperCase()}
           </span>
-                    <span
-                        className={`inline-flex self-start text-white text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm ${
-                            isDeveloperPilihan ? "bg-red-600" : "bg-gray-500"
-                        }`}
-                    >
+          <span
+            className={`inline-flex self-start text-white text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm uppercase ${
+              isDeveloperPilihan ? "bg-red-600" : "bg-gray-500"
+            }`}
+          >
             {developerBadge}
           </span>
                 </div>
@@ -508,10 +508,7 @@ function HouseCard({
                 </button>
             </div>
 
-            <div className="p-3 flex flex-col flex-grow">
-                <p className="text-xs font-semibold text-bni-orange uppercase tracking-wider">
-                    {house.property_type}
-                </p>
+            <div className="px-3 pb-3 pt-5 flex flex-col flex-grow">
                 <h3 className="font-bold text-gray-800 text-lg truncate mt-1">
                     {house.title}
                 </h3>
@@ -519,7 +516,7 @@ function HouseCard({
                     <MapPin size={14} className="mr-1 flex-shrink-0" />
                     {house.city}
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 mt-2 border-t pt-3 min-h-[48px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 mt-3 py-3 border-y border-black/60 min-h-[48px]">
                     {[
                         { Icon: BedDouble, label: "Kamar Tidur", value: bedroom },
                         { Icon: Bath, label: "Kamar Mandi", value: bathroom },
@@ -534,23 +531,23 @@ function HouseCard({
                 <span className="font-semibold text-sm text-gray-800">
                   {value ?? "-"}
                 </span>
-                                <span className="text-gray-500">{label}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                <span className="text-gray-500 uppercase">{label}</span>
+              </div>
+            </div>
+          ))}
+        </div>
                 <div className="mt-3">
                     <p className="text-sm text-gray-500">Harga mulai</p>
                     <p className="text-xl font-bold text-bni-orange">{formattedPrice}</p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-gray-100 flex-grow flex items-end">
-                    <div className="grid grid-cols-2 gap-2 w-full">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onAjukan();
-                            }}
+        <div className="mt-4 pt-3 flex-grow flex items-end">
+          <div className="grid grid-cols-2 gap-2 w-full">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAjukan();
+              }}
                             className="py-2 rounded-lg font-semibold text-sm text-white shadow transition hover:opacity-90"
                             style={{ backgroundColor: "#FF8500" }}
                         >
