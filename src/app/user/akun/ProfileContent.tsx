@@ -60,7 +60,7 @@ export default function ProfilContent() {
     [kelurahanList]
   );
 
-  const { user } = useAuth();
+  const { user, login } = useAuth();
 
   // Util: default and normalize phone number
   const normalizePhone = (val?: string | null) => {
@@ -312,8 +312,15 @@ useEffect(() => {
 
         // const res = await updateUserProfile(user.id, payload);
         const res = await updateUserProfile(Number(user.id), payload);
-        if (res.success) setSuccess("Profil berhasil diperbarui!");
-        else setError(res.message || "Gagal memperbarui profil.");
+        if (res.success) {
+          setSuccess("Profil berhasil diperbarui!");
+          // Sinkronkan nama (dan foto bila tersedia) ke AuthContext + localStorage agar header ikut ter-update
+          const newFullName = formData.full_name?.trim() || user.fullName;
+          const newPhoto = (res.data?.photoUrl || user.photoUrl) as string | undefined;
+          login({ id: user.id, fullName: newFullName, photoUrl: newPhoto });
+        } else {
+          setError(res.message || "Gagal memperbarui profil.");
+        }
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Terjadi kesalahan.");
