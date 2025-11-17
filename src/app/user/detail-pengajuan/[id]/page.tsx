@@ -44,6 +44,9 @@ export default function DetailPengajuanPage() {
   const documents = data.documents || [];
   const approvals = data.approvalWorkflows || [];
 
+  // Deteksi tipe file untuk preview gambar pada Dokumen Terlampir
+  const isImageUrl = (url: string) => /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(url || "");
+
   const f = (n: number) =>
     n?.toLocaleString("id-ID", {
       style: "currency",
@@ -58,45 +61,74 @@ export default function DetailPengajuanPage() {
   const outstanding = Math.floor(application.loanAmount * 0.75);
   const outstandingProgress = ((application.loanAmount - outstanding) / application.loanAmount) * 100;
 
-  const stageDisplayNames: Record<string, string> = {
-  SUBMITTED: "Pengajuan Dikirim",
-  DOCUMENT_VERIFICATION: "Verifikasi Dokumen",
-  PROPERTY_APPRAISAL: "Appraisal Properti",
-  CREDIT_ANALYSIS: "Analisis Kredit",
-  APPROVAL: "Persetujuan",
-  OFFER_LETTER: "Surat Penawaran",
-  SIGNING: "Penandatanganan Akad",
-  DISBURSEMENT: "Pencairan Dana",
-  COMPLETED: "Selesai",
+  // ======== Sinkronisasi dengan langkah di Dashboard Pengajuan ========
+  const DASHBOARD_STATUS_ORDER = [
+    "Submitted",
+    "Property Appraisal",
+    "Credit Analysis",
+    "Final Approval",
+    "Approved",
+  ] as const;
+
+  const STAGE_TO_LABEL: Record<string, (typeof DASHBOARD_STATUS_ORDER)[number]> = {
+    SUBMITTED: "Submitted",
+    PROPERTY_APPRAISAL: "Property Appraisal",
+    CREDIT_ANALYSIS: "Credit Analysis",
+    FINAL_APPROVAL: "Final Approval",
+    APPROVAL: "Final Approval",
+    APPROVED: "Approved",
   };
 
-// ======== Timeline (PERBAIKAN DITERAPKAN DI SINI) ========
-const timeline: TimelineItem[] = approvals.length
-  ? approvals.map((a: any) => ({
-      step: a.stage,
-      date: a.dueDate
-        ? new Date(a.dueDate).toLocaleDateString("id-ID")
-        : "-",
-      note: a.approvalNotes || "Menunggu proses",
-      status: a.status === "PENDING" ? "Proses" : "Selesai",
-    }))
-  : [
-      {
-        step: "SUBMITTED",
-        date: new Date(application.submittedAt).toLocaleDateString("id-ID"),
-        note: "Pengajuan dikirim",
-        status: "Selesai",
-      },
-      {
-        step: "PROPERTY_APPRAISAL",
-        date: "-",
-        note: "Menunggu appraisal properti",
-        status: "Proses",
-      },
-    ];
+  // Tarik info tanggal/catatan/status dari approvalWorkflows bila tersedia
+  const approvalsInfo: Record<string, { date: string; note: string; rawStatus?: string }> =
+    Array.isArray(approvals)
+      ? approvals.reduce((acc: Record<string, { date: string; note: string; rawStatus?: string }>, a: any) => {
+          const lbl = STAGE_TO_LABEL[a.stage];
+          if (lbl) {
+            acc[lbl] = {
+              date: a.dueDate ? new Date(a.dueDate).toLocaleDateString("id-ID") : "-",
+              // Catatan hanya dari API; jangan default "Menunggu proses" agar langkah belum mulai benar-benar menampilkan "Belum mulai"
+              note: typeof a.approvalNotes === "string" ? a.approvalNotes : "",
+              rawStatus: String(a.status || "").toUpperCase(),
+            };
+          }
+          return acc;
+        }, {})
+      : {};
 
-  const currentIndex = timeline.findIndex((t) => t.status === "Proses" || t.status === "-");
-  const progressPercent = ((currentIndex <= 0 ? 0 : currentIndex - 1) / (timeline.length - 1)) * 100;
+  // Normalisasi status mentah (untuk referensi tanggal/catatan saja)
+  const isPending = (s?: string) => ["PENDING", "IN_PROGRESS", "ONGOING"].includes(String(s).toUpperCase());
+  const isCompleted = (s?: string) => ["COMPLETED", "APPROVED", "DONE", "FINISHED"].includes(String(s).toUpperCase());
+
+  // Langkah aktif SELALU mengikuti application.status dari API
+  const activeLabel = STAGE_TO_LABEL[application.status] || "Submitted";
+  let stepIndex = Math.max(DASHBOARD_STATUS_ORDER.indexOf(activeLabel), 0);
+
+  // Bangun timeline berdasarkan urutan dashboard dan status di approvals
+  const timeline: TimelineItem[] = DASHBOARD_STATUS_ORDER.map((label, idx) => {
+    const info = approvalsInfo[label];
+    // Status tampilan mengikuti urutan index relatif terhadap langkah aktif
+    let status: string;
+    if (idx < stepIndex) status = "Selesai";
+    else if (idx === stepIndex) {
+      // Jika status aplikasi sudah final APPROVED/COMPLETED maka tampil Selesai
+      const appStatusUpper = String(application.status || "").toUpperCase();
+      status = ["APPROVED", "COMPLETED"].includes(appStatusUpper) ? "Selesai" : "Proses";
+    } else status = "-";
+
+    // Catatan dan tanggal
+    const note = status === "-" ? "Belum mulai" : info?.note || (status === "Selesai" ? "Selesai" : "Menunggu proses");
+    let date = status === "-" ? "-" : info?.date || "-";
+    // Khusus langkah Submitted, gunakan tanggal pengajuan bila ada
+    if (label === "Submitted" && status !== "-" && application.submittedAt) {
+      try {
+        date = new Date(application.submittedAt).toLocaleDateString("id-ID");
+      } catch {}
+    }
+    return { step: label, date, note, status };
+  });
+
+  const progressPercent = Math.round(((Math.max(stepIndex, 0) + 1) / DASHBOARD_STATUS_ORDER.length) * 100);
 
   // ======== Dummy history pembayaran untuk tampilan ========
   const payments = [
@@ -107,13 +139,13 @@ const timeline: TimelineItem[] = approvals.length
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-12 font-[Inter] bg-white">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Detail Pengajuan KPR</h1>
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">Detail Pengajuan KPR</h1>
 
       {/* ===== INFORMASI PROPERTI ===== */}
-      <section className="grid md:grid-cols-2 gap-6 bg-white">
-        <ColorCard title="Informasi Properti">
-          <div className="flex items-center gap-4">
-            <div className="relative w-28 h-20 rounded-lg overflow-hidden border">
+      <section className="mt-8 grid md:grid-cols-2 gap-6 bg-white">
+        <ColorCard title="Informasi Properti" titleAlign="center">
+          <div className="flex items-center gap-6">
+            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
               <Image
                 src={property.mainImage || "/placeholder.png"}
                 alt="Properti"
@@ -122,20 +154,44 @@ const timeline: TimelineItem[] = approvals.length
               />
             </div>
             <div>
-              <p className="font-semibold text-gray-800">{property.title || "-"}</p>
-              <p className="text-gray-500 text-sm">{property.city}</p>
-              <p className="text-[#FF8500] font-semibold">{f(property.price || 0)}</p>
+              <p className="text-xl font-semibold text-gray-900">{property.title || "-"}</p>
+              <p className="text-gray-500 text-base">{property.city || "-"}</p>
+              <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
             </div>
           </div>
         </ColorCard>
 
-        <ColorCard title="Info Pengajuan">
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>Nomor Aplikasi: <strong>{application.applicationNumber}</strong></li>
-            <li>Status: <strong>{application.status}</strong></li>
-            <li>Tujuan: <strong>{application.purpose}</strong></li>
-            <li>Nama Nasabah: <strong>{user.fullName}</strong></li>
-          </ul>
+        <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
+          {(() => {
+            const statusLabel = STAGE_TO_LABEL[application.status] || (application.status ? application.status.replace(/_/g, " ") : "-");
+            const DEVELOPER_TYPE_MAP: Record<string, string> = {
+              PRIMARY_RESIDENCE: "Developer Pilihan",
+            };
+            const developerTypeLabel = DEVELOPER_TYPE_MAP[application.purpose] || (application.purpose ? application.purpose.replace(/_/g, " ") : "-");
+            return (
+              <div className="grid grid-cols-2 gap-y-6 items-center">
+                <div className="text-gray-600 text-base">Nomor Aplikasi</div>
+                <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber}</div>
+
+                <div className="text-gray-600 text-base">Status</div>
+                <div className="text-right">
+                  <span className="inline-flex items-center rounded-full bg-bni-orange text-white px-3 py-1 text-sm font-semibold">
+                    {statusLabel}
+                  </span>
+                </div>
+
+                <div className="text-gray-600 text-base">Tipe Developer</div>
+                <div className="text-right">
+                  <span className="inline-flex items-center rounded-full border border-blue-500 text-blue-600 px-3 py-1 text-sm font-semibold">
+                    {developerTypeLabel}
+                  </span>
+                </div>
+
+                <div className="text-gray-600 text-base">Nama</div>
+                <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
+              </div>
+            );
+          })()}
         </ColorCard>
       </section>
 
@@ -179,7 +235,7 @@ const timeline: TimelineItem[] = approvals.length
           />
 
           {timeline.map((t: TimelineItem, i: number) => {
-            const stepName = stageDisplayNames[t.step] || t.step.replace("_", " ");
+            const stepName = t.step;
             const isSelesai = t.status === "Selesai";
             const isProses = t.status === "Proses";
             const isActive = isSelesai || isProses;
@@ -241,39 +297,48 @@ const timeline: TimelineItem[] = approvals.length
         </ColorCard>
 
         <ColorCard title="Dokumen Terlampir">
-          <ul className="text-sm text-gray-700 space-y-2">
-            {documents.map((doc: any) => (
-              <li key={doc.documentId}>
-                <a href={doc.filePath} target="_blank" className="text-blue-600 hover:underline">
-                  {doc.documentType}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {documents && documents.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {documents.map((doc: any) => {
+                const key = doc.documentId ?? doc.id ?? doc.filePath;
+                const label = doc.documentType || "Dokumen";
+                const href = doc.filePath;
+                const isImg = isImageUrl(href);
+                return (
+                  <a
+                    key={key}
+                    href={href}
+                    target="_blank"
+                    className="group block rounded-xl border overflow-hidden bg-gray-50 hover:shadow-md transition-shadow"
+                  >
+                    <div className="relative aspect-[4/3] bg-white">
+                      {isImg ? (
+                        <Image src={href} alt={label} fill className="object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">Lihat Dokumen</div>
+                      )}
+                    </div>
+                    <div className="px-3 py-2 text-sm font-medium text-gray-800 truncate">{label}</div>
+                  </a>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Tidak ada dokumen terlampir.</p>
+          )}
         </ColorCard>
       </section>
 
-      {/* ===== NOTIFIKASI ===== */}
-      {payments.some((p) => p.status === "Pending") && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl shadow-sm">
-          <AlertCircle className="w-5 h-5" />
-          <p>
-            Tagihan bulan ini belum dibayar.{" "}
-            <a href="#" className="underline font-medium text-red-700 hover:text-red-900">
-              Bayar Sekarang
-            </a>
-          </p>
-        </div>
-      )}
+      {/* ===== NOTIFIKASI (DIHILANGKAN SESUAI PERMINTAAN) ===== */}
     </main>
   );
 }
 
 /* ==================== SUBCOMPONENTS ==================== */
-function ColorCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ColorCard({ title, children, titleAlign }: { title: string; children: React.ReactNode; titleAlign?: "left" | "center" }) {
   return (
     <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-white hover:shadow-lg transition-shadow duration-300">
-      <div className="bg-[#3FD8D5] px-5 py-3 text-white font-semibold text-lg">{title}</div>
+      <div className={`bg-[#3FD8D5] px-5 py-3 text-white font-semibold text-lg ${titleAlign === "center" ? "text-center" : "text-left"}`}>{title}</div>
       <div className="bg-white p-6">{children}</div>
     </div>
   );
