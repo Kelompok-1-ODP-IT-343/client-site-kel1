@@ -44,6 +44,19 @@ export const fmtIDR = (v: unknown): string => {
 const fmtNum = (v: unknown) =>
   v !== null && v !== undefined && String(v).trim() !== "" ? String(v) : "-";
 
+// Ubah string menjadi Title Case (contoh: "RUMAH" -> "Rumah")
+function toTitleCase(raw?: string | null): string {
+  if (!raw) return "-";
+  const s = String(raw).trim();
+  if (!s) return "-";
+  return s
+    .toLowerCase()
+    .split(/[ _-]+/g)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 async function getDetail(id: number): Promise<PropertyDetail | null> {
   try {
     return await fetchPropertyDetail(id);
@@ -96,6 +109,8 @@ export default async function PropertyDetailPage({
       )
     : [];
 
+  // Tidak menampilkan badge developer (sesuai permintaan)
+
   return (
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-4">
@@ -107,20 +122,13 @@ export default async function PropertyDetailPage({
           <span className="font-semibold text-gray-700">Detail Rumah</span>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
         <div className="lg:col-span-2 flex flex-col gap-8">
           <Card title="Galeri Properti" icon={<Home />}>
             <PropertyGallery images={detail.images} title={detail.title} />
           </Card>
           <div className="mt-4">
-            {detail.listing_type && (
-              <div className="mb-2">
-                <span className="px-2 py-1 rounded-md bg-green-100 text-green-700 text-xs font-semibold">
-                  {fmtNum(detail.listing_type)}
-                </span>
-              </div>
-            )}
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               {detail.title}
             </h1>
             {detail.developer && (
@@ -170,7 +178,7 @@ export default async function PropertyDetailPage({
 
           {/* Lokasi dan Tempat Sekitar */}
           <Card title="Lokasi & Sekitar" icon={<Compass />}>
-            <h3 className="text-xl font-bold text-gray-800 mb-3">Alamat Properti</h3>
+            <h3 className="text-[17px] font-bold text-gray-800 mb-3">Alamat Properti</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
               <DevRow label="Alamat" value={detail.address} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
               <DevRow label="Provinsi" value={detail.province} icon={<FileText className="w-4 h-4 text-orange-500" />} />
@@ -178,7 +186,7 @@ export default async function PropertyDetailPage({
               <DevRow label="Kecamatan" value={detail.district} icon={<FileText className="w-4 h-4 text-orange-500" />} />
               <DevRow label="Kelurahan/Desa" value={detail.subdistrict} icon={<FileText className="w-4 h-4 text-orange-500" />} />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Lihat Lokasi di Peta</h3>
+            <h3 className="text-[17px] font-bold text-gray-800 mb-2">Lihat Lokasi di Peta</h3>
             <div className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden border border-gray-100 mb-6">
               {/* Gunakan koordinat jika tersedia, jika tidak gunakan pencarian berdasarkan judul/kota */}
               {(() => {
@@ -203,7 +211,7 @@ export default async function PropertyDetailPage({
               })()}
             </div>
 
-            <h3 className="text-xl font-bold text-gray-800 mb-3">
+            <h3 className="text-[17px] font-bold text-gray-800 mb-3">
               Tempat Terdekat
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -246,27 +254,22 @@ export default async function PropertyDetailPage({
             </Card>
           )}
         </div>
-        <div className="flex flex-col gap-8">
-          <div className="sticky top-24">
+        <div className="flex flex-col gap-8 h-full lg:sticky lg:top-24">
+          <div>
             <Card title="Harga Properti" icon={<CreditCard />}>
               <div className="text-center">
-                <p className="text-4xl font-extrabold">
+                <p className="font-extrabold text-[27px]">
                   <span className="text-bni-orange">Rp</span>{" "}
                   <span className="text-bni-orange">{formattedPrice.replace(/^Rp\s*/, "")}</span>
                 </p>
               </div>
 
               {detail.listing_type && (
-                <div className="mt-3 flex items-center justify-center gap-2">
-                  <span className="px-2 py-1 rounded-md bg-green-100 text-green-700 text-xs font-semibold">
-                    {fmtNum(detail.listing_type)}
-                  </span>
-                  <span className="text-xs text-gray-500">Tipe Listing</span>
-                </div>
+                <></>
               )}
 
               <div className="mt-4 grid grid-cols-1 gap-3 text-sm">
-                <InfoItem label="Tipe Properti" value={fmtNum(detail.property_type)} icon={<Home className="w-5 h-5" />} />
+                <InfoItem label="Tipe Properti" value={toTitleCase(detail.property_type)} icon={<Home className="w-5 h-5" />} />
                 <InfoItem label="Uang Muka Minimum" value={detail.minDownPaymentPercent != null ? `${detail.minDownPaymentPercent}%` : "-"} icon={<Receipt className="w-5 h-5" />} />
                 <InfoItem label="Tenor Maksimum" value={detail.maxLoanTermYears != null ? `${detail.maxLoanTermYears} tahun` : "-"} icon={<Calendar className="w-5 h-5" />} />
               </div>
@@ -346,15 +349,15 @@ function InfoItem({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-      <div className="flex items-start gap-3">
+    <div className="px-3 py-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex items-start gap-2.5">
         {icon && (
-          <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
             {icon}
           </div>
         )}
         <div>
-          <p className="text-xs text-gray-500 mb-1">{label}</p>
+          <p className="text-xs text-gray-500 mb-0.5">{label}</p>
           <p className="font-semibold text-gray-900">{value ?? "-"}</p>
         </div>
       </div>
@@ -372,13 +375,13 @@ function DetailTile({
   value?: string | number;
 }) {
   return (
-    <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
+    <div className="px-3 py-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex items-start gap-2.5">
+        <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
           {icon}
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">{label}</p>
+          <p className="text-xs text-gray-500 mb-0.5">{label}</p>
           <p className="font-semibold text-gray-900">{value ?? "-"}</p>
         </div>
       </div>
