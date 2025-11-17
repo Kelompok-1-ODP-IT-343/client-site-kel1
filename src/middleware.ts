@@ -32,8 +32,10 @@ export async function middleware(req: NextRequest) {
   }
 
   const redirectUrl = new URL(url.toString());
-  // Jika tidak ada token dan tidak bisa refresh, arahkan ke beranda
-  redirectUrl.pathname = "/beranda";
+  // Jika tidak ada token dan tidak bisa refresh, arahkan ke halaman login dengan parameter next
+  redirectUrl.pathname = "/login";
+  const next = url.pathname + (url.search || "");
+  redirectUrl.searchParams.set("next", next);
   return NextResponse.redirect(redirectUrl);
 }
 

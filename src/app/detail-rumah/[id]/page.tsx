@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AjukanCTA from "@/app/components/AjukanCTA";
 import {
   ChevronRight,
   MapPin,
@@ -99,7 +100,7 @@ export default async function PropertyDetailPage({
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-4">
         <div className="flex items-center text-sm text-gray-500">
-          <Link href="/user/cari-rumah" className="hover:underline">
+          <Link href="/cari-rumah" className="hover:underline">
             Cari Rumah
           </Link>
           <ChevronRight size={16} className="mx-1" />
@@ -270,13 +271,14 @@ export default async function PropertyDetailPage({
                 <InfoItem label="Tenor Maksimum" value={detail.maxLoanTermYears != null ? `${detail.maxLoanTermYears} tahun` : "-"} icon={<Calendar className="w-5 h-5" />} />
               </div>
 
-              <Link
+              {/* Tombol ajukan dengan dialog login bila belum masuk */}
+              {/* Menggunakan client component untuk kontrol interaksi */}
+              <AjukanCTA
                 href={`/user/pengajuan?${targetAjukanParams}`}
                 className="mt-4 w-full text-white font-semibold py-3 rounded-lg transition-all block text-center"
-                style={{ backgroundColor: "#FF8500" }}
               >
                 Ajukan KPR Sekarang
-              </Link>
+              </AjukanCTA>
 
               <Link
                 href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20terkait%20KPR%20properti%20ini."

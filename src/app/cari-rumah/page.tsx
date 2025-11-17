@@ -13,6 +13,7 @@ import {
     Heart,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import Dialog from "@/components/ui/Dialog";
 
 import { fetchPropertyList, toggleFavorite, fetchUserFavorites } from "@/app/lib/coreApi";
 import type { PropertyListItem } from "@/app/lib/types";
@@ -45,6 +46,8 @@ function CariRumahContent() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>("");
     const [userData, setUserData] = useState<{ id: number | string } | null>(null);
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
+    const [loginNextUrl, setLoginNextUrl] = useState<string>("");
     useEffect(() => {
         if (typeof window !== "undefined") {
             const userString = localStorage.getItem("user");
@@ -226,7 +229,13 @@ function CariRumahContent() {
             propertiNama: house.title,
             hargaProperti: String(house.price),
         });
-        router.push(`/user/pengajuan?${params.toString()}`);
+        const target = `/user/pengajuan?${params.toString()}`;
+        if (!isLoggedIn) {
+            setLoginNextUrl(target);
+            setShowLoginDialog(true);
+            return;
+        }
+        router.push(target);
     };
 
     const locationOptions = useMemo(() => {
@@ -417,6 +426,22 @@ function CariRumahContent() {
                     </div>
                 )}
             </section>
+
+            <Dialog
+              open={showLoginDialog}
+              title="Masuk ke Akun"
+              description={<p>Untuk mengajukan KPR, silakan masuk terlebih dahulu.</p>}
+              onClose={() => setShowLoginDialog(false)}
+              actions={
+                <button
+                  type="button"
+                  onClick={() => router.push(`/login?next=${encodeURIComponent(loginNextUrl)}`)}
+                  className="px-4 py-2 rounded-md bg-[#FF8500] text-white hover:bg-[#e67800]"
+                >
+                  Masuk Sekarang
+                </button>
+              }
+            />
         </div>
     );
 }
