@@ -1,6 +1,12 @@
 export type Section = "profil" | "notifikasi" | "pengajuan" | "wishlist";
 
+// AppStatus now includes 4 display steps used in user/akun timeline
 export type AppStatus =
+  | "Submitted"
+  | "Property Appraisal"
+  | "Credit Analysis"
+  | "Final Approval"
+  // legacy labels kept for compatibility with other pages/components
   | "Dokumen Terkirim"
   | "Peninjauan 1"
   | "Peninjauan 2"

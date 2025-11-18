@@ -172,17 +172,17 @@ function HeroSection() {
 function FeatureSection() {
   const features = [
     {
-      icon: <Clock3 className="w-10 h-10 text-bni-orange" />,
+      icon: <Clock3 className="w-9 h-9 text-bni-orange" />,
       title: "Proses Cepat",
       desc: "Persetujuan kredit dalam 3-5 hari kerja dengan persyaratan yang mudah",
     },
     {
-      icon: <Percent className="w-10 h-10 text-bni-orange" />,
+      icon: <Percent className="w-9 h-9 text-bni-orange" />,
       title: "Bunga Kompetitif",
       desc: "Suku bunga mulai dari 6.25% dengan opsi Pilihan tenor hingga 25 tahun",
     },
     {
-      icon: <Wallet className="w-10 h-10 text-bni-orange" />,
+      icon: <Wallet className="w-9 h-9 text-bni-orange" />,
       title: "Fleksibel",
       desc: "Berbagai pilihan produk KPR sesuai kebutuhan dan kemampuan finansial Anda",
     },
@@ -200,16 +200,16 @@ function FeatureSection() {
             impian Anda!
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-items-center">
           {features.map((f, i) => (
             <motion.div
               key={i}
               whileHover={{ y: -5 }}
-              className="bg-white rounded-2xl p-8 text-center shadow-lg border border-gray-100"
+              className="bg-white rounded-2xl p-7 text-center shadow-lg border border-gray-100 w-[90%] mx-auto"
             >
               <div className="flex justify-center mb-4">{f.icon}</div>
-              <h3 className="text-xl font-bold text-gray-900">{f.title}</h3>
-              <p className="mt-2 text-gray-600 leading-relaxed">{f.desc}</p>
+              <h3 className="text-lg font-bold text-gray-900">{f.title}</h3>
+              <p className="mt-2 text-[0.9rem] text-gray-600 leading-relaxed">{f.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -235,12 +235,12 @@ function ExploreSection({
   // Helper untuk menghitung lebar 1 langkah scroll (lebar kartu + gap)
   const getStep = () => {
     const el = sliderRef.current;
-    if (!el) return 340; // fallback
+    if (!el) return 272; // fallback width after 80% scaling
     const firstChild = el.firstElementChild as HTMLElement | null;
-    const width = firstChild?.clientWidth ?? 340;
+    const width = firstChild?.clientWidth ?? 272;
     // Ambil gap dari flex container (Tailwind gap-8 ~= 2rem => 32px)
     const gapStr = getComputedStyle(el).gap || getComputedStyle(el).columnGap || "0";
-    const gap = Number.parseFloat(gapStr) || 32;
+    const gap = Number.parseFloat(gapStr) || 24; // gap-6 ~= 24px
     return width + gap;
   };
 
@@ -300,7 +300,7 @@ function ExploreSection({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-start mb-12">
           <div>
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
               Eksplor Rumah Impian
             </h2>
             <p className="mt-3 text-lg text-gray-600">
@@ -329,12 +329,12 @@ function ExploreSection({
 
             <div
               ref={sliderRef}
-              className="flex gap-8 overflow-x-auto pb-4 scroll-smooth no-scrollbar px-10"
+              className="flex gap-6 overflow-x-auto pb-4 scroll-smooth no-scrollbar px-8"
             >
               {items.map((it) => (
                 <div
                   key={it.id}
-                  className="flex-shrink-0 w-[300px] sm:w-[340px] snap-center"
+                  className="flex-shrink-0 w-[240px] sm:w-[272px] snap-center"
                 >
                   <PropertyCard
                     id={it.id}
@@ -399,23 +399,23 @@ function PropertyCard({
       whileHover={{ y: -6 }}
       className="bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden transition-all cursor-pointer"
     >
-      <div className="relative h-56 w-full flex items-center justify-center bg-white">
+      <div className="relative h-44 w-full flex items-center justify-center bg-white">
         <Image
           src={image}
           alt={title}
-          width={340}
-          height={224}
+          width={272}
+          height={180}
           className="object-cover w-full h-full"
         />
       </div>
-      <div className="p-6">
-        <h3 className="font-bold text-gray-900 text-lg sm:text-xl truncate">
+      <div className="p-5">
+        <h3 className="font-bold text-gray-900 text-sm sm:text-base truncate">
           {title}
         </h3>
-        <p className="flex items-center text-gray-600 mt-2 text-sm">
-          <MapPin size={16} className="mr-1.5 text-gray-500" /> {location}
+        <p className="flex items-center text-gray-600 mt-2 text-xs">
+          <MapPin size={14} className="mr-1.5 text-gray-500" /> {location}
         </p>
-        <p className="mt-4 text-2xl font-extrabold">
+        <p className="mt-4 text-xl font-extrabold">
           <span className="text-[#FF8500]">Rp</span>{" "}
           <span className="text-[#FF8500]">{price.replace(/^Rp\s*/, "")}</span>
         </p>

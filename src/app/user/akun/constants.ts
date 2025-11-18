@@ -4,6 +4,22 @@ export const MAX_FILE_SIZE = 2 * 1024 * 1024;
 export const ALLOWED_TYPES = ["image/jpeg", "image/png"];
 
 export const STATUS_STYLES: Record<AppStatus, { chip: string; dot: string }> = {
+  // Display steps used on user/akun
+  Submitted: { chip: "text-blue-700 border-blue-600", dot: "bg-blue-600" },
+  "Property Appraisal": {
+    chip: "text-yellow-700 border-yellow-600",
+    dot: "bg-yellow-500",
+  },
+  "Credit Analysis": {
+    chip: "text-orange-700 border-orange-600",
+    dot: "bg-orange-600",
+  },
+  "Final Approval": {
+    chip: "text-teal-700 border-teal-600",
+    dot: "bg-teal-600",
+  },
+
+  // Legacy labels kept for compatibility with other pages/components
   "Dokumen Terkirim": {
     chip: "text-blue-700 border-blue-600",
     dot: "bg-blue-600",

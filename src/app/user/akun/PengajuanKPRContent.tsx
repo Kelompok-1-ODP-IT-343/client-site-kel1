@@ -178,9 +178,9 @@ export default function PengajuanKPRContent() {
         />
         <SummaryCard
           icon={<CheckCircle2 size={24} />}
-          title="Disetujui (Tahap Akhir)"
+          title="Persetujuan Tahap Akhir"
           value={String(
-            applications.filter((a) => a.status === "Peninjauan 3").length
+            applications.filter((a) => a.status === "Final Approval").length
           )}
           accent="#16a34a"
         />
