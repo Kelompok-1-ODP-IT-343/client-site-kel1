@@ -300,7 +300,7 @@ function ExploreSection({
       <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="flex justify-between items-start mb-12">
           <div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+            <h2 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-teal-600 to-teal-500 bg-clip-text text-transparent">
               Eksplor Rumah Impian
             </h2>
             <p className="mt-3 text-lg text-gray-600">
@@ -309,7 +309,7 @@ function ExploreSection({
           </div>
 
           <Link href="/cari-rumah" passHref>
-            <button className="hidden sm:block border-2 border-[#FF8500] text-[#FF8500] font-semibold px-6 py-2.5 rounded-xl hover:bg-[#FF8500]/10 transition">
+            <button className="hidden sm:block border-2 border-teal-600 text-teal-700 font-semibold px-6 py-2.5 rounded-xl hover:bg-teal-50 transition">
               Lihat Semua
             </button>
           </Link>
@@ -397,7 +397,7 @@ function PropertyCard({
     <motion.div
       onClick={handleClick}
       whileHover={{ y: -6 }}
-      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden transition-all cursor-pointer"
+      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 hover:border-teal-300 overflow-hidden transition-all cursor-pointer"
     >
       <div className="relative h-44 w-full flex items-center justify-center bg-white">
         <Image

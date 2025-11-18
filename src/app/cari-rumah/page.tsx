@@ -292,93 +292,97 @@ function CariRumahContent() {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <section className="mb-12">
-                <h1 className="text-4xl font-extrabold text-center mb-8 tracking-tight bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                    Eksplor Rumah Impian
-                </h1>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                    <div>
-                        <label className="text-sm font-medium text-gray-600 mb-1 block">
-                            Cari Rumah
-                        </label>
-                        <input
-                            type="text"
-                            name="title" // PERBAIKAN: Harus 'title'
-                            placeholder="Nama Rumah Impianmu"
-                            value={filters.title}
-                            onChange={handleFilterChange}
-                            className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium text-gray-600 mb-1 block">
-                            Lokasi
-                        </label>
-                        <div className="relative">
-                            <select
-                                name="location"
-                                value={filters.location}
+                <div className="bg-teal-100 rounded-2xl">
+                    <div className="px-8 sm:px-12 lg:px-16 xl:px-20 py-12">
+                        <h1 className="text-4xl font-extrabold text-center tracking-tight bg-gradient-to-r from-teal-600 to-teal-500 bg-clip-text text-transparent mb-6">
+                            Eksplor Rumah Impian
+                        </h1>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end mt-6">
+                        <div>
+                            <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                                Cari Rumah
+                            </label>
+                            <input
+                                type="text"
+                                name="title" // PERBAIKAN: Harus 'title'
+                                placeholder="Nama Rumah Impianmu"
+                                value={filters.title}
                                 onChange={handleFilterChange}
-                                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            >
-                                <option value="">Semua Lokasi</option>
-                                {locationOptions.map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {opt}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={20}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                                className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
                             />
                         </div>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium text-gray-600 mb-1 block">
-                            Tipe
-                        </label>
-                        <div className="relative">
-                            <select
-                                name="type"
-                                value={filters.type}
-                                onChange={handleFilterChange}
-                                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            >
-                                <option value="">Semua Tipe</option>
-                                {typeOptions.map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {opt}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={20}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                            />
+                        <div>
+                            <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                                Lokasi
+                            </label>
+                            <div className="relative">
+                                <select
+                                    name="location"
+                                    value={filters.location}
+                                    onChange={handleFilterChange}
+                                    className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                                >
+                                    <option value="">Semua Lokasi</option>
+                                    {locationOptions.map((opt) => (
+                                        <option key={opt} value={opt}>
+                                            {opt}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    size={20}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium text-gray-600 mb-1 block">
-                            Rentang Harga
-                        </label>
-                        <div className="relative">
-                            <select
-                                name="budget"
-                                value={filters.budget}
-                                onChange={handleFilterChange}
-                                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            >
-                                <option value="">Semua Harga</option>
-                                {budgetOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={20}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                            />
+                        <div>
+                            <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                                Tipe
+                            </label>
+                            <div className="relative">
+                                <select
+                                    name="type"
+                                    value={filters.type}
+                                    onChange={handleFilterChange}
+                                    className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                                >
+                                    <option value="">Semua Tipe</option>
+                                    {typeOptions.map((opt) => (
+                                        <option key={opt} value={opt}>
+                                            {opt}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    size={20}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                                Rentang Harga
+                            </label>
+                            <div className="relative">
+                                <select
+                                    name="budget"
+                                    value={filters.budget}
+                                    onChange={handleFilterChange}
+                                    className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                                >
+                                    <option value="">Semua Harga</option>
+                                    {budgetOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    size={20}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                                />
+                            </div>
+                        </div>
                         </div>
                     </div>
                 </div>
