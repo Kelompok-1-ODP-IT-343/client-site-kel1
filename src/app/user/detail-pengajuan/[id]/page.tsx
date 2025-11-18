@@ -26,6 +26,8 @@ export default function DetailPengajuanPage() {
   const [loading, setLoading] = useState(true);
   // State untuk modal pratinjau dokumen ditempatkan sebelum return kondisional
   const [docPreview, setDocPreview] = useState<{ open: boolean; src: string; title: string }>({ open: false, src: "", title: "" });
+  // Modal detail properti
+  const [showPropertyDetail, setShowPropertyDetail] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -209,198 +211,7 @@ export default function DetailPengajuanPage() {
   return (
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-12 font-[Inter] bg-white">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">Detail Pengajuan KPR</h1>
-
-      {/* ===== INFORMASI PENGAJUAN (kiri) & PROPERTI (kanan) ===== */}
-      <section className="mt-8 grid md:grid-cols-2 gap-6 bg-white">
-        {/* Kiri: Ringkasan Aplikasi */}
-        <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
-          <div className="grid grid-cols-2 gap-y-6 items-center">
-            <div className="text-gray-600 text-base">Nomor Aplikasi</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber || "-"}</div>
-
-            <div className="text-gray-600 text-base">Status</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.status || "-"}</div>
-
-            <div className="text-gray-600 text-base">Nama</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
-
-            <div className="text-gray-600 text-base">Tanggal Pengajuan</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{formatDate(application.submittedAt)}</div>
-          </div>
-        </ColorCard>
-
-        {/* Pindah ke kanan: Informasi Properti */}
-        <ColorCard title="Informasi Properti" titleAlign="center">
-          <div className="flex items-center gap-6">
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-              <Image
-                src={property.mainImage || "/placeholder.png"}
-                alt="Properti"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div>
-              {/* Badge Developer Pilihan */}
-              <span className="inline-flex items-center rounded-full border border-blue-500 text-blue-600 px-3 py-1 text-sm font-semibold">Developer Pilihan</span>
-              <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
-              <p className="mt-1 text-gray-500 text-base inline-flex items-center gap-1">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <span>{property.city || "-"}</span>
-              </p>
-              <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
-            </div>
-          </div>
-
-          {/* detail properti ringkas mengikuti data dari inspirasi */}
-          {property && (
-            <div className="mt-6 grid grid-cols-2 gap-y-3 text-base">
-              <div className="text-gray-600">Kode Properti</div>
-              <div className="text-right text-gray-900 font-semibold">{property.propertyCode || "-"}</div>
-
-              <div className="text-gray-600">Alamat</div>
-              <div className="text-right text-gray-900 font-semibold">{property.address || "-"}</div>
-
-              <div className="text-gray-600">Provinsi</div>
-              <div className="text-right text-gray-900 font-semibold">{property.province || "-"}</div>
-
-              <div className="text-gray-600">Kecamatan</div>
-              <div className="text-right text-gray-900 font-semibold">{property.district || "-"}</div>
-
-              <div className="text-gray-600">Kelurahan</div>
-              <div className="text-right text-gray-900 font-semibold">{property.village || "-"}</div>
-
-              <div className="text-gray-600">Kode Pos</div>
-              <div className="text-right text-gray-900 font-semibold">{property.postalCode || "-"}</div>
-
-              <div className="text-gray-600">Luas Tanah</div>
-              <div className="text-right text-gray-900 font-semibold">{property.landArea != null ? `${property.landArea} m²` : "-"}</div>
-
-              <div className="text-gray-600">Luas Bangunan</div>
-              <div className="text-right text-gray-900 font-semibold">{property.buildingArea != null ? `${property.buildingArea} m²` : "-"}</div>
-            </div>
-          )}
-        </ColorCard>
-      </section>
-
-      {/* ===== DETAIL PINJAMAN ===== */}
-      <section className="grid md:grid-cols-1 gap-6 bg-white">
-        <ColorCard title="Detail Pinjaman" titleAlign="center">
-          <div className="grid grid-cols-2 gap-y-6 items-center">
-            <div className="text-gray-600 text-base">Jumlah Pinjaman</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{f(application.loanAmount)}</div>
-
-            <div className="text-gray-600 text-base">Uang Muka</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{f(application.downPayment)}</div>
-
-            <div className="text-gray-600 text-base">Tenor</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.loanTermYears} Tahun</div>
-
-            <div className="text-gray-600 text-base">Bunga</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{(application.interestRate * 100).toFixed(2)}%</div>
-
-            <div className="text-gray-600 text-base">Angsuran / Bulan</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{f(application.monthlyInstallment)}</div>
-          </div>
-          <div className="mt-6 border-t"></div>
-          <div className="flex justify-between items-center mt-4 text-base">
-            <span className="text-gray-600">Total Dibayar</span>
-            <span className="font-semibold text-green-600">{f(application.downPayment || 0)}</span>
-          </div>
-        </ColorCard>
-      </section>
-
-      {/* ===== DATA PENGAJUAN KPR (detail seperti inspirasi, styling tetap ColorCard) ===== */}
-      <section className="grid md:grid-cols-2 gap-6 bg-white">
-        <ColorCard title="Data Pengajuan KPR" titleAlign="center">
-          <div className="grid grid-cols-2 gap-y-6 items-center">
-            <div className="text-gray-600 text-base">Jenis Properti</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyType || "-"}</div>
-
-            <div className="text-gray-600 text-base">Nilai Properti</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{f(application.propertyValue)}</div>
-
-            <div className="text-gray-600 text-base">Alamat Properti</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyAddress || "-"}</div>
-
-            <div className="text-gray-600 text-base">Jenis Sertifikat</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyCertificateType || "-"}</div>
-
-            <div className="text-gray-600 text-base">Developer</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.developerName || "-"}</div>
-
-            <div className="text-gray-600 text-base">Plafon</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{f(application.loanAmount)}</div>
-
-            <div className="text-gray-600 text-base">Tenor</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{(() => {
-              const yrs = Number(application.loanTermYears);
-              if (!yrs || isNaN(yrs)) return "-";
-              const months = yrs > 50 ? yrs : yrs * 12;
-              return `${months} bulan`;
-            })()}</div>
-
-            <div className="text-gray-600 text-base">Suku Bunga</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.interestRate != null ? `${(application.interestRate * 100).toFixed(2)}%` : "-"}</div>
-
-            <div className="text-gray-600 text-base">DP</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{f(application.downPayment)}</div>
-
-            <div className="text-gray-600 text-base">Rasio LTV</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.ltvRatio != null ? `${application.ltvRatio}%` : "-"}</div>
-
-            <div className="text-gray-600 text-base">Tujuan</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.purpose || "-"}</div>
-
-            <div className="text-gray-600 text-base">Diajukan</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{formatDate(application.submittedAt)}</div>
-
-            <div className="text-gray-600 text-base">Catatan</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.notes || "-"}</div>
-          </div>
-        </ColorCard>
-
-        {/* Letakkan detail properti tambahan apabila ada */}
-        <ColorCard title="Data Properti" titleAlign="center">
-          {property ? (
-            <div className="grid grid-cols-2 gap-y-6 items-center">
-              <div className="text-gray-600 text-base">Judul</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.title || "-"}</div>
-
-              <div className="text-gray-600 text-base">Deskripsi</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.description || "-"}</div>
-
-              <div className="text-gray-600 text-base">Kota</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.city || "-"}</div>
-
-              <div className="text-gray-600 text-base">Provinsi</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.province || "-"}</div>
-
-              <div className="text-gray-600 text-base">Kecamatan</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.district || "-"}</div>
-
-              <div className="text-gray-600 text-base">Kelurahan</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.village || "-"}</div>
-
-              <div className="text-gray-600 text-base">Lantai</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.floors != null ? property.floors : "-"}</div>
-
-              <div className="text-gray-600 text-base">Kamar Tidur</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.bedrooms != null ? property.bedrooms : "-"}</div>
-
-              <div className="text-gray-600 text-base">Kamar Mandi</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{property.bathrooms != null ? property.bathrooms : "-"}</div>
-
-              <div className="text-gray-600 text-base">Harga/m²</div>
-              <div className="text-right text-gray-900 font-semibold text-base">{f(property.pricePerSqm)}</div>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500 text-center">Informasi properti tidak tersedia.</p>
-          )}
-        </ColorCard>
-      </section>
-
-      {/* ===== 🔹 TIMELINE PENGAJUAN (kembali ke 4 node; node 0 = Submitted) ===== */}
+      {/* ===== TIMELINE DI PALING ATAS ===== */}
       <ColorCard title="Timeline Pengajuan">
         <div className="relative px-2 py-6">
           <div className="absolute left-8 right-8 top-10 h-1 bg-gradient-to-r from-gray-200 via-[#3FD8D4]/40 to-gray-200 rounded-full" />
@@ -444,9 +255,99 @@ export default function DetailPengajuanPage() {
         </div>
       </ColorCard>
 
+      {/* ===== INFORMASI PENGAJUAN (kiri) & PROPERTI (kanan) ===== */}
+      <section className="mt-8 grid md:grid-cols-2 gap-6 bg-white">
+        {/* Kiri: Ringkasan Aplikasi */}
+        <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
+          <div className="grid grid-cols-2 gap-y-6 items-center">
+            <div className="text-gray-600 text-base">Nomor Aplikasi</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber || "-"}</div>
 
-      {/* ===== DOKUMEN TERLAMPIR ===== */}
-      <section className="grid md:grid-cols-1 gap-6 bg-white">
+            <div className="text-gray-600 text-base">Status</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.status || "-"}</div>
+
+            <div className="text-gray-600 text-base">Nama</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
+
+            <div className="text-gray-600 text-base">Tanggal Pengajuan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{formatDate(application.submittedAt)}</div>
+
+            <div className="text-gray-600 text-base">Jenis Sertifikat</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyCertificateType || "-"}</div>
+
+            <div className="text-gray-600 text-base">Catatan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.notes || "-"}</div>
+          </div>
+        </ColorCard>
+
+        {/* Kanan: Ringkasan Properti + tombol modal */}
+        <ColorCard title="Informasi Properti" titleAlign="center">
+          <div className="flex items-center gap-6">
+            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+              <Image
+                src={property.mainImage || "/placeholder.png"}
+                alt="Properti"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div>
+              <span className="inline-flex items-center rounded-full border border-blue-500 text-blue-600 px-3 py-1 text-sm font-semibold">Developer Pilihan</span>
+              <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
+              <p className="mt-1 text-gray-500 text-base inline-flex items-center gap-1">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <span>{property.city || "-"}</span>
+              </p>
+              <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPropertyDetail(true)}
+                  className="inline-flex items-center rounded-lg bg-[#3FD8D5] hover:bg-[#34c7c3] text-white px-4 py-2 text-sm font-semibold shadow"
+                >
+                  Detail Properti
+                </button>
+                {application?.purpose && (
+                  <span className="ml-3 inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-xs font-semibold border border-gray-200">
+                    {(String(application.purpose)).replace(/_/g, " ")}
+                  </span>
+                )}
+              </div>
+              <div className="mt-3 text-sm text-gray-700">
+                <span className="text-gray-600">Jenis Properti:</span>{" "}
+                <span className="font-semibold">{application.propertyType || "-"}</span>
+              </div>
+            </div>
+          </div>
+        </ColorCard>
+      </section>
+
+      {/* ===== BARIS KETIGA: Detail Pinjaman KPR (kiri) & Dokumen Terlampir (kanan) ===== */}
+      <section className="grid md:grid-cols-2 gap-6 bg-white">
+        {/* Kiri: Detail Pinjaman KPR */}
+        <ColorCard title="Detail Pinjaman KPR" titleAlign="center">
+          <div className="grid grid-cols-2 gap-y-6 items-center">
+            <div className="text-gray-600 text-base">Jumlah Pinjaman</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{f(application.loanAmount)}</div>
+
+            <div className="text-gray-600 text-base">Uang Muka</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{f(application.downPayment)}</div>
+
+            <div className="text-gray-600 text-base">Tenor</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.loanTermYears} Tahun</div>
+
+            <div className="text-gray-600 text-base">Bunga</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{(application.interestRate * 100).toFixed(2)}%</div>
+
+            <div className="text-gray-600 text-base">Angsuran / Bulan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{f(application.monthlyInstallment)}</div>
+
+            <div className="text-gray-600 text-base">Rasio LTV</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.ltvRatio != null ? `${application.ltvRatio}%` : "-"}</div>
+          </div>
+        </ColorCard>
+
+        {/* Kanan: Dokumen Terlampir */}
         <ColorCard title="Dokumen Terlampir" titleAlign="center">
           {documents && documents.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-6 w-full">
@@ -486,25 +387,70 @@ export default function DetailPengajuanPage() {
             <p className="text-sm text-gray-500 text-center">Tidak ada dokumen terlampir.</p>
           )}
         </ColorCard>
-
-        {/* Modal Pratinjau Dokumen */}
-        <Dialog
-          open={docPreview.open}
-          title={docPreview.title}
-          onClose={closeDocPreview}
-          description={
-            docPreview.src && isImageUrl(docPreview.src) ? (
-              <div className="relative w-[86vw] max-w-3xl h-[70vh]">
-                <Image src={docPreview.src} alt={docPreview.title} fill className="object-contain rounded-lg bg-gray-100" />
-              </div>
-            ) : (
-              <div className="text-sm text-gray-700">
-                Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
-              </div>
-            )
-          }
-        />
       </section>
+
+      {/* Modal Detail Properti */}
+      <Dialog
+        open={showPropertyDetail}
+        onClose={() => setShowPropertyDetail(false)}
+        title="Detail Properti"
+        description={property ? (
+          <div className="grid grid-cols-2 gap-y-3 text-sm">
+            <div className="text-gray-600">Kode Properti</div>
+            <div className="text-right text-gray-900 font-semibold">{property.propertyCode || "-"}</div>
+
+            <div className="text-gray-600">Alamat</div>
+            <div className="text-right text-gray-900 font-semibold">{property.address || "-"}</div>
+
+            <div className="text-gray-600">Provinsi</div>
+            <div className="text-right text-gray-900 font-semibold">{property.province || "-"}</div>
+
+            <div className="text-gray-600">Kecamatan</div>
+            <div className="text-right text-gray-900 font-semibold">{property.district || "-"}</div>
+
+            <div className="text-gray-600">Kelurahan</div>
+            <div className="text-right text-gray-900 font-semibold">{property.village || "-"}</div>
+
+            <div className="text-gray-600">Kode Pos</div>
+            <div className="text-right text-gray-900 font-semibold">{property.postalCode || "-"}</div>
+
+            <div className="text-gray-600">Luas Tanah</div>
+            <div className="text-right text-gray-900 font-semibold">{property.landArea != null ? `${property.landArea} m²` : "-"}</div>
+
+            <div className="text-gray-600">Luas Bangunan</div>
+            <div className="text-right text-gray-900 font-semibold">{property.buildingArea != null ? `${property.buildingArea} m²` : "-"}</div>
+
+            <div className="text-gray-600">Harga/m²</div>
+            <div className="text-right text-gray-900 font-semibold">{f(property.pricePerSqm)}</div>
+
+            <div className="text-gray-600">Developer</div>
+            <div className="text-right text-gray-900 font-semibold">{application.developerName || (property as any)?.developer?.companyName || "-"}</div>
+
+            <div className="text-gray-600">Jenis Properti</div>
+            <div className="text-right text-gray-900 font-semibold">{application.propertyType || "-"}</div>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-700">Informasi properti tidak tersedia.</div>
+        )}
+      />
+
+      {/* Modal Pratinjau Dokumen */}
+      <Dialog
+        open={docPreview.open}
+        title={docPreview.title}
+        onClose={closeDocPreview}
+        description={
+          docPreview.src && isImageUrl(docPreview.src) ? (
+            <div className="relative w-[86vw] max-w-3xl h-[70vh]">
+              <Image src={docPreview.src} alt={docPreview.title} fill className="object-contain rounded-lg bg-gray-100" />
+            </div>
+          ) : (
+            <div className="text-sm text-gray-700">
+              Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
+            </div>
+          )
+        }
+      />
 
       {/* ===== NOTIFIKASI (DIHILANGKAN SESUAI PERMINTAAN) ===== */}
     </main>
