@@ -655,7 +655,7 @@ export async function updateUserProfile(userId: number, payload: any) {
 
         const json = await res.json();
         if (!res.ok) {
-            return { success: false, message: json.message || "Gagal memperbarui profil." };
+            return { success: false, message: json.message || "Gagal memperbarui profil.", data: json.data };
         }
 
         return { success: true, message: json.message, data: json.data };

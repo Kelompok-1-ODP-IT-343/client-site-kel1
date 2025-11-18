@@ -7,6 +7,8 @@
   --bni-blue: #0066CC;
   --bni-dark-blue: #003366;
   --bni-light-gray: #F8F9FA;
+  /* Broken white tone for unified off-white across UI */
+  --bni-broken-white: #FFF8E7;
   --bni-gray: #495057;
   --bni-success: #28A745;
   --bni-warning: #FFC107;
@@ -24,6 +26,7 @@
   --color-bni-blue: var(--bni-blue);
   --color-bni-dark-blue: var(--bni-dark-blue);
   --color-bni-light-gray: var(--bni-light-gray);
+  --color-bni-broken-white: var(--bni-broken-white);
   --color-bni-gray: var(--bni-gray);
   --color-bni-success: var(--bni-success);
   --color-bni-warning: var(--bni-warning);
@@ -232,6 +235,25 @@ p {
 
 .bg-bni-light-gray {
   background-color: var(--bni-light-gray);
+}
+
+/* Broken white utility classes */
+.text-broken-white {
+  color: var(--bni-broken-white) !important;
+}
+.bg-broken-white {
+  background-color: var(--bni-broken-white) !important;
+}
+.border-broken-white {
+  border-color: var(--bni-broken-white) !important;
+}
+
+/* Removed footer-broken-white to avoid hydration mismatches */
+
+/* Enforce broken white text inside footer when root has text-broken-white */
+footer.text-broken-white,
+footer.text-broken-white * {
+  color: var(--bni-broken-white) !important;
 }
 
 /* Utility: text color using the new gray-900 variable */

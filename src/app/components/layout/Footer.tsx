@@ -38,7 +38,7 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-bni-orange text-white w-full">
+    <footer className="bg-bni-orange text-broken-white w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <motion.div
@@ -49,7 +49,7 @@ export default function Footer() {
             className="lg:col-span-2"
           >
             <Link href="/tentang-kami" className="flex items-center gap-2 mb-4">
-              <div className="relative w-10 h-10 bg-white rounded-md p-1">
+              <div className="relative w-10 h-10 bg-broken-white rounded-md p-1">
                 <Image
                   src="/logo_footer.png"
                   alt="SatuAtap Logo"
@@ -57,12 +57,12 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-3xl font-extrabold text-white">
+              <span className="text-3xl font-extrabold text-broken-white">
                 About Us
               </span>
             </Link>
 
-            <p className="leading-relaxed max-w-md mb-6 !text-white">
+            <p className="leading-relaxed max-w-md mb-6 !text-broken-white">
               Wujudkan impian rumah Anda bersama satuatap. Kami berkomitmen
               memberikan layanan KPR terbaik dengan proses yang aman, mudah dan
               cepat.
@@ -91,7 +91,7 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.05 }}
           >
-            <h3 className="font-bold mb-5 text-lg tracking-wider !text-white underline underline-offset-4">
+            <h3 className="font-bold mb-5 text-lg tracking-wider !text-broken-white underline underline-offset-4">
               Navigasi
             </h3>
             <ul className="space-y-3">
@@ -102,7 +102,7 @@ export default function Footer() {
                     className="group relative inline-block opacity-90 hover:opacity-100 transition"
                   >
                     {link.label}
-                    <span className="absolute left-0 -bottom-0.5 h-[2px] bg-white w-0 group-hover:w-full transition-all duration-300" />
+                    <span className="absolute left-0 -bottom-0.5 h-[2px] bg-broken-white w-0 group-hover:w-full transition-all duration-300" />
                   </Link>
                 </li>
               ))}
@@ -115,7 +115,7 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <h3 className="font-bold mb-5 text-lg tracking-wider !text-white underline underline-offset-4">
+            <h3 className="font-bold mb-5 text-lg tracking-wider !text-broken-white underline underline-offset-4">
               Hubungi Kami
             </h3>
             <ul className="space-y-4">
@@ -134,7 +134,7 @@ export default function Footer() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="border-t border-white/20 mt-12 pt-8 text-center text-sm opacity-80"
+          className="border-t border-[rgba(255,248,231,0.2)] mt-12 pt-8 text-center text-sm opacity-80"
         >
           <p>
             © {new Date().getFullYear()} Kelompok 1 ODP BNI Batch 343 | Hak

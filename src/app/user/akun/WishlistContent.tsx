@@ -106,21 +106,38 @@ export default function WishlistContent() {
       {loading ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-sm text-gray-600">Memuat data wishlist...</div>
       ) : error ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
-          <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-gradient-to-br from-orange-100 to-teal-100 grid place-items-center">
-            <Heart className="h-8 w-8 text-red-500" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-800">Terjadi kesalahan</h3>
-          <p className="mt-1 text-sm text-gray-500">{error}</p>
-        </div>
+        (() => {
+          const isNoFavorites = /no favorites/i.test(String(error));
+          if (isNoFavorites) {
+            return (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
+                <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-gradient-to-br from-orange-100 to-teal-100 grid place-items-center">
+                  <Heart className="h-8 w-8 text-orange-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">Belum Menyimpan Rumah Impian</h3>
+                <p className="mt-1 text-sm text-gray-500">Jelajahi daftar rumah dan tekan ikon hati untuk menyimpan.</p>
+                <Link href="/cari-rumah" className="mt-6 inline-flex items-center justify-center rounded-xl bg-bni-orange px-4 py-2.5 text-sm font-semibold text-white shadow hover:brightness-95">Cari Rumah Impian</Link>
+              </div>
+            );
+          }
+          return (
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
+              <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-gradient-to-br from-orange-100 to-teal-100 grid place-items-center">
+                <Heart className="h-8 w-8 text-red-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">Terjadi kesalahan</h3>
+              <p className="mt-1 text-sm text-gray-500">{error}</p>
+            </div>
+          );
+        })()
       ) : wishlist.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
           <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-gradient-to-br from-orange-100 to-teal-100 grid place-items-center">
             <Heart className="h-8 w-8 text-orange-500" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800">Belum ada rumah di wishlist</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Belum Menyimpan Rumah Impian</h3>
           <p className="mt-1 text-sm text-gray-500">Jelajahi daftar rumah dan tekan ikon hati untuk menyimpan.</p>
-          <Link href="/cari-rumah" className="mt-6 inline-flex items-center justify-center rounded-xl bg-bni-orange px-4 py-2.5 text-sm font-semibold text-white shadow hover:brightness-95">Cari Rumah</Link>
+          <Link href="/cari-rumah" className="mt-6 inline-flex items-center justify-center rounded-xl bg-bni-orange px-4 py-2.5 text-sm font-semibold text-white shadow hover:brightness-95">Cari Rumah Impian</Link>
         </div>
       ) : (
         <AnimatePresence mode="popLayout">

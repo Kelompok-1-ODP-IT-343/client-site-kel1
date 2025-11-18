@@ -21,12 +21,15 @@ import {
   MAX_FILE_SIZE,
 } from "@/app/user/akun/constants";
 import { ProfileForm } from "@/app/user/akun/types";
+import Dialog from "@/components/ui/Dialog";
 
 export default function ProfilContent() {
   const [formData, setFormData] = useState<ProfileForm>({ ...DEFAULT_PROFILE });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ nik?: string; npwp?: string }>({});
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const prevUrlRef = useRef<string | null>(null);
   const indonesiaData = rawData as {
@@ -241,6 +244,16 @@ useEffect(() => {
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
+      // Khusus NIK/NPWP: hanya angka, maksimal 16 digit + validasi segera
+      if (name === "nik" || name === "npwp") {
+        const digits = String(value).replace(/[^0-9]/g, "").slice(0, 16);
+        setFormData((s) => ({ ...s, [name]: digits }));
+        setFieldErrors((prev) => ({
+          ...prev,
+          [name]: digits.length === 16 ? undefined : `${name.toUpperCase()} harus tepat 16 digit`,
+        }));
+        return;
+      }
       setFormData((s) => ({ ...s, [name]: value }));
     },
     []
@@ -283,9 +296,22 @@ useEffect(() => {
       setLoading(true);
       setSuccess("");
       setError("");
+      setFieldErrors({});
 
       try {
         if (!user?.id) throw new Error("User belum login.");
+
+        // Validasi lokal untuk NIK dan NPWP (tepat 16 digit)
+        const localErr: { nik?: string; npwp?: string } = {};
+        const nikDigits = String(formData.nik || "");
+        const npwpDigits = String(formData.npwp || "");
+        if (nikDigits.length !== 16) localErr.nik = "NIK harus tepat 16 digit";
+        if (npwpDigits.length !== 16) localErr.npwp = "NPWP harus tepat 16 digit";
+        if (localErr.nik || localErr.npwp) {
+          setFieldErrors(localErr);
+          setLoading(false);
+          return;
+        }
 
         const payload = {
           username: formData.username,
@@ -314,12 +340,24 @@ useEffect(() => {
         const res = await updateUserProfile(Number(user.id), payload);
         if (res.success) {
           setSuccess("Profil berhasil diperbarui!");
+          setShowSuccessDialog(true);
           // Sinkronkan nama (dan foto bila tersedia) ke AuthContext + localStorage agar header ikut ter-update
           const newFullName = formData.full_name?.trim() || user.fullName;
           const newPhoto = (res.data?.photoUrl || user.photoUrl) as string | undefined;
           login({ id: user.id, fullName: newFullName, photoUrl: newPhoto });
         } else {
-          setError(res.message || "Gagal memperbarui profil.");
+          // Jika validasi server gagal, tampilkan pesan di bawah field dan sembunyikan pesan umum "Validation failed"
+          const msg = String(res.message || "");
+          if (/^validation failed$/i.test(msg)) {
+            const nikErr = (res as any)?.data?.nik;
+            const npwpErr = (res as any)?.data?.npwp;
+            setFieldErrors({
+              nik: nikErr ? "NIK harus tepat 16 digit" : undefined,
+              npwp: npwpErr ? "NPWP harus tepat 16 digit" : undefined,
+            });
+          } else {
+            setError(msg || "Gagal memperbarui profil.");
+          }
         }
       } catch (err: any) {
         console.error(err);
@@ -388,12 +426,14 @@ useEffect(() => {
               label="NIK"
               value={formData.nik}
               onChange={handleChange}
+              error={fieldErrors.nik}
             />
             <Field
               name="npwp"
               label="NPWP"
               value={formData.npwp}
               onChange={handleChange}
+              error={fieldErrors.npwp}
             />
             <Field
               name="birth_place"
@@ -537,8 +577,10 @@ useEffect(() => {
         </section>
 
         <div className="flex items-center justify-end gap-4">
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {success && <p className="text-green-600 text-sm">{success}</p>}
+          {error && !/^validation failed$/i.test(error) && (
+            <p className="text-[#FF8500] text-sm">{error}</p>
+          )}
+          {/* Dialog sukses akan menampilkan pesan, tidak perlu teks inline */}
           <button
             type="submit"
             disabled={loading}
@@ -547,6 +589,22 @@ useEffect(() => {
             {loading ? "Menyimpan..." : "Simpan Perubahan"}
           </button>
         </div>
+
+        <Dialog
+          open={showSuccessDialog}
+          title="Berhasil"
+          description={<p>Profil berhasil diperbarui!</p>}
+          onClose={() => setShowSuccessDialog(false)}
+          actions={
+            <button
+              type="button"
+              onClick={() => setShowSuccessDialog(false)}
+              className="px-4 py-2 rounded-md bg-[#FF8500] text-white hover:bg-[#e67800]"
+            >
+              Oke
+            </button>
+          }
+        />
       </form>
     </div>
   );
