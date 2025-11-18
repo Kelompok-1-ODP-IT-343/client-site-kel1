@@ -69,9 +69,9 @@ async function getDetail(id: number): Promise<PropertyDetail | null> {
 export default async function PropertyDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id: idParam } = await params;
+  const { id: idParam } =  params;
   const id = Number(idParam);
   const detail = await getDetail(id);
 
