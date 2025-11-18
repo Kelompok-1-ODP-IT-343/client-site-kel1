@@ -18,6 +18,9 @@ type DevCategory = "Top Selected Developer" | "Developer Kerja Sama";
 export default function StepPengajuan({ data, formData, handleChange, errors }: any) {
   const [showSimulasi, setShowSimulasi] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>(
+    (Array.isArray(data?.images) && data.images[0]) || data?.image || "/rumah-default.jpg"
+  );
 
   const hargaProperti = Number(data.hargaProperti || 0);
   const downPayment = parseCurrency(formData.downPayment || "0");
@@ -43,13 +46,16 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
         const res = await fetchWithAuth(url, { method: "GET", signal: controller.signal }).catch(() => null as any);
         if (!res || !res.ok) return;
         const json = await res.json().catch(() => null);
+        const imgs = Array.isArray(json?.data?.images) ? json.data.images : [];
+        const main = json?.data?.file_path ?? json?.data?.filePath ?? null;
+        const nextImg = (imgs[0] || main || imageSrc) as string;
+        if (nextImg) setImageSrc(nextImg);
         const partnershipLevel: string | undefined = json?.data?.developer?.partnershipLevel;
-        if (!partnershipLevel) return;
         const map: Record<string, DevCategory> = {
           TOP_SELECTED_DEVELOPER: "Top Selected Developer",
           DEVELOPER_KERJA_SAMA: "Developer Kerja Sama",
         };
-        const nextCat = map[partnershipLevel] || "Top Selected Developer";
+        const nextCat = map[partnershipLevel || ""] || "Top Selected Developer";
         // Set langsung; penyesuaian paket dilakukan di efek terpisah agar aman
         setDevCategory(nextCat);
       } catch (e) {
@@ -272,7 +278,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
           <div className="flex flex-col md:flex-row items-center gap-6 p-4 border rounded-xl bg-gray-50">
             <div className="relative w-full md:w-40 h-32 md:aspect-[4/3] rounded-lg overflow-hidden">
               <Image
-                src={data.image || "/rumah-default.jpg"}
+                src={imageSrc}
                 alt={data.propertiNama || "Properti"}
                 fill
                 className="object-cover"
