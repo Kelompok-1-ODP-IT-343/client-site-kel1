@@ -25,7 +25,6 @@ const STATUS_ORDER = [
   "Property Appraisal",
   "Credit Analysis",
   "Final Approval",
-  "Approved",
 ] as const;
 
 // Function to map API status to display status
@@ -34,7 +33,8 @@ const STATUS_MAP: Record<string, string> = {
   PROPERTY_APPRAISAL: "Property Appraisal",
   CREDIT_ANALYSIS: "Credit Analysis",
   FINAL_APPROVAL: "Final Approval",
-  APPROVED: "Approved",
+  // Map APPROVED to the last visible step so timeline remains 4 steps
+  APPROVED: "Final Approval",
 };
 
 const mapApiStatusToDisplayStatus = (apiStatus: string) =>
