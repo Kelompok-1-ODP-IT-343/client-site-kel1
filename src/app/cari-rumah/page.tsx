@@ -590,22 +590,28 @@ function HouseCard({
                         onToggleFavorite(house.id);
                     }}
                     className="absolute top-3 right-3 bg-white/70 backdrop-blur-sm p-1.5 rounded-full transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 z-20"
+                    // className="absolute top-3 right-3 bg-white/80 hover:bg-white shadow-md backdrop-blur-xl p-2 rounded-full transition z-20 border border-gray-200"
+
                     aria-label="Toggle Favorite"
                     aria-pressed={isFavorite}
                 >
                     <svg
-                        viewBox="0 0 24 24"
-                        width="20"
-                        height="20"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className={
-                            isFavorite
-                                ? "fill-red-500 text-red-500"
-                                : "fill-transparent text-red-600"
-                        }
+                    viewBox="0 0 24 24"
+                    width="22"
+                    height="22"
+                    className={
+                        isFavorite
+                        ? "fill-red-500 text-red-500 transition-all duration-300"
+                        : "fill-transparent text-gray-700 transition-all duration-300"
+                    }
                     >
-                        <path d="M12 21s-6.716-4.438-9.333-7.056C.517 11.794.5 9.5 2.1 7.9c1.6-1.6 4.2-1.6 5.8 0L12 12l4.1-4.1c1.6-1.6 4.2-1.6 5.8 0 1.6 1.6 1.583 3.894-.567 6.044C18.716 16.562 12 21 12 21z" />
+                    <path
+                        d="M12.1 20.55l-.1.1-.11-.1C7.14 16.24 4 13.39 4 9.88 4 7.17 6.17 5 8.88 5c1.54 0 3.04.73 4.12 1.88A5.93 5.93 0 0 1 17.12 5C19.83 5 22 7.17 22 9.88c0 3.51-3.14 6.36-7.89 10.67z"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
                     </svg>
                 </button>
             </div>
