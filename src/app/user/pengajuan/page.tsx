@@ -55,6 +55,8 @@ type FormData = {
   fileKTP: File | null;
   fileSlipGaji: File | null;
 
+  notes?: string;
+
   agreeTerms: boolean;
 };
 
@@ -131,6 +133,8 @@ function FormPengajuanContent() {
 
     fileKTP: null,
     fileSlipGaji: null,
+
+    notes: "",
 
     agreeTerms: false,
   });
