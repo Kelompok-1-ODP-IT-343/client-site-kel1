@@ -190,7 +190,7 @@ function FeatureSection() {
 
   return (
     <section className="py-20 sm:py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
             Mengapa Memilih KPR BNI?
@@ -200,12 +200,12 @@ function FeatureSection() {
             impian Anda!
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 justify-items-stretch">
           {features.map((f, i) => (
             <motion.div
               key={i}
               whileHover={{ y: -5 }}
-              className="bg-white rounded-2xl p-7 text-center shadow-lg border border-gray-100 w-[90%] mx-auto"
+              className="bg-white rounded-2xl p-7 text-center shadow-lg border border-gray-100 w-full"
             >
               <div className="flex justify-center mb-4">{f.icon}</div>
               <h3 className="text-lg font-bold text-gray-900">{f.title}</h3>
@@ -297,7 +297,7 @@ function ExploreSection({
 
   return (
     <section className="py-20 sm:py-24" style={{ backgroundColor: "#FFFEEB" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="flex justify-between items-start mb-12">
           <div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
@@ -329,7 +329,7 @@ function ExploreSection({
 
             <div
               ref={sliderRef}
-              className="flex gap-6 overflow-x-auto pb-4 scroll-smooth no-scrollbar px-8"
+              className="flex gap-6 overflow-x-auto pb-4 scroll-smooth no-scrollbar px-0"
             >
               {items.map((it) => (
                 <div
