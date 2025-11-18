@@ -46,6 +46,18 @@ export default function DetailPengajuanPage() {
   const user = data.userInfo || {};
   const documents = data.documents || [];
   const approvals = data.approvalWorkflows || [];
+  
+  // Helper formatters (ikuti style util sederhana yang sudah ada)
+  const formatDate = (s?: string) => {
+    if (!s) return "-";
+    try {
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return "-";
+      return d.toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" });
+    } catch {
+      return "-";
+    }
+  };
 
   // Deteksi tipe file untuk preview gambar pada Dokumen Terlampir
   const isImageUrl = (url: string) => /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(url || "");
@@ -154,6 +166,39 @@ export default function DetailPengajuanPage() {
 
   const progressPercent = Math.round(((Math.max(stepIndex, 0) + 1) / DASHBOARD_STATUS_ORDER.length) * 100);
 
+  // ======== Data & helper khusus Stepper (mengikuti contoh) ========
+  const WORKFLOW_ORDER = ["PROPERTY_APPRAISAL", "CREDIT_ANALYSIS", "FINAL_APPROVAL"] as const;
+  const workflows = Array.isArray(approvals)
+    ? [...approvals].sort((a: any, b: any) => {
+        const ia = WORKFLOW_ORDER.indexOf((a?.stage || "").toUpperCase() as any);
+        const ib = WORKFLOW_ORDER.indexOf((b?.stage || "").toUpperCase() as any);
+        if (ia !== ib) return ia - ib;
+        return (a?.workflowId ?? 0) - (b?.workflowId ?? 0);
+      })
+    : [];
+
+  const upper = (s?: string) => String(s || "").toUpperCase();
+  const doneStates = ["APPROVED", "COMPLETED", "DONE", "FINISHED"];
+  const nameOrEmail = (wf?: any) => (wf?.assignedToName?.trim?.() ? wf.assignedToName : (wf?.assignedToEmail || "-"));
+  const statusBadge = (status?: string) => {
+    const s = upper(status);
+    if (doneStates.includes(s)) return "bg-green-100 text-green-700 border-green-200";
+    if (s === "REJECTED") return "bg-red-100 text-red-700 border-red-200";
+    if (s === "IN_PROGRESS") return "bg-blue-100 text-blue-700 border-blue-200";
+    return "bg-yellow-100 text-yellow-700 border-yellow-200"; // PENDING/other
+  };
+  type NodeState = "done" | "active" | "pending";
+  const nodeState = (index: number): NodeState => {
+    // index 0 = Assignment (sebelum workflow 1)
+    if (index === 0) return workflows.length > 0 ? "done" : "active";
+    const wf = workflows[index - 1];
+    const st = upper(wf?.status);
+    if (doneStates.includes(st)) return "done";
+    const prevDone = index === 1 ? true : doneStates.includes(upper(workflows[index - 2]?.status));
+    if (prevDone && (st === "PENDING" || st === "IN_PROGRESS" || st === "")) return "active";
+    return "pending";
+  };
+
   // ======== Dummy history pembayaran untuk tampilan ========
   const payments = [
     { month: "Agustus 2025", date: "10-08-2025", amount: 4850000, status: "Lunas" },
@@ -167,14 +212,20 @@ export default function DetailPengajuanPage() {
 
       {/* ===== INFORMASI PENGAJUAN (kiri) & PROPERTI (kanan) ===== */}
       <section className="mt-8 grid md:grid-cols-2 gap-6 bg-white">
-        {/* Pindah ke kiri: Informasi Pengajuan KPR */}
+        {/* Kiri: Ringkasan Aplikasi */}
         <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
           <div className="grid grid-cols-2 gap-y-6 items-center">
             <div className="text-gray-600 text-base">Nomor Aplikasi</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber}</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber || "-"}</div>
+
+            <div className="text-gray-600 text-base">Status</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.status || "-"}</div>
 
             <div className="text-gray-600 text-base">Nama</div>
             <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
+
+            <div className="text-gray-600 text-base">Tanggal Pengajuan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{formatDate(application.submittedAt)}</div>
           </div>
         </ColorCard>
 
@@ -200,11 +251,40 @@ export default function DetailPengajuanPage() {
               <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
             </div>
           </div>
+
+          {/* detail properti ringkas mengikuti data dari inspirasi */}
+          {property && (
+            <div className="mt-6 grid grid-cols-2 gap-y-3 text-base">
+              <div className="text-gray-600">Kode Properti</div>
+              <div className="text-right text-gray-900 font-semibold">{property.propertyCode || "-"}</div>
+
+              <div className="text-gray-600">Alamat</div>
+              <div className="text-right text-gray-900 font-semibold">{property.address || "-"}</div>
+
+              <div className="text-gray-600">Provinsi</div>
+              <div className="text-right text-gray-900 font-semibold">{property.province || "-"}</div>
+
+              <div className="text-gray-600">Kecamatan</div>
+              <div className="text-right text-gray-900 font-semibold">{property.district || "-"}</div>
+
+              <div className="text-gray-600">Kelurahan</div>
+              <div className="text-right text-gray-900 font-semibold">{property.village || "-"}</div>
+
+              <div className="text-gray-600">Kode Pos</div>
+              <div className="text-right text-gray-900 font-semibold">{property.postalCode || "-"}</div>
+
+              <div className="text-gray-600">Luas Tanah</div>
+              <div className="text-right text-gray-900 font-semibold">{property.landArea != null ? `${property.landArea} m²` : "-"}</div>
+
+              <div className="text-gray-600">Luas Bangunan</div>
+              <div className="text-right text-gray-900 font-semibold">{property.buildingArea != null ? `${property.buildingArea} m²` : "-"}</div>
+            </div>
+          )}
         </ColorCard>
       </section>
 
-      {/* ===== DETAIL PINJAMAN + CHART ===== */}
-      <section className="grid md:grid-cols-2 gap-6 bg-white">
+      {/* ===== DETAIL PINJAMAN ===== */}
+      <section className="grid md:grid-cols-1 gap-6 bg-white">
         <ColorCard title="Detail Pinjaman" titleAlign="center">
           <div className="grid grid-cols-2 gap-y-6 items-center">
             <div className="text-gray-600 text-base">Jumlah Pinjaman</div>
@@ -228,75 +308,139 @@ export default function DetailPengajuanPage() {
             <span className="font-semibold text-green-600">{f(application.downPayment || 0)}</span>
           </div>
         </ColorCard>
+      </section>
 
-        <ColorCard title="Sisa Tenor dan Outstanding" titleAlign="center">
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-10">
-            <div className="flex flex-col items-center">
-              <RadialChart value={tenorProgress} color="#0066CC" label="Tenor" />
-              <span className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-base font-semibold">Tenor</span>
-              <p className="mt-2 text-base text-gray-600">
-                Sisa Tenor: <span className="font-semibold text-gray-900">{remainingTenor} bulan</span>
-              </p>
-            </div>
+      {/* ===== DATA PENGAJUAN KPR (detail seperti inspirasi, styling tetap ColorCard) ===== */}
+      <section className="grid md:grid-cols-2 gap-6 bg-white">
+        <ColorCard title="Data Pengajuan KPR" titleAlign="center">
+          <div className="grid grid-cols-2 gap-y-6 items-center">
+            <div className="text-gray-600 text-base">Jenis Properti</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyType || "-"}</div>
 
-            <div className="flex flex-col items-center">
-              <RadialChart value={outstandingProgress} color="#FF8500" label="Outstanding" />
-              <span className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-base font-semibold">Outstanding</span>
-              <p className="mt-2 text-base text-gray-600">
-                Sisa: <span className="font-semibold text-gray-900">{f(outstanding)}</span>
-              </p>
-            </div>
+            <div className="text-gray-600 text-base">Nilai Properti</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{f(application.propertyValue)}</div>
+
+            <div className="text-gray-600 text-base">Alamat Properti</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyAddress || "-"}</div>
+
+            <div className="text-gray-600 text-base">Jenis Sertifikat</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyCertificateType || "-"}</div>
+
+            <div className="text-gray-600 text-base">Developer</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.developerName || "-"}</div>
+
+            <div className="text-gray-600 text-base">Plafon</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{f(application.loanAmount)}</div>
+
+            <div className="text-gray-600 text-base">Tenor</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{(() => {
+              const yrs = Number(application.loanTermYears);
+              if (!yrs || isNaN(yrs)) return "-";
+              const months = yrs > 50 ? yrs : yrs * 12;
+              return `${months} bulan`;
+            })()}</div>
+
+            <div className="text-gray-600 text-base">Suku Bunga</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.interestRate != null ? `${(application.interestRate * 100).toFixed(2)}%` : "-"}</div>
+
+            <div className="text-gray-600 text-base">DP</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{f(application.downPayment)}</div>
+
+            <div className="text-gray-600 text-base">Rasio LTV</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.ltvRatio != null ? `${application.ltvRatio}%` : "-"}</div>
+
+            <div className="text-gray-600 text-base">Tujuan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.purpose || "-"}</div>
+
+            <div className="text-gray-600 text-base">Diajukan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{formatDate(application.submittedAt)}</div>
+
+            <div className="text-gray-600 text-base">Catatan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.notes || "-"}</div>
           </div>
+        </ColorCard>
 
+        {/* Letakkan detail properti tambahan apabila ada */}
+        <ColorCard title="Data Properti" titleAlign="center">
+          {property ? (
+            <div className="grid grid-cols-2 gap-y-6 items-center">
+              <div className="text-gray-600 text-base">Judul</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.title || "-"}</div>
+
+              <div className="text-gray-600 text-base">Deskripsi</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.description || "-"}</div>
+
+              <div className="text-gray-600 text-base">Kota</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.city || "-"}</div>
+
+              <div className="text-gray-600 text-base">Provinsi</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.province || "-"}</div>
+
+              <div className="text-gray-600 text-base">Kecamatan</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.district || "-"}</div>
+
+              <div className="text-gray-600 text-base">Kelurahan</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.village || "-"}</div>
+
+              <div className="text-gray-600 text-base">Lantai</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.floors != null ? property.floors : "-"}</div>
+
+              <div className="text-gray-600 text-base">Kamar Tidur</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.bedrooms != null ? property.bedrooms : "-"}</div>
+
+              <div className="text-gray-600 text-base">Kamar Mandi</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{property.bathrooms != null ? property.bathrooms : "-"}</div>
+
+              <div className="text-gray-600 text-base">Harga/m²</div>
+              <div className="text-right text-gray-900 font-semibold text-base">{f(property.pricePerSqm)}</div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 text-center">Informasi properti tidak tersedia.</p>
+          )}
         </ColorCard>
       </section>
 
-      {/* ===== 🔹 NEW: TIMELINE PENGAJUAN  ===== */}
-      {/* ===== 🔹 TIMELINE PENGAJUAN ===== */}
+      {/* ===== 🔹 TIMELINE PENGAJUAN (kembali ke 4 node; node 0 = Submitted) ===== */}
       <ColorCard title="Timeline Pengajuan">
-        <div className="relative flex justify-between items-start pt-10 px-4">
-          {/* Garis abu-abu dasar */}
-          <div className="absolute top-12 left-8 right-8 h-1 bg-gray-200 rounded-full z-0" />
-
-          {/* Garis biru progres */}
-          <div
-            className="absolute top-12 left-8 h-1 bg-[#3FD8D5] rounded-full z-10 transition-all duration-700"
-            style={{ width: `${progressPercent || 0}%` }}
-          />
-
-          {timeline.map((t: TimelineItem, i: number) => {
-            const stepName = t.step;
-            const isSelesai = t.status === "Selesai";
-            const isProses = t.status === "Proses";
-            const isActive = isSelesai || isProses;
-
-            return (
-              <div key={i} className="relative z-20 flex flex-col items-center w-full text-center">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${
-                    isActive
-                      ? "bg-[#3FD8D5] border-transparent scale-105"
-                      : "bg-white border-gray-300"
-                  }`}
-                >
-                  {isSelesai && <CheckCircle2 size={14} className="text-white" />}
-                  {isProses && <div className="w-3 h-3 bg-white rounded-full animate-pulse" />}
+        <div className="relative px-2 py-6">
+          <div className="absolute left-8 right-8 top-10 h-1 bg-gradient-to-r from-gray-200 via-[#3FD8D4]/40 to-gray-200 rounded-full" />
+          <div className="grid grid-cols-4 gap-4 relative">
+            {[0,1,2,3].map((i) => {
+              const state = nodeState(i);
+              const isDone = state === 'done';
+              const isActive = state === 'active';
+              const dotCls = isDone ? 'bg-green-500 border-green-500' : isActive ? 'bg-[#3FD8D4] border-[#3FD8D4]' : 'bg-gray-200 border-gray-300';
+              const ringCls = isActive ? 'ring-4 ring-[#3FD8D4]/30' : '';
+              const title = i === 0 ? 'Submitted' : i === 1 ? 'Property Appraisal' : i === 2 ? 'Credit Analysis' : 'Final Approval';
+              const wf = i > 0 ? workflows[i - 1] : undefined;
+              const note = wf?.approvalNotes || wf?.rejectionReason || '-';
+              const date = i === 0 ? application.submittedAt : (wf?.completedAt || wf?.startedAt || wf?.dueDate || '');
+              return (
+                <div key={i} className="flex flex-col items-center text-center px-2">
+                  <div className={`w-6 h-6 rounded-full border ${dotCls} ${ringCls}`} />
+                  <div className="mt-3 text-sm font-semibold text-gray-900">{title}</div>
+                  <div className="mt-2 w-full max-w-[280px] rounded-xl border p-3 shadow-sm bg-white text-xs text-gray-700">
+                    {i === 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between"><span className="text-gray-500">Pemohon</span><span className="font-medium truncate max-w-[60%] text-right">{user.fullName || application.applicantName || '-'}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex justify-between"><span className="text-gray-500">PIC</span><span className="font-medium truncate max-w-[60%] text-right">{nameOrEmail(wf)}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium truncate max-w-[60%] text-right">{wf?.assignedToEmail || '-'}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Status</span>
+                          <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusBadge(wf?.status)}`}>{wf?.status ?? 'PENDING'}</span>
+                        </div>
+                        <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
+                        <div className="text-left"><span className="text-gray-500">Note: </span><span className="font-medium">{note}</span></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                <span
-                  className={`mt-2 text-sm font-semibold ${
-                    isActive ? "text-[#3FD8D5]" : "text-gray-500"
-                  }`}
-                >
-                  {stepName}
-                </span>
-                <span className="text-xs text-gray-400 mt-1">{t.date}</span>
-                <span className="text-xs text-gray-600 italic mt-0.5 whitespace-nowrap">
-                  {t.note}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </ColorCard>
 
