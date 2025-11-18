@@ -51,8 +51,9 @@ export default function DetailPengajuanPage() {
   // Label tipe developer (Developer Pilihan vs Developer Kerja Sama)
   const partnershipLevelUpper = String((property as any)?.developer?.partnershipLevel || "").toUpperCase();
   const listingTypeUpper = String((property as any)?.listingType || (property as any)?.listing_type || "").toUpperCase();
-  const isDevPilihan = partnershipLevelUpper === "TOP_SELECTED_DEVELOPER" || (property as any)?.is_developer_pilihan === true || listingTypeUpper === "PRIMARY";
-  const developerTypeLabel = isDevPilihan ? "Developer Pilihan" : "Developer Kerja Sama";
+  const isDevPilihanBase = partnershipLevelUpper === "TOP_SELECTED_DEVELOPER" || (property as any)?.is_developer_pilihan === true || listingTypeUpper === "PRIMARY";
+  const purposeUpper = String(application?.purpose || "").toUpperCase();
+  const developerTypeLabel = purposeUpper.includes("PRIMARY") ? "Developer Pilihan" : (isDevPilihanBase ? "Developer Pilihan" : "Developer Kerja Sama");
   
   // Helper formatters (ikuti style util sederhana yang sudah ada)
   const formatDate = (s?: string) => {
@@ -307,10 +308,6 @@ export default function DetailPengajuanPage() {
             </div>
             <div>
               <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
-              <p className="mt-1 text-gray-500 text-base inline-flex items-center gap-1">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <span>{property.city || "-"}</span>
-              </p>
               <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
               <div className="mt-3">
                 <button
@@ -320,11 +317,6 @@ export default function DetailPengajuanPage() {
                 >
                   Detail Properti
                 </button>
-                {application?.purpose && (
-                  <span className="ml-3 inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-xs font-semibold border border-gray-200">
-                    {(String(application.purpose)).replace(/_/g, " ")}
-                  </span>
-                )}
               </div>
             </div>
           </div>
@@ -410,6 +402,9 @@ export default function DetailPengajuanPage() {
 
             <div className="text-gray-600">Alamat</div>
             <div className="text-right text-gray-900 font-semibold">{property.address || "-"}</div>
+
+            <div className="text-gray-600">Kota</div>
+            <div className="text-right text-gray-900 font-semibold">{property.city || "-"}</div>
 
             <div className="text-gray-600">Provinsi</div>
             <div className="text-right text-gray-900 font-semibold">{property.province || "-"}</div>
