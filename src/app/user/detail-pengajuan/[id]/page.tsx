@@ -48,6 +48,11 @@ export default function DetailPengajuanPage() {
   const user = data.userInfo || {};
   const documents = data.documents || [];
   const approvals = data.approvalWorkflows || [];
+  // Label tipe developer (Developer Pilihan vs Developer Kerja Sama)
+  const partnershipLevelUpper = String((property as any)?.developer?.partnershipLevel || "").toUpperCase();
+  const listingTypeUpper = String((property as any)?.listingType || (property as any)?.listing_type || "").toUpperCase();
+  const isDevPilihan = partnershipLevelUpper === "TOP_SELECTED_DEVELOPER" || (property as any)?.is_developer_pilihan === true || listingTypeUpper === "PRIMARY";
+  const developerTypeLabel = isDevPilihan ? "Developer Pilihan" : "Developer Kerja Sama";
   
   // Helper formatters (ikuti style util sederhana yang sudah ada)
   const formatDate = (s?: string) => {
@@ -79,6 +84,17 @@ export default function DetailPengajuanPage() {
       currency: "IDR",
       maximumFractionDigits: 0,
     });
+
+  // Title Case helper untuk teks seperti jenis properti (contoh: RUMAH -> Rumah)
+  const toTitleCase = (raw?: string | null) => {
+    if (!raw) return "-";
+    return String(raw)
+      .toLowerCase()
+      .split(/[ _]+/g)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  };
 
   // ======== Progress Tenor & Outstanding ========
   const tenorYears = application.loanTermYears ?? 0;
@@ -263,9 +279,6 @@ export default function DetailPengajuanPage() {
             <div className="text-gray-600 text-base">Nomor Aplikasi</div>
             <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber || "-"}</div>
 
-            <div className="text-gray-600 text-base">Status</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.status || "-"}</div>
-
             <div className="text-gray-600 text-base">Nama</div>
             <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
 
@@ -289,10 +302,10 @@ export default function DetailPengajuanPage() {
                 alt="Properti"
                 fill
                 className="object-cover"
+                unoptimized
               />
             </div>
             <div>
-              <span className="inline-flex items-center rounded-full border border-blue-500 text-blue-600 px-3 py-1 text-sm font-semibold">Developer Pilihan</span>
               <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
               <p className="mt-1 text-gray-500 text-base inline-flex items-center gap-1">
                 <MapPin className="h-4 w-4 text-gray-500" />
@@ -312,10 +325,6 @@ export default function DetailPengajuanPage() {
                     {(String(application.purpose)).replace(/_/g, " ")}
                   </span>
                 )}
-              </div>
-              <div className="mt-3 text-sm text-gray-700">
-                <span className="text-gray-600">Jenis Properti:</span>{" "}
-                <span className="font-semibold">{application.propertyType || "-"}</span>
               </div>
             </div>
           </div>
@@ -426,8 +435,11 @@ export default function DetailPengajuanPage() {
             <div className="text-gray-600">Developer</div>
             <div className="text-right text-gray-900 font-semibold">{application.developerName || (property as any)?.developer?.companyName || "-"}</div>
 
+            <div className="text-gray-600">Tipe Developer</div>
+            <div className="text-right text-gray-900 font-semibold">{developerTypeLabel}</div>
+
             <div className="text-gray-600">Jenis Properti</div>
-            <div className="text-right text-gray-900 font-semibold">{application.propertyType || "-"}</div>
+            <div className="text-right text-gray-900 font-semibold">{toTitleCase(String(application.propertyType || "-").replace(/_/g, " "))}</div>
           </div>
         ) : (
           <div className="text-sm text-gray-700">Informasi properti tidak tersedia.</div>
@@ -435,22 +447,22 @@ export default function DetailPengajuanPage() {
       />
 
       {/* Modal Pratinjau Dokumen */}
-      <Dialog
-        open={docPreview.open}
-        title={docPreview.title}
-        onClose={closeDocPreview}
-        description={
-          docPreview.src && isImageUrl(docPreview.src) ? (
-            <div className="relative w-[86vw] max-w-3xl h-[70vh]">
-              <Image src={docPreview.src} alt={docPreview.title} fill className="object-contain rounded-lg bg-gray-100" />
-            </div>
-          ) : (
-            <div className="text-sm text-gray-700">
-              Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
-            </div>
-          )
-        }
-      />
+          <Dialog
+            open={docPreview.open}
+            title={docPreview.title}
+            onClose={closeDocPreview}
+            description={
+              docPreview.src && isImageUrl(docPreview.src) ? (
+                <div className="relative w-[86vw] max-w-3xl h-[70vh]">
+                  <Image src={docPreview.src} alt={docPreview.title} fill className="object-contain rounded-lg bg-gray-100" unoptimized />
+                </div>
+              ) : (
+                <div className="text-sm text-gray-700">
+                  Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
+                </div>
+              )
+            }
+          />
 
       {/* ===== NOTIFIKASI (DIHILANGKAN SESUAI PERMINTAAN) ===== */}
     </main>
