@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { CheckCircle2, AlertCircle, MapPin } from "lucide-react";
+import { CheckCircle2, AlertCircle, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import {
   RadialBarChart,
   RadialBar,
@@ -28,6 +28,8 @@ export default function DetailPengajuanPage() {
   const [docPreview, setDocPreview] = useState<{ open: boolean; src: string; title: string }>({ open: false, src: "", title: "" });
   // Modal detail properti
   const [showPropertyDetail, setShowPropertyDetail] = useState(false);
+  // Ekspansi detail per langkah timeline
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!id) return;
@@ -184,6 +186,26 @@ export default function DetailPengajuanPage() {
   });
 
   const progressPercent = Math.round(((Math.max(stepIndex, 0) + 1) / DASHBOARD_STATUS_ORDER.length) * 100);
+  // Helper untuk label status ringkas dan kelas chip
+  const statusLabelAndClass = (i: number): { label: string; cls: string } => {
+    if (i === 0) {
+      const lbl = timeline[0]?.status || "-";
+      if (lbl === "Selesai") return { label: "SELESAI", cls: "bg-green-100 text-green-700 border-green-200" };
+      if (lbl === "Proses") return { label: "PROSES", cls: "bg-blue-100 text-blue-700 border-blue-200" };
+      return { label: "PENDING", cls: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+    }
+    if (i >= 1 && i <= 3) {
+      const st = upper(workflows[i - 1]?.status);
+      if (doneStates.includes(st)) return { label: "SELESAI", cls: "bg-green-100 text-green-700 border-green-200" };
+      if (st === "PENDING" || st === "") return { label: "PENDING", cls: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+      return { label: "PROSES", cls: "bg-blue-100 text-blue-700 border-blue-200" };
+    }
+    const lbl = timeline[4]?.status || "-";
+    if (lbl === "Selesai") return { label: "SELESAI", cls: "bg-green-100 text-green-700 border-green-200" };
+    if (lbl === "Proses") return { label: "PROSES", cls: "bg-blue-100 text-blue-700 border-blue-200" };
+    return { label: "PENDING", cls: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+  };
+  const toggleStep = (i: number) => setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
 
   // ======== Data & helper khusus Stepper (mengikuti contoh) ========
   const WORKFLOW_ORDER = ["PROPERTY_APPRAISAL", "CREDIT_ANALYSIS", "FINAL_APPROVAL"] as const;
@@ -243,25 +265,43 @@ export default function DetailPengajuanPage() {
               const wf = i > 0 ? workflows[i - 1] : undefined;
               const note = wf?.approvalNotes || wf?.rejectionReason || '-';
               const date = i === 0 ? application.submittedAt : (wf?.completedAt || wf?.startedAt || wf?.dueDate || '');
+              const { label, cls } = statusLabelAndClass(i);
+              const isExpanded = !!expanded[i];
               return (
                 <div key={i} className="flex flex-col items-center text-center px-2">
                   <div className={`w-6 h-6 rounded-full border ${dotCls} ${ringCls}`} />
                   <div className="mt-3 text-sm font-semibold text-gray-900">{title}</div>
-                  <div className="mt-2 w-full max-w-[280px] rounded-xl border p-3 shadow-sm bg-white text-xs text-gray-700">
-                    {i === 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex justify-between"><span className="text-gray-500">Pemohon</span><span className="font-medium truncate max-w-[60%] text-right">{user.fullName || application.applicantName || '-'}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex justify-between"><span className="text-gray-500">PIC</span><span className="font-medium truncate max-w-[60%] text-right">{nameOrEmail(wf)}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium truncate max-w-[60%] text-right">{wf?.assignedToEmail || '-'}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Status</span>
-                          <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusBadge(wf?.status)}`}>{wf?.status ?? 'PENDING'}</span>
-                        </div>
-                        <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
-                        <div className="text-left"><span className="text-gray-500">Note: </span><span className="font-medium">{note}</span></div>
+                  <div className="mt-2 w-full max-w-[280px] text-xs text-gray-700">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${cls}`}>{label}</span>
+                      <span className="text-gray-800">{formatDate(date)}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleStep(i)}
+                        className="ml-auto inline-flex items-center justify-center w-8 h-8 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+                        aria-label="Buka tutup detail"
+                      >
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </button>
+                    </div>
+                    {isExpanded && (
+                      <div className="mt-2 rounded-xl border p-3 shadow-sm bg-white">
+                        {i === 0 ? (
+                          <div className="space-y-2">
+                            <div className="flex justify-between"><span className="text-gray-500">Pemohon</span><span className="font-medium truncate max-w-[60%] text-right">{user.fullName || application.applicantName || '-'}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex justify-between"><span className="text-gray-500">PIC</span><span className="font-medium truncate max-w-[60%] text-right">{nameOrEmail(wf)}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium truncate max-w-[60%] text-right">{wf?.assignedToEmail || '-'}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Status</span>
+                              <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusBadge(wf?.status)}`}>{wf?.status ?? 'PENDING'}</span>
+                            </div>
+                            <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
+                            <div className="text-left"><span className="text-gray-500">Note: </span><span className="font-medium">{note}</span></div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
