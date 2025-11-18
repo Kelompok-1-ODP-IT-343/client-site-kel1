@@ -234,6 +234,7 @@ function CariRumahContent() {
         const params = new URLSearchParams({
             propertiId: String(house.id),
             propertiNama: house.title,
+            propertiLokasi: house.city || "",
             hargaProperti: String(house.price),
         });
         const target = `/user/pengajuan?${params.toString()}`;

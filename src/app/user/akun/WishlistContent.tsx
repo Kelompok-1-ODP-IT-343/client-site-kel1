@@ -198,7 +198,7 @@ export default function WishlistContent() {
                       Detail
                     </Link>
                     <Link
-                      href={`/user/pengajuan?propertiId=${house.propertyId}&propertiNama=${encodeURIComponent(house.title)}&hargaProperti=${encodeURIComponent(house.priceText)}`}
+                      href={`/user/pengajuan?propertiId=${house.propertyId}&propertiNama=${encodeURIComponent(house.title)}&propertiLokasi=${encodeURIComponent(house.location)}&hargaProperti=${encodeURIComponent(house.priceText)}`}
                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-bni-orange px-3 py-2 text-sm font-semibold text-white shadow transition hover:brightness-95"
                     >
                       <Heart className="h-4 w-4 fill-white" />

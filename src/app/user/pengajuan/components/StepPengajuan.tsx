@@ -7,6 +7,7 @@ import StepContent from "./StepContent";
 import InputField from "../fields/InputField";
 import SelectField from "../fields/SelectField";
 import FileInputField from "../fields/FileInputField";
+import TextAreaField from "../fields/TextAreaField";
 import TermsContent from "./TermsContent";
 import { formatCurrency, parseCurrency } from "../utils/format";
 import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
@@ -49,17 +50,8 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
           DEVELOPER_KERJA_SAMA: "Developer Kerja Sama",
         };
         const nextCat = map[partnershipLevel] || "Top Selected Developer";
-        setDevCategory((prev) => {
-          // If changed, ensure paket compatibility with current tenor
-          if (prev !== nextCat) {
-            const tenorNow = Number(formData.loanTerm || 0);
-            const ids = listPackagesByTenor(tenorNow).map((r) => r.id);
-            if (!ids.includes(Number(formData.kprRateId))) {
-              handleChange({ target: { name: "kprRateId", value: "" } });
-            }
-          }
-          return nextCat;
-        });
+        // Set langsung; penyesuaian paket dilakukan di efek terpisah agar aman
+        setDevCategory(nextCat);
       } catch (e) {
         // ignore; keep default category
       }
@@ -68,6 +60,18 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.propertiId]);
+
+  // Saat kategori developer atau tenor berubah, pastikan paket KPR tetap kompatibel.
+  // Jika tidak kompatibel, kosongkan pilihan paket dengan aman dari efek, bukan saat render.
+  useEffect(() => {
+    const tenorNow = Number(formData.loanTerm || 0);
+    const ids = listPackagesByTenor(tenorNow).map((r) => r.id);
+    const currentId = Number(formData.kprRateId);
+    if (currentId && !ids.includes(currentId)) {
+      handleChange({ target: { name: "kprRateId", value: "" } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devCategory, formData.loanTerm]);
 
   // ===== Tenor & Paket KPR data (Top Selected Developer) =====
   const TENOR_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30];
@@ -349,7 +353,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
               onChange={handleChange}
               error={errors.kprRateId}
             >
-              <option value="">{tenorSelected ? "Pilih Paket..." : "Pilih tenor terlebih dahulu"}</option>
+              <option value="">Pilih Paket...</option>
               {availableRateEntries.map((r) => (
                 <option key={r.id} value={r.id}>{labelForPackage(r.name)}</option>
               ))}
@@ -357,6 +361,16 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
 
             <FileInputField required label="Upload KTP (.jpg/.pdf, max 2MB)" name="fileKTP" file={formData.fileKTP} onChange={handleChange} error={errors.fileKTP} />
             <FileInputField required label="Upload Slip Gaji (.pdf, max 2MB)" name="fileSlipGaji" file={formData.fileSlipGaji} onChange={handleChange} error={errors.fileSlipGaji} />
+
+            {/* Notes Pengajuan (opsional) */}
+            <TextAreaField
+              label="Catatan Pengajuan (Opsional)"
+              name="notes"
+              placeholder="Tuliskan keterangan tambahan untuk tim kami..."
+              value={formData.notes || ""}
+              onChange={handleChange}
+              error={errors.notes}
+            />
           </div>
         </div>
 

@@ -11,6 +11,7 @@ interface Props {
   required?: boolean;
   readOnly?: boolean;
   maxLength?: number;
+  className?: string;
 }
 
 export default function InputField({
@@ -24,10 +25,11 @@ export default function InputField({
   required,
   readOnly = false,
   maxLength,
+  className,
 }: Props) {
   return (
-    <div className="flex flex-col">
-      <label className="text-sm font-medium text-gray-700 mb-1.5">
+    <div className={`flex flex-col ${className ?? ""}`}>
+      <label className="text-sm font-medium text-gray-600 mb-1.5">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
 
@@ -40,7 +42,7 @@ export default function InputField({
         maxLength={maxLength}
         readOnly={readOnly}
         onChange={onChange}
-        className={`rounded-lg border border-gray-300 text-gray-900 focus:border-bni-teal focus:ring-1 focus:ring-bni-teal px-4 py-2.5 outline-none transition
+        className={`rounded-lg border border-gray-300 text-gray-900 focus:border-bni-teal focus:ring-1 focus:ring-bni-teal px-4 py-2.5 outline-none transition placeholder:text-gray-400
           ${readOnly ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
           ${error ? "border-red-500 ring-1 ring-red-200" : ""}
         `}

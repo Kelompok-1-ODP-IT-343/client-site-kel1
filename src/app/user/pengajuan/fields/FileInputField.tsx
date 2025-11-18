@@ -19,7 +19,7 @@ export default function FileInputField({
 }: Props) {
   return (
     <div className="flex flex-col">
-      <label className="text-sm font-medium text-gray-700 mb-1.5">
+      <label className="text-sm font-medium text-gray-600 mb-1.5">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
 

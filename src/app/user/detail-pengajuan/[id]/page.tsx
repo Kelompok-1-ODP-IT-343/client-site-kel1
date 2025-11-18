@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import {
   RadialBarChart,
   RadialBar,
@@ -26,6 +26,10 @@ export default function DetailPengajuanPage() {
   const [loading, setLoading] = useState(true);
   // State untuk modal pratinjau dokumen ditempatkan sebelum return kondisional
   const [docPreview, setDocPreview] = useState<{ open: boolean; src: string; title: string }>({ open: false, src: "", title: "" });
+  // Modal detail properti
+  const [showPropertyDetail, setShowPropertyDetail] = useState(false);
+  // Ekspansi detail per langkah timeline
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!id) return;
@@ -46,6 +50,24 @@ export default function DetailPengajuanPage() {
   const user = data.userInfo || {};
   const documents = data.documents || [];
   const approvals = data.approvalWorkflows || [];
+  // Label tipe developer (Developer Pilihan vs Developer Kerja Sama)
+  const partnershipLevelUpper = String((property as any)?.developer?.partnershipLevel || "").toUpperCase();
+  const listingTypeUpper = String((property as any)?.listingType || (property as any)?.listing_type || "").toUpperCase();
+  const isDevPilihanBase = partnershipLevelUpper === "TOP_SELECTED_DEVELOPER" || (property as any)?.is_developer_pilihan === true || listingTypeUpper === "PRIMARY";
+  const purposeUpper = String(application?.purpose || "").toUpperCase();
+  const developerTypeLabel = purposeUpper.includes("PRIMARY") ? "Developer Pilihan" : (isDevPilihanBase ? "Developer Pilihan" : "Developer Kerja Sama");
+  
+  // Helper formatters (ikuti style util sederhana yang sudah ada)
+  const formatDate = (s?: string) => {
+    if (!s) return "-";
+    try {
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return "-";
+      return d.toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" });
+    } catch {
+      return "-";
+    }
+  };
 
   // Deteksi tipe file untuk preview gambar pada Dokumen Terlampir
   const isImageUrl = (url: string) => /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(url || "");
@@ -65,6 +87,17 @@ export default function DetailPengajuanPage() {
       currency: "IDR",
       maximumFractionDigits: 0,
     });
+
+  // Title Case helper untuk teks seperti jenis properti (contoh: RUMAH -> Rumah)
+  const toTitleCase = (raw?: string | null) => {
+    if (!raw) return "-";
+    return String(raw)
+      .toLowerCase()
+      .split(/[ _]+/g)
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  };
 
   // ======== Progress Tenor & Outstanding ========
   const tenorYears = application.loanTermYears ?? 0;
@@ -153,6 +186,59 @@ export default function DetailPengajuanPage() {
   });
 
   const progressPercent = Math.round(((Math.max(stepIndex, 0) + 1) / DASHBOARD_STATUS_ORDER.length) * 100);
+  // Helper untuk label status ringkas dan kelas chip
+  const statusLabelAndClass = (i: number): { label: string; cls: string } => {
+    if (i === 0) {
+      const lbl = timeline[0]?.status || "-";
+      if (lbl === "Selesai") return { label: "SELESAI", cls: "bg-green-100 text-green-700 border-green-200" };
+      if (lbl === "Proses") return { label: "PROSES", cls: "bg-blue-100 text-blue-700 border-blue-200" };
+      return { label: "PENDING", cls: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+    }
+    if (i >= 1 && i <= 3) {
+      const st = upper(workflows[i - 1]?.status);
+      if (doneStates.includes(st)) return { label: "SELESAI", cls: "bg-green-100 text-green-700 border-green-200" };
+      if (st === "PENDING" || st === "") return { label: "PENDING", cls: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+      return { label: "PROSES", cls: "bg-blue-100 text-blue-700 border-blue-200" };
+    }
+    const lbl = timeline[4]?.status || "-";
+    if (lbl === "Selesai") return { label: "SELESAI", cls: "bg-green-100 text-green-700 border-green-200" };
+    if (lbl === "Proses") return { label: "PROSES", cls: "bg-blue-100 text-blue-700 border-blue-200" };
+    return { label: "PENDING", cls: "bg-yellow-100 text-yellow-700 border-yellow-200" };
+  };
+  const toggleStep = (i: number) => setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
+
+  // ======== Data & helper khusus Stepper (mengikuti contoh) ========
+  const WORKFLOW_ORDER = ["PROPERTY_APPRAISAL", "CREDIT_ANALYSIS", "FINAL_APPROVAL"] as const;
+  const workflows = Array.isArray(approvals)
+    ? [...approvals].sort((a: any, b: any) => {
+        const ia = WORKFLOW_ORDER.indexOf((a?.stage || "").toUpperCase() as any);
+        const ib = WORKFLOW_ORDER.indexOf((b?.stage || "").toUpperCase() as any);
+        if (ia !== ib) return ia - ib;
+        return (a?.workflowId ?? 0) - (b?.workflowId ?? 0);
+      })
+    : [];
+
+  const upper = (s?: string) => String(s || "").toUpperCase();
+  const doneStates = ["APPROVED", "COMPLETED", "DONE", "FINISHED"];
+  const nameOrEmail = (wf?: any) => (wf?.assignedToName?.trim?.() ? wf.assignedToName : (wf?.assignedToEmail || "-"));
+  const statusBadge = (status?: string) => {
+    const s = upper(status);
+    if (doneStates.includes(s)) return "bg-green-100 text-green-700 border-green-200";
+    if (s === "REJECTED") return "bg-red-100 text-red-700 border-red-200";
+    if (s === "IN_PROGRESS") return "bg-blue-100 text-blue-700 border-blue-200";
+    return "bg-yellow-100 text-yellow-700 border-yellow-200"; // PENDING/other
+  };
+  type NodeState = "done" | "active" | "pending";
+  const nodeState = (index: number): NodeState => {
+    // index 0 = Assignment (sebelum workflow 1)
+    if (index === 0) return workflows.length > 0 ? "done" : "active";
+    const wf = workflows[index - 1];
+    const st = upper(wf?.status);
+    if (doneStates.includes(st)) return "done";
+    const prevDone = index === 1 ? true : doneStates.includes(upper(workflows[index - 2]?.status));
+    if (prevDone && (st === "PENDING" || st === "IN_PROGRESS" || st === "")) return "active";
+    return "pending";
+  };
 
   // ======== Dummy history pembayaran untuk tampilan ========
   const payments = [
@@ -164,9 +250,91 @@ export default function DetailPengajuanPage() {
   return (
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-12 font-[Inter] bg-white">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">Detail Pengajuan KPR</h1>
+      {/* ===== TIMELINE DI PALING ATAS ===== */}
+      <ColorCard title="Timeline Pengajuan">
+        <div className="relative px-2 py-6">
+          <div className="absolute left-8 right-8 top-10 h-1 bg-gradient-to-r from-gray-200 via-[#3FD8D4]/40 to-gray-200 rounded-full" />
+          <div className="grid grid-cols-4 gap-4 relative">
+            {[0,1,2,3].map((i) => {
+              const state = nodeState(i);
+              const isDone = state === 'done';
+              const isActive = state === 'active';
+              const dotCls = isDone ? 'bg-green-500 border-green-500' : isActive ? 'bg-[#3FD8D4] border-[#3FD8D4]' : 'bg-gray-200 border-gray-300';
+              const ringCls = isActive ? 'ring-4 ring-[#3FD8D4]/30' : '';
+              const title = i === 0 ? 'Submitted' : i === 1 ? 'Property Appraisal' : i === 2 ? 'Credit Analysis' : 'Final Approval';
+              const wf = i > 0 ? workflows[i - 1] : undefined;
+              const note = wf?.approvalNotes || wf?.rejectionReason || '-';
+              const date = i === 0 ? application.submittedAt : (wf?.completedAt || wf?.startedAt || wf?.dueDate || '');
+              const { label, cls } = statusLabelAndClass(i);
+              const isExpanded = !!expanded[i];
+              return (
+                <div key={i} className="flex flex-col items-center text-center px-2">
+                  <div className={`w-6 h-6 rounded-full border ${dotCls} ${ringCls}`} />
+                  <div className="mt-3 text-sm font-semibold text-gray-900">{title}</div>
+                  <div className="mt-2 w-full max-w-[280px] text-xs text-gray-700">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${cls}`}>{label}</span>
+                      <span className="text-gray-800">{formatDate(date)}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleStep(i)}
+                        className="ml-auto inline-flex items-center justify-center w-8 h-8 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+                        aria-label="Buka tutup detail"
+                      >
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </button>
+                    </div>
+                    {isExpanded && (
+                      <div className="mt-2 rounded-xl border p-3 shadow-sm bg-white">
+                        {i === 0 ? (
+                          <div className="space-y-2">
+                            <div className="flex justify-between"><span className="text-gray-500">Pemohon</span><span className="font-medium truncate max-w-[60%] text-right">{user.fullName || application.applicantName || '-'}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex justify-between"><span className="text-gray-500">PIC</span><span className="font-medium truncate max-w-[60%] text-right">{nameOrEmail(wf)}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium truncate max-w-[60%] text-right">{wf?.assignedToEmail || '-'}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Status</span>
+                              <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusBadge(wf?.status)}`}>{wf?.status ?? 'PENDING'}</span>
+                            </div>
+                            <div className="flex justify-between"><span className="text-gray-500">Tanggal</span><span className="font-medium">{formatDate(date)}</span></div>
+                            <div className="text-left"><span className="text-gray-500">Note: </span><span className="font-medium">{note}</span></div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </ColorCard>
 
-      {/* ===== INFORMASI PROPERTI ===== */}
+      {/* ===== INFORMASI PENGAJUAN (kiri) & PROPERTI (kanan) ===== */}
       <section className="mt-8 grid md:grid-cols-2 gap-6 bg-white">
+        {/* Kiri: Ringkasan Aplikasi */}
+        <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
+          <div className="grid grid-cols-2 gap-y-6 items-center">
+            <div className="text-gray-600 text-base">Nomor Aplikasi</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber || "-"}</div>
+
+            <div className="text-gray-600 text-base">Nama</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
+
+            <div className="text-gray-600 text-base">Tanggal Pengajuan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{formatDate(application.submittedAt)}</div>
+
+            <div className="text-gray-600 text-base">Jenis Sertifikat</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.propertyCertificateType || "-"}</div>
+
+            <div className="text-gray-600 text-base">Catatan</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.notes || "-"}</div>
+          </div>
+        </ColorCard>
+
+        {/* Kanan: Ringkasan Properti + tombol modal */}
         <ColorCard title="Informasi Properti" titleAlign="center">
           <div className="flex items-center gap-6">
             <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
@@ -175,53 +343,30 @@ export default function DetailPengajuanPage() {
                 alt="Properti"
                 fill
                 className="object-cover"
+                unoptimized
               />
             </div>
             <div>
-              <p className="text-xl font-semibold text-gray-900">{property.title || "-"}</p>
-              <p className="text-gray-500 text-base">{property.city || "-"}</p>
+              <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
               <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPropertyDetail(true)}
+                  className="inline-flex items-center rounded-lg bg-[#3FD8D5] hover:bg-[#34c7c3] text-white px-4 py-2 text-sm font-semibold shadow"
+                >
+                  Detail Properti
+                </button>
+              </div>
             </div>
           </div>
         </ColorCard>
-
-        <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
-          {(() => {
-            const statusLabel = STAGE_TO_LABEL[application.status] || (application.status ? application.status.replace(/_/g, " ") : "-");
-            const DEVELOPER_TYPE_MAP: Record<string, string> = {
-              PRIMARY_RESIDENCE: "Developer Pilihan",
-            };
-            const developerTypeLabel = DEVELOPER_TYPE_MAP[application.purpose] || (application.purpose ? application.purpose.replace(/_/g, " ") : "-");
-            return (
-              <div className="grid grid-cols-2 gap-y-6 items-center">
-                <div className="text-gray-600 text-base">Nomor Aplikasi</div>
-                <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber}</div>
-
-                <div className="text-gray-600 text-base">Status</div>
-                <div className="text-right">
-                  <span className="inline-flex items-center rounded-full bg-bni-orange text-white px-3 py-1 text-sm font-semibold">
-                    {statusLabel}
-                  </span>
-                </div>
-
-                <div className="text-gray-600 text-base">Tipe Developer</div>
-                <div className="text-right">
-                  <span className="inline-flex items-center rounded-full border border-blue-500 text-blue-600 px-3 py-1 text-sm font-semibold">
-                    {developerTypeLabel}
-                  </span>
-                </div>
-
-                <div className="text-gray-600 text-base">Nama</div>
-                <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
-              </div>
-            );
-          })()}
-        </ColorCard>
       </section>
 
-      {/* ===== DETAIL PINJAMAN + CHART ===== */}
+      {/* ===== BARIS KETIGA: Detail Pinjaman KPR (kiri) & Dokumen Terlampir (kanan) ===== */}
       <section className="grid md:grid-cols-2 gap-6 bg-white">
-        <ColorCard title="Detail Pinjaman" titleAlign="center">
+        {/* Kiri: Detail Pinjaman KPR */}
+        <ColorCard title="Detail Pinjaman KPR" titleAlign="center">
           <div className="grid grid-cols-2 gap-y-6 items-center">
             <div className="text-gray-600 text-base">Jumlah Pinjaman</div>
             <div className="text-right text-gray-900 font-semibold text-base">{f(application.loanAmount)}</div>
@@ -237,111 +382,13 @@ export default function DetailPengajuanPage() {
 
             <div className="text-gray-600 text-base">Angsuran / Bulan</div>
             <div className="text-right text-gray-900 font-semibold text-base">{f(application.monthlyInstallment)}</div>
+
+            <div className="text-gray-600 text-base">Rasio LTV</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.ltvRatio != null ? `${application.ltvRatio}%` : "-"}</div>
           </div>
         </ColorCard>
 
-        <ColorCard title="Sisa Tenor dan Outstanding" titleAlign="center">
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-10">
-            <div className="flex flex-col items-center">
-              <RadialChart value={tenorProgress} color="#0066CC" label="Tenor" />
-              <span className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-base font-semibold">Tenor</span>
-              <p className="mt-2 text-base text-gray-600">
-                Sisa Tenor: <span className="font-semibold text-gray-900">{remainingTenor} bulan</span>
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center">
-              <RadialChart value={outstandingProgress} color="#FF8500" label="Outstanding" />
-              <span className="mt-2 px-3 py-1 rounded bg-blue-600 text-white text-base font-semibold">Outstanding</span>
-              <p className="mt-2 text-base text-gray-600">
-                Sisa: <span className="font-semibold text-gray-900">{f(outstanding)}</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 border-t"></div>
-          <div className="flex justify-between items-center mt-4 text-base">
-            <span className="text-gray-600">Total Dibayar</span>
-            <span className="font-semibold text-green-600">{f(application.downPayment || 0)}</span>
-          </div>
-        </ColorCard>
-      </section>
-
-      {/* ===== 🔹 NEW: TIMELINE PENGAJUAN  ===== */}
-      {/* ===== 🔹 TIMELINE PENGAJUAN ===== */}
-      <ColorCard title="Timeline Pengajuan">
-        <div className="relative flex justify-between items-start pt-10 px-4">
-          {/* Garis abu-abu dasar */}
-          <div className="absolute top-12 left-8 right-8 h-1 bg-gray-200 rounded-full z-0" />
-
-          {/* Garis biru progres */}
-          <div
-            className="absolute top-12 left-8 h-1 bg-[#3FD8D5] rounded-full z-10 transition-all duration-700"
-            style={{ width: `${progressPercent || 0}%` }}
-          />
-
-          {timeline.map((t: TimelineItem, i: number) => {
-            const stepName = t.step;
-            const isSelesai = t.status === "Selesai";
-            const isProses = t.status === "Proses";
-            const isActive = isSelesai || isProses;
-
-            return (
-              <div key={i} className="relative z-20 flex flex-col items-center w-full text-center">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${
-                    isActive
-                      ? "bg-[#3FD8D5] border-transparent scale-105"
-                      : "bg-white border-gray-300"
-                  }`}
-                >
-                  {isSelesai && <CheckCircle2 size={14} className="text-white" />}
-                  {isProses && <div className="w-3 h-3 bg-white rounded-full animate-pulse" />}
-                </div>
-
-                <span
-                  className={`mt-2 text-sm font-semibold ${
-                    isActive ? "text-[#3FD8D5]" : "text-gray-500"
-                  }`}
-                >
-                  {stepName}
-                </span>
-                <span className="text-xs text-gray-400 mt-1">{t.date}</span>
-                <span className="text-xs text-gray-600 italic mt-0.5 whitespace-nowrap">
-                  {t.note}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </ColorCard>
-
-
-      {/* ===== HISTORY PEMBAYARAN + REKENING ===== */}
-      <section className="grid md:grid-cols-2 gap-6 bg-white">
-        <ColorCard title="History Pembayaran">
-          <table className="w-full text-sm border-t">
-            <thead>
-              <tr className="text-left text-gray-600 border-b">
-                <th className="py-2">Bulan</th>
-                <th>Tanggal Bayar</th>
-                <th>Jumlah</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((p, i) => (
-                <tr key={i} className="border-b text-gray-700">
-                  <td className="py-2">{p.month}</td>
-                  <td>{p.date}</td>
-                  <td>{f(p.amount)}</td>
-                  <td className={`${p.status === "Lunas" ? "text-green-600" : "text-orange-500"}`}>{p.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </ColorCard>
-
+        {/* Kanan: Dokumen Terlampir */}
         <ColorCard title="Dokumen Terlampir" titleAlign="center">
           {documents && documents.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-6 w-full">
@@ -381,25 +428,76 @@ export default function DetailPengajuanPage() {
             <p className="text-sm text-gray-500 text-center">Tidak ada dokumen terlampir.</p>
           )}
         </ColorCard>
-
-        {/* Modal Pratinjau Dokumen */}
-        <Dialog
-          open={docPreview.open}
-          title={docPreview.title}
-          onClose={closeDocPreview}
-          description={
-            docPreview.src && isImageUrl(docPreview.src) ? (
-              <div className="relative w-[86vw] max-w-3xl h-[70vh]">
-                <Image src={docPreview.src} alt={docPreview.title} fill className="object-contain rounded-lg bg-gray-100" />
-              </div>
-            ) : (
-              <div className="text-sm text-gray-700">
-                Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
-              </div>
-            )
-          }
-        />
       </section>
+
+      {/* Modal Detail Properti */}
+      <Dialog
+        open={showPropertyDetail}
+        onClose={() => setShowPropertyDetail(false)}
+        title="Detail Properti"
+        description={property ? (
+          <div className="grid grid-cols-2 gap-y-3 text-sm">
+            <div className="text-gray-600">Kode Properti</div>
+            <div className="text-right text-gray-900 font-semibold">{property.propertyCode || "-"}</div>
+
+            <div className="text-gray-600">Alamat</div>
+            <div className="text-right text-gray-900 font-semibold">{property.address || "-"}</div>
+
+            <div className="text-gray-600">Kota</div>
+            <div className="text-right text-gray-900 font-semibold">{property.city || "-"}</div>
+
+            <div className="text-gray-600">Provinsi</div>
+            <div className="text-right text-gray-900 font-semibold">{property.province || "-"}</div>
+
+            <div className="text-gray-600">Kecamatan</div>
+            <div className="text-right text-gray-900 font-semibold">{property.district || "-"}</div>
+
+            <div className="text-gray-600">Kelurahan</div>
+            <div className="text-right text-gray-900 font-semibold">{property.village || "-"}</div>
+
+            <div className="text-gray-600">Kode Pos</div>
+            <div className="text-right text-gray-900 font-semibold">{property.postalCode || "-"}</div>
+
+            <div className="text-gray-600">Luas Tanah</div>
+            <div className="text-right text-gray-900 font-semibold">{property.landArea != null ? `${property.landArea} m²` : "-"}</div>
+
+            <div className="text-gray-600">Luas Bangunan</div>
+            <div className="text-right text-gray-900 font-semibold">{property.buildingArea != null ? `${property.buildingArea} m²` : "-"}</div>
+
+            <div className="text-gray-600">Harga/m²</div>
+            <div className="text-right text-gray-900 font-semibold">{f(property.pricePerSqm)}</div>
+
+            <div className="text-gray-600">Developer</div>
+            <div className="text-right text-gray-900 font-semibold">{application.developerName || (property as any)?.developer?.companyName || "-"}</div>
+
+            <div className="text-gray-600">Tipe Developer</div>
+            <div className="text-right text-gray-900 font-semibold">{developerTypeLabel}</div>
+
+            <div className="text-gray-600">Jenis Properti</div>
+            <div className="text-right text-gray-900 font-semibold">{toTitleCase(String(application.propertyType || "-").replace(/_/g, " "))}</div>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-700">Informasi properti tidak tersedia.</div>
+        )}
+      />
+
+      {/* Modal Pratinjau Dokumen */}
+          <Dialog
+            open={docPreview.open}
+            title={docPreview.title}
+            onClose={closeDocPreview}
+            description={
+              docPreview.src && isImageUrl(docPreview.src) ? (
+                <div className="relative w-[86vw] max-w-3xl h-[70vh]">
+                  <Image src={docPreview.src} alt={docPreview.title} fill className="object-contain rounded-lg bg-gray-100" unoptimized />
+                </div>
+              ) : (
+                <div className="text-sm text-gray-700">
+                  Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
+                </div>
+              )
+            }
+          />
 
       {/* ===== NOTIFIKASI (DIHILANGKAN SESUAI PERMINTAAN) ===== */}
     </main>
@@ -443,9 +541,12 @@ function RadialChart({ value, color, label }: { value: number; color: string; la
             />
           </RadialBarChart>
         </ResponsiveContainer>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-2xl font-bold" style={{ color }}>{value.toFixed(1)}%</p>
-        </div>
+        <p
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold"
+          style={{ color }}
+        >
+          {value.toFixed(1)}%
+        </p>
       </div>
     </div>
   );

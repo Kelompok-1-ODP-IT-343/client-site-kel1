@@ -23,9 +23,10 @@ export default function SelectField({
   disabled,
   children,
 }: Props) {
+  const isPlaceholderSelected = !value;
   return (
     <div className="flex flex-col">
-      <label className="text-sm font-medium text-gray-700 mb-1.5">
+      <label className="text-sm font-medium text-gray-600 mb-1.5">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
 
@@ -39,6 +40,7 @@ export default function SelectField({
           className={`w-full rounded-lg border border-gray-300 text-gray-900 focus:border-bni-teal focus:ring-1 focus:ring-bni-teal px-4 pr-10 py-2.5 outline-none transition appearance-none bg-white
             ${error ? "border-red-500 ring-1 ring-red-200" : ""}
             ${disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
+            ${!disabled && isPlaceholderSelected ? "text-gray-400" : ""}
           `}
         >
           {children}
