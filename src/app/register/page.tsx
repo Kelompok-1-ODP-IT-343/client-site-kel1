@@ -75,6 +75,46 @@ export default function RegisterSimple() {
     if (phoneInvalid) return "Nomor telepon tidak valid";
     return msg || "Registrasi gagal.";
   };
+
+  const PROFANITY_WORDS = [
+    "kontol",
+    "memek",
+    "pepek",
+    "anjing",
+    "bangsat",
+    "tai",
+    "peler",
+    "jembut",
+    "kampret",
+    "goblok",
+    "tolol",
+    "pecun",
+    "ngewe",
+    "bokep",
+  ];
+  const hasProfanity = (text: string) => {
+    const t = text.toLowerCase();
+    return PROFANITY_WORDS.some((w) => t.includes(w));
+  };
+  const isGibberishName = (text: string) => {
+    const t = text.toLowerCase().trim();
+    if (!t) return false;
+    const words = t.split(/\s+/).filter(Boolean);
+    for (const w of words) {
+      if (w.length < 2) return true;
+      if (w.length > 30) return true;
+      if (!/[aeiou]/.test(w)) return true;
+      if (/(.)\1{2,}/.test(w)) return true; // 3+ repeat
+      if (/[^aeiou]{5,}/.test(w)) return true; // 5 consonants run
+    }
+    return false;
+  };
+  const isLikelyName = (text: string) => {
+    const trimmed = text.trim();
+    if (!/^[A-Za-z ]+$/.test(trimmed)) return false;
+    if (isGibberishName(trimmed)) return false;
+    return true;
+  };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -84,8 +124,30 @@ export default function RegisterSimple() {
     let finalValue: string | boolean = isCheckbox ? checked : value;
 
     if (name === "monthlyIncome") {
-      const numericOnly = value.replace(/[^0-9]/g, "").slice(0, 20);
+      let numericOnly = value.replace(/[^0-9]/g, "").slice(0, 20);
+      let incomeNumber = Number(numericOnly || "0");
+      if (incomeNumber > 500_000_000) {
+        numericOnly = String(500_000_000);
+        incomeNumber = 500_000_000;
+      }
       finalValue = formatCurrency(numericOnly);
+      const outOfRange = incomeNumber > 0 && incomeNumber < 1_000_000;
+      setErrors(prev => ({
+        ...prev,
+        monthlyIncome: outOfRange
+          ? "Pendapatan bulanan harus antara Rp 1.000.000 dan Rp 500.000.000"
+          : undefined,
+      }));
+    } else if (name === "fullName") {
+      const cleaned = value.replace(/[^A-Za-z\s]/g, "").replace(/\s+/g, " ").slice(0, 100).trimStart();
+      finalValue = cleaned;
+      const invalid = cleaned.length > 0 && (hasProfanity(cleaned) || !isLikelyName(cleaned));
+      setErrors(prev => ({
+        ...prev,
+        fullName: invalid
+          ? "Nama lengkap tidak valid. Gunakan huruf saja, hindari teks acak atau kata tidak pantas"
+          : undefined,
+      }));
     } else if (name === "phone") {
       finalValue = value.replace(/[^0-9]/g, "").slice(0, 15);
     }
@@ -157,6 +219,12 @@ export default function RegisterSimple() {
     if (!form.fullName) {
       newErrors.fullName = "Nama lengkap wajib diisi.";
       isFormValid = false; 
+    } else if (hasProfanity(form.fullName)) {
+      newErrors.fullName = "Nama lengkap tidak boleh mengandung kata tidak pantas.";
+      isFormValid = false;
+    } else if (!isLikelyName(form.fullName)) {
+      newErrors.fullName = "Nama lengkap tidak valid. Gunakan huruf saja dan hindari teks acak.";
+      isFormValid = false;
     }
     if (!form.phone) {
       newErrors.phone = "Nomor telepon wajib diisi.";
@@ -182,6 +250,12 @@ export default function RegisterSimple() {
     if (!form.monthlyIncome) {
       newErrors.monthlyIncome = "Pendapatan bulanan wajib diisi.";
       isFormValid = false; 
+    } else {
+      const numeric = Number(form.monthlyIncome.replace(/\D/g, ""));
+      if (numeric < 1_000_000 || numeric > 500_000_000) {
+        newErrors.monthlyIncome = "Pendapatan bulanan harus antara Rp 1.000.000 dan Rp 500.000.000";
+        isFormValid = false;
+      }
     }
     if (!form.agree_terms) {
       setGlobalError("Anda harus menyetujui syarat & ketentuan.");
@@ -412,6 +486,8 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                     value={form.fullName}
                     onChange={handleChange}
                     placeholder="Nama Lengkap"
+                    pattern="[A-Za-z ]+"
+                    error={errors.fullName}
                   />
                   <InputField
                     id="phone"
@@ -423,7 +499,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                     maxLength={15}
                     value={form.phone}
                     onChange={handleChange}
-                    placeholder="Contoh: 081234567890"
+                    placeholder="Contoh: 628123456789"
                   />
 
                   <InputField
@@ -516,18 +592,21 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                       </select>
                       <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
                     </div>
-                  </div>
-
-                  <InputField
-                    id="monthlyIncome"
-                    label="Pendapatan Bulanan *"
-                    name="monthlyIncome"
-                    type="text"
-                    value={form.monthlyIncome}
-                    onChange={handleChange}
-                    placeholder="Contoh: 5.000.000"
-                  />
                 </div>
+
+                <InputField
+                  id="monthlyIncome"
+                  label="Pendapatan Bulanan *"
+                  name="monthlyIncome"
+                  type="text"
+                  value={form.monthlyIncome}
+                  onChange={handleChange}
+                  placeholder="Contoh: 5.000.000"
+                  inputMode="numeric"
+                  pattern="[0-9.]*"
+                  error={errors.monthlyIncome}
+                />
+              </div>
 
                 <div className="flex items-start gap-2 text-sm text-gray-700 mt-3">
                   <input
