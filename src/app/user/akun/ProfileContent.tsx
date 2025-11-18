@@ -383,8 +383,7 @@ useEffect(() => {
           {getInitials(formData.full_name || user?.fullName)}
         </div>
         <div>
-          <h2 className="text-xl font-bold leading-tight">Ubah Profil</h2>
-          <p className="text-xs text-gray-500">{formData.full_name || user?.fullName || "Pengguna"}</p>
+          <h2 className="text-xl font-bold leading-tight">{formData.full_name || user?.fullName || "Pengguna"}</h2>
         </div>
       </div>
 
