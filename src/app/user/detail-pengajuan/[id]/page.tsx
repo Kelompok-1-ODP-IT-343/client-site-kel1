@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, MapPin } from "lucide-react";
 import {
   RadialBarChart,
   RadialBar,
@@ -165,8 +165,20 @@ export default function DetailPengajuanPage() {
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-12 font-[Inter] bg-white">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">Detail Pengajuan KPR</h1>
 
-      {/* ===== INFORMASI PROPERTI ===== */}
+      {/* ===== INFORMASI PENGAJUAN (kiri) & PROPERTI (kanan) ===== */}
       <section className="mt-8 grid md:grid-cols-2 gap-6 bg-white">
+        {/* Pindah ke kiri: Informasi Pengajuan KPR */}
+        <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
+          <div className="grid grid-cols-2 gap-y-6 items-center">
+            <div className="text-gray-600 text-base">Nomor Aplikasi</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber}</div>
+
+            <div className="text-gray-600 text-base">Nama</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
+          </div>
+        </ColorCard>
+
+        {/* Pindah ke kanan: Informasi Properti */}
         <ColorCard title="Informasi Properti" titleAlign="center">
           <div className="flex items-center gap-6">
             <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
@@ -178,44 +190,16 @@ export default function DetailPengajuanPage() {
               />
             </div>
             <div>
-              <p className="text-xl font-semibold text-gray-900">{property.title || "-"}</p>
-              <p className="text-gray-500 text-base">{property.city || "-"}</p>
+              {/* Badge Developer Pilihan */}
+              <span className="inline-flex items-center rounded-full border border-blue-500 text-blue-600 px-3 py-1 text-sm font-semibold">Developer Pilihan</span>
+              <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
+              <p className="mt-1 text-gray-500 text-base inline-flex items-center gap-1">
+                <MapPin className="h-4 w-4 text-gray-500" />
+                <span>{property.city || "-"}</span>
+              </p>
               <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
             </div>
           </div>
-        </ColorCard>
-
-        <ColorCard title="Informasi Pengajuan KPR" titleAlign="center">
-          {(() => {
-            const statusLabel = STAGE_TO_LABEL[application.status] || (application.status ? application.status.replace(/_/g, " ") : "-");
-            const DEVELOPER_TYPE_MAP: Record<string, string> = {
-              PRIMARY_RESIDENCE: "Developer Pilihan",
-            };
-            const developerTypeLabel = DEVELOPER_TYPE_MAP[application.purpose] || (application.purpose ? application.purpose.replace(/_/g, " ") : "-");
-            return (
-              <div className="grid grid-cols-2 gap-y-6 items-center">
-                <div className="text-gray-600 text-base">Nomor Aplikasi</div>
-                <div className="text-right text-gray-900 font-semibold text-base">{application.applicationNumber}</div>
-
-                <div className="text-gray-600 text-base">Status</div>
-                <div className="text-right">
-                  <span className="inline-flex items-center rounded-full bg-bni-orange text-white px-3 py-1 text-sm font-semibold">
-                    {statusLabel}
-                  </span>
-                </div>
-
-                <div className="text-gray-600 text-base">Tipe Developer</div>
-                <div className="text-right">
-                  <span className="inline-flex items-center rounded-full border border-blue-500 text-blue-600 px-3 py-1 text-sm font-semibold">
-                    {developerTypeLabel}
-                  </span>
-                </div>
-
-                <div className="text-gray-600 text-base">Nama</div>
-                <div className="text-right text-gray-900 font-semibold text-base">{user.fullName}</div>
-              </div>
-            );
-          })()}
         </ColorCard>
       </section>
 
@@ -238,6 +222,11 @@ export default function DetailPengajuanPage() {
             <div className="text-gray-600 text-base">Angsuran / Bulan</div>
             <div className="text-right text-gray-900 font-semibold text-base">{f(application.monthlyInstallment)}</div>
           </div>
+          <div className="mt-6 border-t"></div>
+          <div className="flex justify-between items-center mt-4 text-base">
+            <span className="text-gray-600">Total Dibayar</span>
+            <span className="font-semibold text-green-600">{f(application.downPayment || 0)}</span>
+          </div>
         </ColorCard>
 
         <ColorCard title="Sisa Tenor dan Outstanding" titleAlign="center">
@@ -259,11 +248,6 @@ export default function DetailPengajuanPage() {
             </div>
           </div>
 
-          <div className="mt-6 border-t"></div>
-          <div className="flex justify-between items-center mt-4 text-base">
-            <span className="text-gray-600">Total Dibayar</span>
-            <span className="font-semibold text-green-600">{f(application.downPayment || 0)}</span>
-          </div>
         </ColorCard>
       </section>
 
@@ -317,31 +301,8 @@ export default function DetailPengajuanPage() {
       </ColorCard>
 
 
-      {/* ===== HISTORY PEMBAYARAN + REKENING ===== */}
-      <section className="grid md:grid-cols-2 gap-6 bg-white">
-        <ColorCard title="History Pembayaran">
-          <table className="w-full text-sm border-t">
-            <thead>
-              <tr className="text-left text-gray-600 border-b">
-                <th className="py-2">Bulan</th>
-                <th>Tanggal Bayar</th>
-                <th>Jumlah</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((p, i) => (
-                <tr key={i} className="border-b text-gray-700">
-                  <td className="py-2">{p.month}</td>
-                  <td>{p.date}</td>
-                  <td>{f(p.amount)}</td>
-                  <td className={`${p.status === "Lunas" ? "text-green-600" : "text-orange-500"}`}>{p.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </ColorCard>
-
+      {/* ===== DOKUMEN TERLAMPIR ===== */}
+      <section className="grid md:grid-cols-1 gap-6 bg-white">
         <ColorCard title="Dokumen Terlampir" titleAlign="center">
           {documents && documents.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-6 w-full">
@@ -443,9 +404,12 @@ function RadialChart({ value, color, label }: { value: number; color: string; la
             />
           </RadialBarChart>
         </ResponsiveContainer>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-2xl font-bold" style={{ color }}>{value.toFixed(1)}%</p>
-        </div>
+        <p
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold"
+          style={{ color }}
+        >
+          {value.toFixed(1)}%
+        </p>
       </div>
     </div>
   );
