@@ -65,14 +65,14 @@ jobs:
       - name: Get SHA Tag
         id: image
         run: |
-          TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep 'latest' | head -n 1 | sed 's|.*/||')
+          TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep 'master' | head -n 1 | sed 's|.*/||')
           echo "sha_tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Trivy Scan (JSON)
         id: trivy
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1:latest
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1:master
           format: json
           vuln-type: os,library
           severity: CRITICAL
@@ -84,7 +84,7 @@ jobs:
         run: |
           echo "## Trivy Vulnerability Scan Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Image: ${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1:latest" >> $GITHUB_STEP_SUMMARY
+          echo "Image: ${{ secrets.DOCKERHUB_USERNAME }}/client-side-kel1:master" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           CRIT=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json)
           echo "- Critical: $CRIT" >> $GITHUB_STEP_SUMMARY
@@ -92,6 +92,7 @@ jobs:
           echo "| Package | Installed | Fixed | CVE | Link |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|-----------|-------|-----|------|" >> $GITHUB_STEP_SUMMARY
           jq -r '
-            .Results[].Vulnerabilities[]? |
-            "| \(.PkgName) | \(.InstalledVersion) | \(.FixedVersion // "-") | \(.VulnerabilityID) | \(.PrimaryURL) |"
+          .Results[].Vulnerabilities[]? |
+          "| \(.PkgName) | \(.InstalledVersion) | \(.FixedVersion // "-") | \(.VulnerabilityID) | \(.PrimaryURL) |"
           ' trivy-report.json >> $GITHUB_STEP_SUMMARY
+
