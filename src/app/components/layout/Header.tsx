@@ -49,7 +49,7 @@ export default function Header() {
           : "0 0 0 rgba(0, 0, 0, 0)",
       }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white/90 backdrop-blur-md sticky top-0 z-50 w-full transition-all"
+      className="bg-white sticky top-0 z-50 w-full transition-all"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
@@ -135,7 +135,7 @@ export default function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="md:hidden border-t border-gray-200 bg-white/95 backdrop-blur-sm"
+            className="md:hidden border-t border-gray-200 bg-white"
           >
             <div className="px-4 py-3 space-y-1">
               {navItems.map((item) => {
