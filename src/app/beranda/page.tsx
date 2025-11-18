@@ -83,7 +83,7 @@ function FloatingTantiAI() {
   return (
     <button
       onClick={() =>
-        window.open("https://wa.me/6287889100118", "_blank")
+        window.open("https://wa.me/628561310609", "_blank")
       }
       className="
         fixed bottom-10 right-6 z-50 flex items-center gap-2

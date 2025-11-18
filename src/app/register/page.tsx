@@ -18,6 +18,8 @@ import { format, isValid } from "date-fns";
 import { useAuth } from "@/app/lib/authContext";
 import { OCCUPATION_KTP } from "./constants";
 import { OCCUPATION_OPTIONS } from "@/app/user/constants/occupationOptions";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 
 export default function RegisterSimple() {
@@ -166,6 +168,20 @@ export default function RegisterSimple() {
     setGlobalError(""); 
   };
 
+  const handlePhoneChange = (value: string, country?: any) => {
+    let digits = (value || "").replace(/\D/g, "");
+    if (digits.startsWith("0")) {
+      digits = "62" + digits.slice(1);
+    }
+    if (country?.dialCode === "62" && !digits.startsWith("62")) {
+      digits = "62" + digits.replace(/^0+/, "");
+    }
+    digits = digits.slice(0, 15);
+    setForm(prev => ({ ...prev, phone: digits }));
+    setErrors(prev => ({ ...prev, phone: digits.length >= 10 ? undefined : "Nomor telepon tidak valid." }));
+    setGlobalError("");
+  };
+
   const validateStep1 = () => {
     const newErrors: ErrorState = {};
     let isValid = true;
@@ -229,9 +245,16 @@ export default function RegisterSimple() {
     if (!form.phone) {
       newErrors.phone = "Nomor telepon wajib diisi.";
       isFormValid = false; 
-    } else if (form.phone.length < 10) {
-      newErrors.phone = "Nomor telepon tidak valid.";
-      isFormValid = false;
+    } else {
+      const raw = form.phone.replace(/\D/g, "");
+      const normalized = raw.startsWith("0") ? ("62" + raw.slice(1)) : raw;
+      const valid = /^62\d{8,13}$/.test(normalized);
+      if (!valid) {
+        newErrors.phone = "Nomor telepon tidak valid.";
+        isFormValid = false;
+      } else {
+        setForm(prev => ({ ...prev, phone: normalized }));
+      }
     }
     if (!form.birthPlace) {
       newErrors.birthPlace = "Tempat lahir wajib diisi.";
@@ -297,7 +320,10 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
 
     const payload = {
       fullName: form.fullName,
-      phone: form.phone,
+      phone: (() => {
+        const digits = form.phone.replace(/\D/g, '');
+        return digits.startsWith('0') ? ('62' + digits.slice(1)) : digits;
+      })(),
       birthPlace: form.birthPlace,
       birthDate: format(birthDate!, "yyyy-MM-dd"),
       email: form.email,
@@ -489,18 +515,19 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                     pattern="[A-Za-z ]+"
                     error={errors.fullName}
                   />
-                  <InputField
-                    id="phone"
-                    label="Nomor Telepon *"
-                    name="phone"
-                    type="tel"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={15}
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="Contoh: 628123456789"
-                  />
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-800 mb-2">Nomor Telepon *</label>
+                    <PhoneInput
+                      country={"id"}
+                      value={form.phone}
+                      onChange={handlePhoneChange}
+                      inputProps={{ name: "phone", required: true }}
+                      placeholder="Contoh: 81234567890"
+                      containerClass=""
+                      inputClass="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                    />
+                    {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
+                  </div>
 
                   <InputField
                     id="birthPlace"

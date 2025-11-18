@@ -25,6 +25,20 @@ function Calendar({
 }) {
   const defaultClassNames = getDefaultClassNames();
 
+  const Select: React.ComponentProps<any> = (props: any) => (
+    <select
+      {...props}
+      className={cn(
+        "bg-white text-gray-900 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-orange-400",
+        props.className
+      )}
+    />
+  );
+
+  const Option: React.ComponentProps<any> = (props: any) => (
+    <option {...props} className={cn("text-gray-900 bg-white", props.className)} />
+  );
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -70,20 +84,20 @@ function Calendar({
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          "has-focus:border-ring border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] relative rounded-md border",
+          "relative rounded-md border border-gray-300",
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
-          "bg-popover absolute inset-0 opacity-0",
+          "bg-white text-gray-900 absolute inset-0",
           defaultClassNames.dropdown
         ),
         // Styling dropdown select untuk bulan & tahun dikendalikan via CSS global
         // (rdp-dropdown_month, rdp-dropdown_year)
         caption_label: cn(
-          "select-none font-medium",
+          "select-none font-medium text-gray-900",
           captionLayout === "label"
             ? "text-sm"
-            : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
+            : "flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
           defaultClassNames.caption_label
         ),
         table: "w-full border-collapse",
@@ -167,6 +181,8 @@ function Calendar({
             </td>
           );
         },
+        Select,
+        Option,
         ...components,
       }}
       {...props}
