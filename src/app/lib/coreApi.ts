@@ -124,9 +124,21 @@ export async function loginApi(payload: any) {
         if (res.ok && json.success) {
             return { success: true, message: json.message, data: json.data };
         }
-        return { success: false, message: json.message || "Login gagal." };
+        const errDetail = json?.errorDetail || json?.data?.errorDetail || json?.error || null;
+        const candidates = [
+            errDetail?.detail,
+            errDetail?.message,
+            json?.detail,
+            json?.message,
+        ].filter(Boolean);
+        let detailText = String(candidates[0] || "");
+        // Clean prefixes to surface the actionable part
+        detailText = detailText.replace(/^system error during login:\s*/i, "");
+        detailText = detailText.replace(/^login gagal:\s*/i, "");
+        const finalMsg = detailText.trim() || String(json?.message || "Login gagal.");
+        return { success: false, message: finalMsg, data: json?.data ?? null, errorDetail: errDetail };
     } catch (e) {
-        return { success: false, message: "Terjadi kesalahan koneksi ke server." };
+        return { success: false, message: "Terjadi kesalahan koneksi ke server.", data: null, errorDetail: null };
     }
 }
 
