@@ -37,6 +37,9 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
+# Ensure Next.js cache directory exists and is writable for image optimization
+RUN mkdir -p /app/.next/cache && chown -R nextjs:nextjs /app/.next /app/public
+
 EXPOSE 3000
 USER nextjs
 
