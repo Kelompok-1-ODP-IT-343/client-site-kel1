@@ -160,7 +160,7 @@ function LoginContent() {
 
   return (
     <main className="flex flex-1 items-center justify-center py-10 px-4 bg-gray-50">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 border transition-shadow hover:shadow-xl">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 transition-shadow hover:shadow-xl">
         <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-2">
           Masuk ke Akun Anda
         </h1>
@@ -181,7 +181,7 @@ function LoginContent() {
                 className={`w-full pl-11 pr-4 py-2.5 text-gray-800 border rounded-lg focus:ring-2 focus:outline-none transition-all duration-300 ${
                   errors.email
                     ? "border-red-500 ring-red-200"
-                    : "border-gray-300 focus:border-bni-teal focus:ring-bni-teal/50"
+                    : "border-gray-300 focus:border-transparent focus:ring-orange-400"
                 }`}
                 required
               />
@@ -203,7 +203,7 @@ function LoginContent() {
                 className={`w-full pl-11 pr-4 py-2.5 text-gray-800 border rounded-lg focus:ring-2 focus:outline-none transition-all duration-300 ${
                   errors.password
                     ? "border-red-500 ring-red-200"
-                    : "border-gray-300 focus:border-bni-teal focus:ring-bni-teal/50"
+                    : "border-gray-300 focus:border-transparent focus:ring-orange-400"
                 }`}
                 required
                 />

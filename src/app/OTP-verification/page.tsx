@@ -139,7 +139,7 @@ function OTPVerificationContent() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 border text-center">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 text-center">
         
         <div className="inline-flex items-center justify-center w-16 h-16 bg-bni-orange/10 rounded-full mb-6">
           <ShieldCheck className="w-10 h-10 text-bni-orange" />
@@ -164,8 +164,8 @@ function OTPVerificationContent() {
               maxLength={1}
               value={value}
               onChange={(e) => handleInput(e.target.value, i)}
-              className={`w-12 h-14 border rounded-xl text-center text-xl font-semibold transition text-black
-                ${error ? "border-red-500 ring-red-200" : "border-gray-300 focus:ring-bni-teal/40"}`}
+              className={`w-12 h-14 border rounded-lg text-center text-xl font-semibold transition text-black focus:outline-none focus:ring-2
+                ${error ? "border-red-500 ring-red-200" : "border-gray-300 focus:border-transparent focus:ring-orange-400"}`}
             />
           ))}
         </div>
