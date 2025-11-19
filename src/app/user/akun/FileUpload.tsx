@@ -11,8 +11,8 @@ export default function FileUpload({
   return (
     <div className="space-y-2">
       <span className="block text-sm text-gray-500 font-medium">{label}</span>
-      <label className="flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-gray-800 bg-gray-200 rounded-xl cursor-pointer hover:bg-gray-300 transition">
-        📎 Pilih File
+      <label className="flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-gray-900 bg-[#DDEE59] rounded-xl cursor-pointer shadow transition hover:opacity-90">
+        Pilih File
         <input
           type="file"
           name={name}

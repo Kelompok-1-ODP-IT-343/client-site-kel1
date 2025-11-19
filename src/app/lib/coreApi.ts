@@ -737,6 +737,122 @@ export async function verifyOtpApi(payload: {
     return { success: false, message: "Terjadi kesalahan koneksi." };
   }
 }
+
+// ==============================
+// Forgot Password via Phone OTP
+// ==============================
+export async function sendForgotPasswordOtp(phone: string): Promise<{
+  success: boolean;
+  message?: string;
+  data?: { ttl?: number };
+}> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.FORGOT_PASSWORD_SEND_OTP}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && (json.success ?? true)) {
+      return { success: true, message: json.message, data: json.data };
+    }
+    return { success: false, message: json.message || "Gagal mengirim OTP." };
+  } catch (error: any) {
+    return { success: false, message: error?.message || "Kesalahan koneksi." };
+  }
+}
+
+export async function verifyForgotPasswordOtp(payload: {
+  phone: string;
+  otp: string;
+}): Promise<{
+  success: boolean;
+  message?: string;
+  data?: { resetToken: string; expiresIn: number };
+}> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.FORGOT_PASSWORD_VERIFY_OTP}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && (json.success ?? true)) {
+      return { success: true, message: json.message, data: json.data };
+    }
+    return { success: false, message: json.message || "Kode OTP salah." };
+  } catch (error: any) {
+    return { success: false, message: error?.message || "Kesalahan koneksi." };
+  }
+}
+
+export async function setNewPasswordWithToken(payload: {
+  resetToken: string;
+  newPassword: string;
+}): Promise<{ success: boolean; message?: string }> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.FORGOT_PASSWORD_SET_PASSWORD}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && (json.success ?? true)) {
+      return { success: true, message: json.message };
+    }
+    return { success: false, message: json.message || "Gagal menyetel kata sandi." };
+  } catch (error: any) {
+    return { success: false, message: error?.message || "Kesalahan koneksi." };
+  }
+}
+
+// ==============================
+// MOCK: Password Reset Flow
+// ==============================
+export async function requestPasswordResetMock(phone: string): Promise<{
+  success: boolean;
+  message: string;
+  data?: { otpSessionId: string; phone: string };
+}> {
+  // Simulasikan panggilan API untuk mengirim OTP ke nomor ponsel
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: true,
+        message: "OTP berhasil dikirim ke nomor Anda.",
+        data: { otpSessionId: `mock-${Date.now()}`, phone },
+      });
+    }, 600);
+  });
+}
+
+export async function resetPasswordMock(payload: {
+  identifier?: string; // email/username/phone
+  phone?: string;
+  newPassword: string;
+  confirmPassword?: string;
+}): Promise<{ success: boolean; message: string }> {
+  // Validasi sederhana di sisi klien
+  // const pw = String(payload.newPassword || "");
+  // const cpw = String(payload.confirmPassword ?? payload.newPassword || "");
+  // if (!pw || pw.length < 8)
+  //   return { success: false, message: "Kata sandi minimal 8 karakter." };
+  // if (pw !== cpw)
+  //   return { success: false, message: "Konfirmasi kata sandi tidak cocok." };
+
+  // return new Promise((resolve) => {
+  //   setTimeout(() => {
+  //     resolve({ success: true, message: "Kata sandi berhasil direset." });
+  //   }, 700);
+  // });
+  return {
+    success: true,
+    message: "Kata sandi berhasil direset.",
+  }
+}
 export async function toggleFavorite(propertyId: number | string) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?propertyId=${propertyId}`;
 
