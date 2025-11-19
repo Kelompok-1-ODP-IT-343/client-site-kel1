@@ -275,7 +275,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Properti yang Diajukan</h3>
 
-          <div className="flex flex-col md:flex-row items-center gap-6 p-4 border rounded-xl bg-gray-50">
+          <div className="flex flex-col md:flex-row items-center gap-6 p-4 rounded-xl bg-white border border-[#DDEE59] shadow-sm">
             <div className="relative w-full md:w-40 h-32 md:aspect-[4/3] rounded-lg overflow-hidden">
               <Image
                 src={imageSrc}
@@ -288,8 +288,9 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
             <div className="text-center md:text-left">
               <h4 className="font-bold text-gray-800 text-lg">{data.propertiNama}</h4>
 
-              <p className="text-sm text-gray-500 flex justify-center md:justify-start gap-1">
-                <MapPin size={14} /> {data.propertiLokasi}
+              <p className="text-sm text-gray-600 flex items-center justify-center md:justify-start gap-1.5">
+                <MapPin size={14} className="flex-shrink-0" />
+                {data.propertiLokasi}
               </p>
 
               <p className="mt-2 text-xl font-bold text-bni-orange">
@@ -391,7 +392,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
         </div>
 
         {/* ===== Detail Pengajuan KPR ===== */}
-        <div className="border rounded-xl p-5 bg-gray-50">
+        <div className="rounded-xl p-5 bg-white border border-[#DDEE59] shadow-sm">
           <h3 className="text-lg font-semibold text-gray-700 mb-3">Detail Pengajuan KPR</h3>
 
           {(() => {
@@ -406,14 +407,14 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
                 <div className="flex items-center justify-between"><span>Administrasi</span><span className="font-semibold">{formatCurrency(ADMIN_FEE_LOCAL)}</span></div>
                 <div className="flex items-center justify-between"><span>Biaya Provisi (1,00% dari Harga - DP)</span><span className="font-semibold">{formatCurrency(provisi)}</span></div>
                 <div className="flex items-center justify-between"><span>Downpayment (Pengurang)</span><span className="font-semibold">{formatCurrency(downPayment)}</span></div>
-                <div className="flex items-center justify-between border-t pt-2 mt-2"><span>Loan</span><span className="font-semibold">{formatCurrency(loanResult)}</span></div>
+                <div className="flex items-center justify-between border-t border-[#DDEE59] pt-2 mt-2"><span>Loan</span><span className="font-semibold">{formatCurrency(loanResult)}</span></div>
                 <div className="flex items-center justify-between"><span>Paket KPR</span><span className="font-semibold">{selectedRate ? labelForPackage(selectedRate.name) : "—"}</span></div>
 
                 {/* Rate Detail */}
                 <div className="md:col-span-2 mt-3">
                   <p className="font-semibold text-gray-800 mb-2">Rate Detail</p>
                   {selectedRate ? (
-                    <div className="rounded-lg border bg-white p-3">
+                    <div className="rounded-lg border border-gray-200 bg-white p-3">
                       <div className="text-sm text-gray-600 mb-2">
                         <span className="font-medium">{labelForPackage(selectedRate.name)}</span>
                         {" · "}
@@ -426,7 +427,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
                           const year = idx + 1;
                           const v = selectedRate.rates[idx] ?? (selectedRate.rateType === "fixed" ? "Floating" : "—");
                           return (
-                            <span key={year} className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs bg-gray-50">
+                            <span key={year} className="inline-flex items-center gap-1 rounded-full border border-gray-300 px-2 py-1 text-xs bg-gray-50">
                               <span className="text-gray-500">Y{year}:</span>
                               <span className="font-medium text-gray-800">{formatRate(v)}</span>
                             </span>
@@ -444,7 +445,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
         </div>
 
         {/* ===== Simulasi ===== */}
-        <div className="space-y-3 border-t pt-4">
+        <div className="space-y-3 border-t border-gray-200 pt-4">
           <button
             type="button"
             onClick={() => setShowSimulasi(!showSimulasi)}
@@ -455,12 +456,12 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
           </button>
 
           {showSimulasi && (
-            <div className="animate-fadeIn border rounded-xl p-5 bg-gray-50">
+            <div className="animate-fadeIn border border-gray-200 rounded-xl p-5 bg-gray-50">
               <h3 className="text-lg font-semibold text-gray-700 flex gap-2 mb-4">
                 <Settings2 size={18} /> Simulasi Multi-Rate
               </h3>
 
-              <div className="bg-white border rounded-lg p-4 mb-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="text-gray-600 text-sm">Estimasi Pembayaran Tahun Pertama</p>
