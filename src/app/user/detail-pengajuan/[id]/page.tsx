@@ -26,6 +26,8 @@ export default function DetailPengajuanPage() {
   const [loading, setLoading] = useState(true);
   // State untuk modal pratinjau dokumen ditempatkan sebelum return kondisional
   const [docPreview, setDocPreview] = useState<{ open: boolean; src: string; title: string }>({ open: false, src: "", title: "" });
+  // Dimensi gambar untuk modal agar mengikuti aspek gambar yang diupload
+  const [docDims, setDocDims] = useState<{ w: number; h: number } | null>(null);
   // Modal detail properti
   const [showPropertyDetail, setShowPropertyDetail] = useState(false);
   // Ekspansi detail per langkah timeline
@@ -75,10 +77,16 @@ export default function DetailPengajuanPage() {
   // Handler modal pratinjau dokumen (diletakkan setelah helper, bukan setelah return kondisional)
   const openDocPreview = (src?: string, title?: string) => {
     if (!src) return;
-    if (isImageUrl(src)) setDocPreview({ open: true, src, title: title || "Dokumen" });
+    if (isImageUrl(src)) {
+      setDocDims(null);
+      setDocPreview({ open: true, src, title: title || "Dokumen" });
+    }
     else if (typeof window !== "undefined") window.open(src, "_blank");
   };
-  const closeDocPreview = () => setDocPreview((p) => ({ ...p, open: false }));
+  const closeDocPreview = () => {
+    setDocPreview((p) => ({ ...p, open: false }));
+    setDocDims(null);
+  };
 
 
   const f = (n: number) =>
@@ -337,15 +345,17 @@ export default function DetailPengajuanPage() {
         {/* Kanan: Ringkasan Properti + tombol modal */}
         <ColorCard title="Informasi Properti" titleAlign="center">
           <div className="flex items-center gap-6">
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-              <Image
-                src={property.mainImage || "/placeholder.png"}
-                alt="Properti"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
+            {property.mainImage ? (
+              <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200">
+                <Image
+                  src={property.mainImage}
+                  alt="Properti"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+            ) : null}
             <div>
               <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
               <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
@@ -488,9 +498,31 @@ export default function DetailPengajuanPage() {
             onClose={closeDocPreview}
             description={
               docPreview.src && isImageUrl(docPreview.src) ? (
-                <div className="relative w-[86vw] max-w-3xl h-[70vh]">
-                  <Image src={docPreview.src} alt={docPreview.title} fill className="object-contain rounded-lg bg-gray-100" unoptimized />
-                </div>
+                (() => {
+                  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+                  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+                  const maxW = Math.min(vw * 0.86, 1024);
+                  const maxH = Math.min(vh * 0.80, 768);
+                  let w = maxW;
+                  let h = maxH;
+                  if (docDims) {
+                    const ratio = docDims.h / docDims.w;
+                    w = Math.min(maxW, maxH / ratio);
+                    h = Math.min(maxH, maxW * ratio);
+                  }
+                  return (
+                    <div className="relative" style={{ width: Math.round(w), height: Math.round(h) }}>
+                      <Image
+                        src={docPreview.src}
+                        alt={docPreview.title}
+                        fill
+                        className="object-contain rounded-lg bg-gray-100"
+                        unoptimized
+                        onLoadingComplete={(img) => setDocDims({ w: (img as any).naturalWidth, h: (img as any).naturalHeight })}
+                      />
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="text-sm text-gray-700">
                   Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
