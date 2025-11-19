@@ -16,10 +16,10 @@ const nextConfig: NextConfig = {
 
   output: "standalone",
 
-  experimental: {
-    turbo: {
-      resolveAlias: {},
-    },
+  // Configure Turbopack and root to avoid mis-detected workspace root
+  turbopack: {
+    root: __dirname,
+    resolveAlias: {},
   },
   async rewrites() {
     // Proxy backend API to avoid browser CORS during local/dev and production
