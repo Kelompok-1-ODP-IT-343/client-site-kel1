@@ -182,13 +182,13 @@ export default function PengajuanKPRContent() {
           value={String(
             applications.filter((a) => a.status === "Final Approval").length
           )}
-          accent="#16a34a"
+          accent="#3FD8D4"
         />
         <SummaryCard
           icon={<RefreshCcw size={24} />}
           title="Total Pinjaman"
           value={formatIDR(totalLoan)}
-          accent="#4f46e5"
+          accent="#3FD8D4"
           isMoney
         />
       </div>
@@ -220,7 +220,7 @@ export default function PengajuanKPRContent() {
                 transition={{ duration: 0.2 }}
                 className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm ring-1 ring-transparent transition-all hover:shadow-lg hover:ring-gray-200"
               >
-                <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-200 via-teal-200 to-orange-200 opacity-70" />
+                <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#FFE8D2] via-[#FFC58A] to-[#FF8D28] opacity-70" />
 
                 <div className="grid md:grid-cols-[300px_1fr]">
                   <div className="relative h-48 w-full md:h-full">
