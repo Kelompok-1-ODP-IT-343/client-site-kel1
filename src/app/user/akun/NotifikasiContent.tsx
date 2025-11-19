@@ -20,9 +20,10 @@ type ApiNotification = {
 
 function mapType(title: string, notificationType?: string): "approval" | "payment" | "reminder" {
   const t = (title || "").toLowerCase();
-  if (/disetujui|verifikasi berhasil|berhasil verifikasi|akun.*aktif|login berhasil/.test(t)) return "approval";
+  // Keep approvals for verification/app-related successes but exclude plain 'login berhasil'
+  if (/disetujui|verifikasi berhasil|berhasil verifikasi|akun.*aktif/.test(t)) return "approval";
   if (/pembayaran|angsuran|pelunasan|diterima|lunas/.test(t)) return "payment";
-  // Default bucket
+  // Treat login and other informational messages as reminders
   return "reminder";
 }
 

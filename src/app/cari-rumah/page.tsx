@@ -526,10 +526,10 @@ function HouseCard({
   // Prefer direct numeric fields from body; fallback to parsed features string
   const buildingArea = (house as any).building_area != null
     ? `${(house as any).building_area} m²`
-    : getFeature(["luas bangunan", "building area", "luas_bangunan", "lb"]);
+    : getFeature(["luas bangunan", "building_area", "building area", "luas_bangunan", "lb"]);
   const landArea = (house as any).land_area != null
     ? `${(house as any).land_area} m²`
-    : getFeature(["luas tanah", "land area", "luas_tanah", "lt"]);
+    : getFeature(["luas tanah", "land area", "land_area", "luas_tanah", "lt"]);
   const isDeveloperPilihan = (house as any).is_developer_pilihan ?? String(house.listing_type || "").toUpperCase() === "PRIMARY";
   const developerBadge = isDeveloperPilihan ? "Developer Pilihan" : "Developer Kerja Sama";
 
