@@ -44,6 +44,72 @@ function OTPVerificationContent() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      const newOtp = [...otp];
+      if (newOtp[index]) {
+        newOtp[index] = "";
+        setOtp(newOtp);
+        setError("");
+        setNotice("");
+        return;
+      }
+      if (index > 0) {
+        if (newOtp[index - 1]) {
+          newOtp[index - 1] = "";
+          setOtp(newOtp);
+        }
+        document.getElementById(`otp-${index - 1}`)?.focus();
+      }
+      return;
+    }
+    if (e.key === "Delete") {
+      e.preventDefault();
+      const newOtp = [...otp];
+      if (newOtp[index]) {
+        newOtp[index] = "";
+        setOtp(newOtp);
+        setError("");
+        setNotice("");
+        return;
+      }
+      if (index < newOtp.length - 1 && newOtp[index + 1]) {
+        newOtp[index + 1] = "";
+        setOtp(newOtp);
+      }
+      return;
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (index > 0) document.getElementById(`otp-${index - 1}`)?.focus();
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      if (index < otp.length - 1) document.getElementById(`otp-${index + 1}`)?.focus();
+      return;
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
+    e.preventDefault();
+    const text = e.clipboardData?.getData?.("text") || "";
+    const digits = text.replace(/\D/g, "");
+    if (!digits) return;
+    const newOtp = [...otp];
+    let j = 0;
+    while (j < digits.length && index + j < newOtp.length) {
+      newOtp[index + j] = digits[j];
+      j++;
+    }
+    setOtp(newOtp);
+    setError("");
+    setNotice("");
+    const nextIndex = Math.min(index + j, newOtp.length - 1);
+    document.getElementById(`otp-${nextIndex}`)?.focus();
+  };
+
   const handleVerify = async () => {
       const code = otp.join("");
 
@@ -183,6 +249,8 @@ function OTPVerificationContent() {
               maxLength={1}
               value={value}
               onChange={(e) => handleInput(e.target.value, i)}
+              onKeyDown={(e) => handleKeyDown(e, i)}
+              onPaste={(e) => handlePaste(e, i)}
               className={`w-12 h-14 border rounded-lg text-center text-xl font-semibold transition text-black focus:outline-none focus:ring-2
                 ${error ? "border-red-500 ring-red-200" : "border-gray-300 focus:border-transparent focus:ring-orange-400"}`}
             />
