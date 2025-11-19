@@ -257,17 +257,22 @@ export default function DetailPengajuanPage() {
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-12 font-[Inter] bg-white">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">Detail Pengajuan KPR</h1>
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-16">Detail Pengajuan KPR</h1>
       {/* ===== TIMELINE DI PALING ATAS ===== */}
       <ColorCard title="Timeline Pengajuan">
         <div className="relative px-2 py-6">
-          <div className="absolute left-8 right-8 top-10 h-1 bg-gradient-to-r from-gray-200 via-[#3FD8D4]/40 to-gray-200 rounded-full" />
+          <div className="absolute left-8 right-8 top-9 h-[2px] bg-gradient-to-r from-gray-200 via-[#3FD8D4]/40 to-gray-200 rounded-full" />
           <div className="grid grid-cols-4 gap-4 relative">
             {[0,1,2,3].map((i) => {
               const state = nodeState(i);
               const isDone = state === 'done';
               const isActive = state === 'active';
-              const dotCls = isDone ? 'bg-green-500 border-green-500' : isActive ? 'bg-[#3FD8D4] border-[#3FD8D4]' : 'bg-gray-200 border-gray-300';
+              const dotVisible = state !== 'pending';
+              const dotCls = isDone
+                ? 'bg-green-500 border-green-500'
+                : isActive
+                ? 'bg-[#3FD8D4] border-[#3FD8D4]'
+                : 'bg-transparent border-transparent';
               const ringCls = isActive ? 'ring-4 ring-[#3FD8D4]/30' : '';
               const title = i === 0 ? 'Submitted' : i === 1 ? 'Property Appraisal' : i === 2 ? 'Credit Analysis' : 'Final Approval';
               const wf = i > 0 ? workflows[i - 1] : undefined;
@@ -277,7 +282,11 @@ export default function DetailPengajuanPage() {
               const isExpanded = !!expanded[i];
               return (
                 <div key={i} className="flex flex-col items-center text-center px-2">
-                  <div className={`w-6 h-6 rounded-full border ${dotCls} ${ringCls}`} />
+                  {dotVisible ? (
+                    <div className={`w-6 h-6 rounded-full border-2 ${dotCls} ${ringCls}`} />
+                  ) : (
+                    <div className="w-6 h-6" />
+                  )}
                   <div className="mt-3 text-sm font-semibold text-gray-900">{title}</div>
                   <div className="mt-2 w-full max-w-[280px] text-xs text-gray-700">
                     <div className="flex items-center gap-3">
