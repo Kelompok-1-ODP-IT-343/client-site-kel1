@@ -32,7 +32,7 @@ export default function StepDataDiri({ formData, handleChange, errors }: any) {
 
         {/* Baris 4: NIK & NPWP */}
         <InputField label="NIK" name="nik" required maxLength={16} value={formData.nik} onChange={handleChange} error={errors.nik} />
-        <InputField label="NPWP" name="npwp" required value={formData.npwp} onChange={handleChange} error={errors.npwp} />
+        <InputField label="NPWP" name="npwp" type="tel" required value={formData.npwp} onChange={handleChange} error={errors.npwp} />
 
         {/* Baris 5: Nomor Telepon (setengah lebar seperti lainnya) */}
         <InputField label="Nomor Telepon" name="phone" required value={formData.phone} onChange={handleChange} error={errors.phone} />
