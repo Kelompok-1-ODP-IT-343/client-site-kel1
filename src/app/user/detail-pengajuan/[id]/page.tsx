@@ -58,7 +58,7 @@ export default function DetailPengajuanPage() {
   const isDevPilihanBase = partnershipLevelUpper === "TOP_SELECTED_DEVELOPER" || (property as any)?.is_developer_pilihan === true || listingTypeUpper === "PRIMARY";
   const purposeUpper = String(application?.purpose || "").toUpperCase();
   const developerTypeLabel = purposeUpper.includes("PRIMARY") ? "Developer Pilihan" : (isDevPilihanBase ? "Developer Pilihan" : "Developer Kerja Sama");
-  
+
   // Helper formatters (ikuti style util sederhana yang sudah ada)
   const formatDate = (s?: string) => {
     if (!s) return "-";
@@ -527,7 +527,10 @@ export default function DetailPengajuanPage() {
                         fill
                         className="object-contain rounded-lg bg-gray-100"
                         unoptimized
-                        onLoadingComplete={(img) => setDocDims({ w: (img as any).naturalWidth, h: (img as any).naturalHeight })}
+            onLoad={(e) => {
+              const img = e.currentTarget as HTMLImageElement;
+              setDocDims({ w: img.naturalWidth, h: img.naturalHeight });
+            }}
                       />
                     </div>
                   );

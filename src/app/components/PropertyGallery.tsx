@@ -83,7 +83,7 @@ export default function PropertyGallery({ images, title }: Props) {
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 66vw, 66vw"
         priority={false}
         unoptimized
-        onLoadingComplete={() => {
+        onLoad={() => {
           setLoadedSrcs((prev) => {
             const next = new Set(prev);
             next.add(currentSrc);
