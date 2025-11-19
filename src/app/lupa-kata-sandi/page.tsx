@@ -63,7 +63,7 @@ export default function LupaKataSandiPage() {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="Contoh: 081234567890"
+              placeholder="081234567890"
               className="flex-1 outline-none text-sm text-gray-800"
             />
           </div>
