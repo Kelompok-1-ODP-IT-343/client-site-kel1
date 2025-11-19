@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Heart, Trash2, Eye } from "lucide-react";
+import { MapPin, Heart, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchUserFavorites, toggleFavorite } from "@/app/lib/coreApi";
 
@@ -57,7 +57,7 @@ export default function WishlistContent() {
         const normalized = arr.map(normalizeItem).filter((x) => x.propertyId > 0);
         setWishlist(normalized);
       } else {
-        setError(result.message || "Gagal memuat wishlist.");
+        setError(result.message || "Gagal memuat favorit.");
       }
       setLoading(false);
     })();
@@ -65,6 +65,12 @@ export default function WishlistContent() {
       mounted = false;
     };
   }, []);
+
+  const ITEMS_PER_PAGE = 6;
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalPages = Math.max(1, Math.ceil(wishlist.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageItems = wishlist.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleRemove = async (propertyId: number) => {
     try {
@@ -91,9 +97,9 @@ export default function WishlistContent() {
 
   return (
     <div>
-      <div className="mb-6 flex items-end justify-between gap-3">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Wishlist</h2>
+          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Favorit</h2>
           <p className="text-sm text-gray-500">Simpan properti favoritmu untuk dilihat kembali nanti.</p>
         </div>
         {wishlist.length > 0 && (
@@ -104,7 +110,7 @@ export default function WishlistContent() {
       </div>
 
       {loading ? (
-        <div className="p-10 text-center text-sm text-gray-600">Memuat data wishlist...</div>
+        <div className="p-10 text-center text-sm text-gray-600">Memuat data favorit...</div>
       ) : error ? (
         (() => {
           const isNoFavorites = /no favorites/i.test(String(error));
@@ -141,8 +147,8 @@ export default function WishlistContent() {
         </div>
       ) : (
         <AnimatePresence mode="popLayout">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {wishlist.map((house) => (
+          <div key="grid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {pageItems.map((house) => (
               <motion.div
                 key={house.propertyId}
                 layout
@@ -163,9 +169,9 @@ export default function WishlistContent() {
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-90" />
 
-                  <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-gray-900 shadow backdrop-blur-sm">
-                    {house.priceText}
-                  </div>
+                  <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-[11px] font-bold uppercase text-white shadow">
+                    FAVORIT
+                  </span>
 
                   <button
                     onClick={() => handleRemove(house.propertyId)}
@@ -177,38 +183,57 @@ export default function WishlistContent() {
                 </div>
 
                 <div className="p-4">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className="inline-flex items-center rounded-md bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-700 ring-1 ring-inset ring-orange-200">
-                      Favorit
-                    </span>
-                  </div>
-
                   <h3 className="line-clamp-1 text-base font-bold text-gray-900">{house.title}</h3>
                   <p className="mt-1 flex items-center text-sm text-gray-600">
                     <MapPin className="mr-1.5 h-4 w-4 text-gray-400" />
                     <span className="line-clamp-1">{house.location}</span>
                   </p>
 
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500">Harga mulai</p>
+                    <p className="text-lg font-bold">
+                      <span className="text-[#FF8500]">Rp</span>{" "}
+                      <span className="text-[#FF8500]">{house.priceText.replace(/^Rp\s*/, "")}</span>
+                    </p>
+                  </div>
+
                   <div className="mt-4 grid grid-cols-2 gap-2">
                     <Link
-                      href={`/detail-rumah/${house.propertyId}`}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50"
+                      href={`/user/pengajuan?propertiId=${house.propertyId}&propertiNama=${encodeURIComponent(house.title)}&propertiLokasi=${encodeURIComponent(house.location)}&hargaProperti=${encodeURIComponent(house.priceText)}`}
+                      className="py-2 rounded-lg font-semibold text-sm text-white shadow transition hover:opacity-90 text-center"
+                      style={{ backgroundColor: "#FF8500" }}
                     >
-                      <Eye className="h-4 w-4" />
-                      Detail
+                      Ajukan
                     </Link>
                     <Link
-                      href={`/user/pengajuan?propertiId=${house.propertyId}&propertiNama=${encodeURIComponent(house.title)}&propertiLokasi=${encodeURIComponent(house.location)}&hargaProperti=${encodeURIComponent(house.priceText)}`}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-bni-orange px-3 py-2 text-sm font-semibold text-white shadow transition hover:brightness-95"
+                      href={`/detail-rumah/${house.propertyId}`}
+                      className="py-2 rounded-lg font-semibold text-sm text-center text-gray-900 shadow transition hover:opacity-90"
+                      style={{ backgroundColor: "#DDEE59" }}
                     >
-                      <Heart className="h-4 w-4 fill-white" />
-                      Ajukan
+                      Detail
                     </Link>
                   </div>
                 </div>
-                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-orange-200 via-teal-200 to-orange-200 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#E6FCF9] via-[#3FD8D4] to-[#E6FCF9] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               </motion.div>
             ))}
+          </div>
+          <div key="pagination" className="mt-6 flex items-center justify-between">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+              className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 disabled:opacity-50"
+            >
+              Sebelumnya
+            </button>
+            <span className="text-sm text-gray-500">Halaman {currentPage} dari {totalPages}</span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+              className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 disabled:opacity-50"
+            >
+              Berikutnya
+            </button>
           </div>
         </AnimatePresence>
       )}
