@@ -100,7 +100,7 @@ export default function PengajuanKPRContent() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center">
+      <div className="p-10 text-center">
         <div className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-orange-100 to-teal-100">
           <RefreshCcw className="h-8 w-8 text-bni-orange animate-spin" />
         </div>

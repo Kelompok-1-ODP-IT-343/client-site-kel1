@@ -104,7 +104,7 @@ export default function WishlistContent() {
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-sm text-gray-600">Memuat data wishlist...</div>
+        <div className="p-10 text-center text-sm text-gray-600">Memuat data wishlist...</div>
       ) : error ? (
         (() => {
           const isNoFavorites = /no favorites/i.test(String(error));
