@@ -69,7 +69,7 @@ export default function BerandaPage() {
   }, []);
 
   return (
-    <main className="flex-1">
+    <main className="flex-1 bg-gradient-to-b from-[#E6FCF9] via-white to-[#FFE8D2]">
       <HeroSection />
       <FeatureSection />
       <ExploreSection items={items} loading={loading} error={err} />
@@ -121,7 +121,7 @@ function FloatingTantiAI() {
 
 function HeroSection() {
   return (
-    <section className="bg-[#E0F7F5] py-20 sm:py-24 lg:py-28">
+    <section className="py-20 sm:py-24 lg:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -189,7 +189,15 @@ function FeatureSection() {
   ];
 
   return (
-    <section className="py-20 sm:py-24 bg-white">
+    <section
+      className="py-20 sm:py-24 bg-transparent"
+      style={{
+        WebkitMaskImage:
+          "linear-gradient(to bottom, transparent 0, black 24px, black calc(100% - 24px), transparent 100%)",
+        maskImage:
+          "linear-gradient(to bottom, transparent 0, black 24px, black calc(100% - 24px), transparent 100%)",
+      }}
+    >
       <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
@@ -296,7 +304,15 @@ function ExploreSection({
   }, [items]);
 
   return (
-    <section className="py-20 sm:py-24" style={{ backgroundColor: "#FFFEEB" }}>
+    <section
+      className="py-20 sm:py-24"
+      style={{
+        WebkitMaskImage:
+          "linear-gradient(to bottom, transparent 0, black 24px, black calc(100% - 24px), transparent 100%)",
+        maskImage:
+          "linear-gradient(to bottom, transparent 0, black 24px, black calc(100% - 24px), transparent 100%)",
+      }}
+    >
       <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="flex justify-between items-start mb-12">
           <div>
