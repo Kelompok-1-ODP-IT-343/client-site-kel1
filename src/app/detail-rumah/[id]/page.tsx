@@ -130,18 +130,18 @@ export default async function PropertyDetailPage({
             <PropertyGallery images={detail.images} title={detail.title} />
           </Card>
           <div className="mt-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 ml-3">
               {detail.title}
             </h1>
             {detail.developer && (
-              <p className="text-sm text-gray-600 mt-1 flex items-center gap-1.5">
-                <Building size={16} className="text-gray-500" />
-                Dibangun oleh
-                <span className="font-semibold text-gray-800 ml-1">
-                  {detail.developer.companyName}
-                </span>
-              </p>
-            )}
+            <p className="text-sm text-gray-600 mt-1 ml-3 flex items-center gap-1.5">
+              <Building size={16} className="text-gray-500" />
+              Dibangun oleh
+              <span className="font-semibold text-gray-800 ml-1">
+                {detail.developer.companyName}
+              </span>
+            </p>
+          )}
           </div>
           {/* Info alamat dipindahkan ke tab Lokasi & Sekitar */}
           {/* Deskripsi */}
@@ -182,11 +182,11 @@ export default async function PropertyDetailPage({
           <Card title="Lokasi dan Sekitar" icon={<Compass />}>
             <h3 className="text-[17px] font-bold text-gray-800 mb-3">Alamat Properti</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
-              <DevRow label="Alamat" value={detail.address} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
-              <DevRow label="Provinsi" value={detail.province} icon={<FileText className="w-4 h-4 text-orange-500" />} />
-              <DevRow label="Kota/Kabupaten" value={detail.city} icon={<FileText className="w-4 h-4 text-orange-500" />} />
-              <DevRow label="Kecamatan" value={detail.district} icon={<FileText className="w-4 h-4 text-orange-500" />} />
-              <DevRow label="Kelurahan/Desa" value={detail.subdistrict} icon={<FileText className="w-4 h-4 text-orange-500" />} />
+              <InlineDevRow label="Alamat" value={detail.address} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
+              <InlineDevRow label="Provinsi" value={detail.province} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
+              <InlineDevRow label="Kota/Kabupaten" value={detail.city} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
+              <InlineDevRow label="Kecamatan" value={detail.district} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
+              <InlineDevRow label="Kelurahan/Desa" value={detail.subdistrict} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
             </div>
             <h3 className="text-[17px] font-bold text-gray-800 mb-2">Lihat Lokasi di Peta</h3>
             <div className="relative w-full h-64 md:h-80 rounded-xl overflow-hidden border border-gray-100 mb-6">
@@ -266,9 +266,9 @@ export default async function PropertyDetailPage({
               )}
 
               <div className="mt-4 grid grid-cols-1 gap-3 text-sm">
-                <InfoItem label="Tipe Properti" value={toTitleCase(detail.property_type)} icon={<Home className="w-5 h-5" />} />
-                <InfoItem label="Uang Muka Minimum" value={detail.minDownPaymentPercent != null ? `${detail.minDownPaymentPercent}%` : "-"} icon={<Receipt className="w-5 h-5" />} />
-                <InfoItem label="Tenor Maksimum" value={detail.maxLoanTermYears != null ? `${detail.maxLoanTermYears} tahun` : "-"} icon={<Calendar className="w-5 h-5" />} />
+                <InlineInfoItem label="Tipe Properti" value={toTitleCase(detail.property_type)} icon={<Home className="w-5 h-5" />} />
+                <InlineInfoItem label="Uang Muka Minimum" value={detail.minDownPaymentPercent != null ? `${detail.minDownPaymentPercent}%` : "-"} icon={<Receipt className="w-5 h-5" />} />
+                <InlineInfoItem label="Tenor Maksimum" value={detail.maxLoanTermYears != null ? `${detail.maxLoanTermYears} tahun` : "-"} icon={<Calendar className="w-5 h-5" />} />
               </div>
 
               {/* Tombol ajukan dengan dialog login bila belum masuk */}
@@ -328,8 +328,8 @@ function Card({
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
       {" "}
       <div className="flex items-center gap-3 mb-5 border-b pb-3">
-        <div className="p-2 bg-orange-50 rounded-lg text-orange-500">{icon}</div>{" "}
-        <h2 className="text-lg font-bold text-gray-800">{title}</h2>{" "}
+        <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">{icon}</div>{" "}
+        <h2 className="text-lg font-bold text-gray-800 leading-none">{title}</h2>{" "}
       </div>
       {children}{" "}
     </div>
@@ -347,15 +347,41 @@ function InfoItem({
 }) {
   return (
     <div className="px-3 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-3">
         {icon && (
           <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
             {icon}
           </div>
         )}
-        <div>
-          <p className="text-xs text-gray-500 leading-tight">{label}</p>
-          <p className="text-sm sm:text-base font-semibold text-gray-900 leading-snug">{value ?? "-"}</p>
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm sm:text-base text-gray-700 font-normal leading-tight">{label}</span>
+          <span className="text-sm sm:text-base text-gray-900 font-bold leading-snug break-words">{value ?? "-"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InlineInfoItem({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value?: string | number;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="px-3 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex items-center gap-3">
+        {icon && (
+          <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
+            {icon}
+          </div>
+        )}
+        <div className="flex items-center gap-1 min-w-0">
+          <span className="text-sm sm:text-base text-gray-700 font-normal">{label}</span>
+          <span className="text-sm sm:text-base text-gray-900 font-bold truncate">: {value ?? "-"}</span>
         </div>
       </div>
     </div>
@@ -421,20 +447,54 @@ function DevRow({
   );
 }
 
+function InlineDevRow({
+  label,
+  value,
+  icon,
+  href,
+  external,
+}: {
+  label: string;
+  value?: string | null;
+  icon?: React.ReactNode;
+  href?: string;
+  external?: boolean;
+}) {
+  const display = value && String(value).trim().length > 0 ? String(value) : "-";
+  const valueNode = href && display !== "-" ? (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className="text-gray-900 font-semibold hover:text-bni-orange break-words"
+    >
+      {display}
+    </a>
+  ) : (
+    <span className="text-gray-900 font-semibold break-words">{display}</span>
+  );
+  return (
+    <div className="flex items-center gap-2 flex-wrap py-1">
+      {icon && <span className="flex-shrink-0">{icon}</span>}
+      <span className="text-gray-600">{label}</span>
+      <span className="text-gray-500">:</span>
+      {valueNode}
+    </div>
+  );
+}
+
 function NearbyItem({ name, distanceKm }: { name?: string; distanceKm?: number | string }) {
   const displayName = name && String(name).trim().length > 0 ? String(name) : "-";
   const distanceDisplay = distanceKm !== null && distanceKm !== undefined && String(distanceKm).trim().length > 0 ? `${distanceKm} km` : "-";
   return (
     <div className="px-3 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
           <Compass className="w-5 h-5" />
         </div>
-        <div className="flex-1">
-          <p className="text-sm sm:text-base font-semibold text-gray-900 leading-snug">{displayName}</p>
-          <div className="mt-1">
-            <span className="text-xs text-gray-500 leading-tight">{distanceDisplay}</span>
-          </div>
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm sm:text-base text-gray-700 font-normal leading-tight">{displayName}</span>
+          <span className="text-sm sm:text-base text-gray-900 font-bold leading-snug break-words">{distanceDisplay}</span>
         </div>
       </div>
     </div>
