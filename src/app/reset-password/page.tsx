@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Lock } from "lucide-react";
-import { resetPasswordMock } from "@/app/lib/coreApi";
+import { setNewPasswordWithToken } from "@/app/lib/coreApi";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const phone = searchParams.get("phone") || "";
+  const token = searchParams.get("token") || "";
 
   const [pw, setPw] = useState("");
   const [cpw, setCpw] = useState("");
@@ -22,7 +22,19 @@ export default function ResetPasswordPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await resetPasswordMock({ phone, newPassword: pw, confirmPassword: cpw });
+      // Basic client-side validation
+      if (!pw || pw.length < 8) {
+        setError("Kata sandi minimal 8 karakter.");
+        setLoading(false);
+        return;
+      }
+      if (pw !== cpw) {
+        setError("Konfirmasi kata sandi tidak cocok.");
+        setLoading(false);
+        return;
+      }
+
+      const res = await setNewPasswordWithToken({ resetToken: token, newPassword: pw });
       if (res.success) {
         setSuccessOpen(true);
       } else {

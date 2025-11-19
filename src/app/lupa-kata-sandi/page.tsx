@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Phone as PhoneIcon } from "lucide-react";
-import { requestPasswordResetMock } from "@/app/lib/coreApi";
+import { sendForgotPasswordOtp } from "@/app/lib/coreApi";
 
 export default function LupaKataSandiPage() {
   const router = useRouter();
@@ -28,13 +28,12 @@ export default function LupaKataSandiPage() {
     }
     setLoading(true);
     try {
-      const res = await requestPasswordResetMock(clean);
+      const res = await sendForgotPasswordOtp(clean);
       if (res.success) {
         setNotice(res.message || "OTP telah dikirim.");
         const params = new URLSearchParams({
           purpose: "reset",
           phone: clean,
-          identifier: clean,
         });
         setTimeout(() => router.push(`/OTP-verification?${params.toString()}`), 500);
       } else {
