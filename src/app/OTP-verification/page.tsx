@@ -26,7 +26,8 @@ function OTPVerificationContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const identifier = searchParams.get("identifier"); 
+  const identifier = searchParams.get("identifier");
+  const rawPhone = searchParams.get("phone");
   const { login } = useAuth();
   const phone = searchParams.get("phone") || "nomor Anda";
   const handleInput = (value: string, index: number) => {
@@ -50,8 +51,12 @@ function OTPVerificationContent() {
         return setError("Masukkan kode OTP lengkap.");
       }
 
-      if (!identifier) {
+      // Untuk alur reset via phone OTP, tidak membutuhkan identifier.
+      if (purpose !== "reset" && !identifier) {
         return setError("Sesi tidak valid. Silakan login kembali.");
+      }
+      if (purpose === "reset" && !rawPhone) {
+        return setError("Nomor tidak ditemukan. Silakan kirim OTP kembali.");
       }
 
       setLoading(true);
@@ -74,7 +79,7 @@ function OTPVerificationContent() {
 
         // Default/general OTP (login/registration) flow
         const payload = {
-          identifier: identifier,
+          identifier: identifier || "",
           otp: code,
           purpose: purpose,
         };
@@ -154,7 +159,7 @@ function OTPVerificationContent() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 text-center">
-        
+
         <div className="inline-flex items-center justify-center w-16 h-16 bg-bni-orange/10 rounded-full mb-6">
           <ShieldCheck className="w-10 h-10 text-bni-orange" />
         </div>
@@ -198,7 +203,7 @@ function OTPVerificationContent() {
         <button
           type="button"
           onClick={handleVerify}
-          className="w-full py-3 rounded-lg font-bold text-white bg-bni-orange 
+          className="w-full py-3 rounded-lg font-bold text-white bg-bni-orange
           transition-all duration-300 shadow-lg hover:bg-orange-600 hover:shadow-xl"
         >
           Verifikasi
