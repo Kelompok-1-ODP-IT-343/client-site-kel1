@@ -69,9 +69,10 @@ async function getDetail(id: number): Promise<PropertyDetail | null> {
 export default async function PropertyDetailPage({
   params,
 }: {
-  params: { id: string };
+  // In Next.js App Router, dynamic route params are a Promise in async components
+  params: Promise<{ id: string }>;
 }) {
-  const { id: idParam } =  params;
+  const { id: idParam } = await params;
   const id = Number(idParam);
   const detail = await getDetail(id);
 
