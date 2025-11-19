@@ -72,7 +72,8 @@ export default async function PropertyDetailPage({
   // In Next.js App Router, dynamic route params are a Promise in async components
   params: Promise<{ id: string }>;
 }) {
-  const { id: idParam } = await params;
+  const p = await params;
+  const idParam = p.id;
   const id = Number(idParam);
   const detail = await getDetail(id);
 
