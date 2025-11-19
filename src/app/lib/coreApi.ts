@@ -737,6 +737,51 @@ export async function verifyOtpApi(payload: {
     return { success: false, message: "Terjadi kesalahan koneksi." };
   }
 }
+
+// ==============================
+// MOCK: Password Reset Flow
+// ==============================
+export async function requestPasswordResetMock(phone: string): Promise<{
+  success: boolean;
+  message: string;
+  data?: { otpSessionId: string; phone: string };
+}> {
+  // Simulasikan panggilan API untuk mengirim OTP ke nomor ponsel
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: true,
+        message: "OTP berhasil dikirim ke nomor Anda.",
+        data: { otpSessionId: `mock-${Date.now()}`, phone },
+      });
+    }, 600);
+  });
+}
+
+export async function resetPasswordMock(payload: {
+  identifier?: string; // email/username/phone
+  phone?: string;
+  newPassword: string;
+  confirmPassword?: string;
+}): Promise<{ success: boolean; message: string }> {
+  // Validasi sederhana di sisi klien
+  // const pw = String(payload.newPassword || "");
+  // const cpw = String(payload.confirmPassword ?? payload.newPassword || "");
+  // if (!pw || pw.length < 8)
+  //   return { success: false, message: "Kata sandi minimal 8 karakter." };
+  // if (pw !== cpw)
+  //   return { success: false, message: "Konfirmasi kata sandi tidak cocok." };
+
+  // return new Promise((resolve) => {
+  //   setTimeout(() => {
+  //     resolve({ success: true, message: "Kata sandi berhasil direset." });
+  //   }, 700);
+  // });
+  return {
+    success: true,
+    message: "Kata sandi berhasil direset.",
+  }
+}
 export async function toggleFavorite(propertyId: number | string) {
   const url = `${API_BASE_URL}${API_ENDPOINTS.TOGGLE_FAVORITE}?propertyId=${propertyId}`;
 

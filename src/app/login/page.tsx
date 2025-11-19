@@ -245,6 +245,15 @@ function LoginContent() {
         )}
 
         <p className="text-center text-sm text-gray-600 mt-6">
+          <Link
+            href="/lupa-kata-sandi"
+            className="text-bni-teal hover:underline font-bold"
+          >
+            Lupa kata sandi?
+          </Link>
+        </p>
+
+        <p className="text-center text-sm text-gray-600 mt-6">
           Belum punya akun?{" "}
           <Link
             href="/register"
