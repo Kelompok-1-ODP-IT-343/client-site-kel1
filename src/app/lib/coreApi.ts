@@ -739,6 +739,77 @@ export async function verifyOtpApi(payload: {
 }
 
 // ==============================
+// Forgot Password via Phone OTP
+// ==============================
+export async function sendForgotPasswordOtp(phone: string): Promise<{
+  success: boolean;
+  message?: string;
+  data?: { ttl?: number };
+}> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.FORGOT_PASSWORD_SEND_OTP}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && (json.success ?? true)) {
+      return { success: true, message: json.message, data: json.data };
+    }
+    return { success: false, message: json.message || "Gagal mengirim OTP." };
+  } catch (error: any) {
+    return { success: false, message: error?.message || "Kesalahan koneksi." };
+  }
+}
+
+export async function verifyForgotPasswordOtp(payload: {
+  phone: string;
+  otp: string;
+}): Promise<{
+  success: boolean;
+  message?: string;
+  data?: { resetToken: string; expiresIn: number };
+}> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.FORGOT_PASSWORD_VERIFY_OTP}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && (json.success ?? true)) {
+      return { success: true, message: json.message, data: json.data };
+    }
+    return { success: false, message: json.message || "Kode OTP salah." };
+  } catch (error: any) {
+    return { success: false, message: error?.message || "Kesalahan koneksi." };
+  }
+}
+
+export async function setNewPasswordWithToken(payload: {
+  resetToken: string;
+  newPassword: string;
+}): Promise<{ success: boolean; message?: string }> {
+  const url = `${API_BASE_URL}${API_ENDPOINTS.FORGOT_PASSWORD_SET_PASSWORD}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && (json.success ?? true)) {
+      return { success: true, message: json.message };
+    }
+    return { success: false, message: json.message || "Gagal menyetel kata sandi." };
+  } catch (error: any) {
+    return { success: false, message: error?.message || "Kesalahan koneksi." };
+  }
+}
+
+// ==============================
 // MOCK: Password Reset Flow
 // ==============================
 export async function requestPasswordResetMock(phone: string): Promise<{

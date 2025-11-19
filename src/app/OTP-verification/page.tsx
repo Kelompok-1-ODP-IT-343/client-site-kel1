@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
-import { verifyOtpApi } from "@/app/lib/coreApi";
+import { verifyOtpApi, verifyForgotPasswordOtp } from "@/app/lib/coreApi";
 import { API_BASE_URL, API_ENDPOINTS } from "@/app/lib/apiConfig";
 import { fetchWithAuth } from "@/app/lib/authFetch";
 import { useAuth } from "@/app/lib/authContext";
@@ -59,6 +59,20 @@ function OTPVerificationContent() {
   setNotice("");
 
       try {
+        // Branch: forgot password via phone OTP
+        if (purpose === "reset") {
+          const res = await verifyForgotPasswordOtp({ phone: String(phone), otp: code });
+          if (res.success && res.data?.resetToken) {
+            setNotice("Verifikasi berhasil. Silakan atur kata sandi baru.");
+            const nextUrl = `/reset-password?token=${encodeURIComponent(res.data.resetToken)}`;
+            setTimeout(() => router.replace(nextUrl), 600);
+            return;
+          }
+          setError(res.message || "Kode OTP salah. Silakan coba lagi.");
+          return;
+        }
+
+        // Default/general OTP (login/registration) flow
         const payload = {
           identifier: identifier,
           otp: code,
@@ -116,14 +130,8 @@ function OTPVerificationContent() {
             })();
           } else {
             setError("");
-            if (purpose === "reset") {
-              setNotice("Verifikasi berhasil. Silakan atur kata sandi baru.");
-              const nextUrl = `/reset-password?phone=${encodeURIComponent(phone)}`;
-              setTimeout(() => router.replace(nextUrl), 600);
-            } else {
-              setNotice("Verifikasi berhasil. Silakan login untuk melanjutkan.");
-              setTimeout(() => router.replace("/login"), 800);
-            }
+            setNotice("Verifikasi berhasil. Silakan login untuk melanjutkan.");
+            setTimeout(() => router.replace("/login"), 800);
           }
         } else {
           setError(res.message || "Kode OTP salah. Silakan coba lagi.");
