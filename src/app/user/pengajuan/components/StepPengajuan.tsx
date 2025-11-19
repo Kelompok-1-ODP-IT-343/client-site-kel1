@@ -365,6 +365,16 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
               ))}
             </SelectField>
 
+            {/* Tambahan: Nomor Rekening Bank (opsional, tidak mengubah validasi existing) */}
+            <InputField
+              label="Nomor Rekening Bank"
+              name="bankAccountNumber"
+              placeholder="Contoh: 1234567890"
+              value={formData.bankAccountNumber || ""}
+              onChange={handleChange}
+              error={errors.bankAccountNumber}
+            />
+
             <FileInputField required label="Upload KTP (.jpg/.pdf, max 2MB)" name="fileKTP" file={formData.fileKTP} onChange={handleChange} error={errors.fileKTP} />
             <FileInputField required label="Upload Slip Gaji (.pdf, max 2MB)" name="fileSlipGaji" file={formData.fileSlipGaji} onChange={handleChange} error={errors.fileSlipGaji} />
 

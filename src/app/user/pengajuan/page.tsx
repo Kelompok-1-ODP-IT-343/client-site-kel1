@@ -19,6 +19,7 @@ import StepPengajuan from "./components/StepPengajuan";
 
 import { formatCurrency, parseCurrency, formatNumberOnly } from "./utils/format";
 
+// Tipe data FormData dan inisialisasi state di FormPengajuanContent
 type FormData = {
   fullName: string;
   nik: string;
@@ -58,6 +59,9 @@ type FormData = {
   notes?: string;
 
   agreeTerms: boolean;
+
+  // Tambahan: nomor rekening bank (opsional)
+  bankAccountNumber: string;
 };
 
 type ErrorMap = Record<string, string>;
@@ -137,6 +141,8 @@ function FormPengajuanContent() {
     notes: "",
 
     agreeTerms: false,
+  // Tambahan: inisialisasi nomor rekening bank
+  bankAccountNumber: "",
   });
 
   // Prefill form with user profile (editable). Only fills matching fields; others remain empty
