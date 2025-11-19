@@ -116,8 +116,14 @@ function OTPVerificationContent() {
             })();
           } else {
             setError("");
-            setNotice("Verifikasi berhasil. Silakan login untuk melanjutkan.");
-            setTimeout(() => router.replace("/login"), 800);
+            if (purpose === "reset") {
+              setNotice("Verifikasi berhasil. Silakan atur kata sandi baru.");
+              const nextUrl = `/reset-password?phone=${encodeURIComponent(phone)}`;
+              setTimeout(() => router.replace(nextUrl), 600);
+            } else {
+              setNotice("Verifikasi berhasil. Silakan login untuk melanjutkan.");
+              setTimeout(() => router.replace("/login"), 800);
+            }
           }
         } else {
           setError(res.message || "Kode OTP salah. Silakan coba lagi.");

@@ -248,9 +248,25 @@ function LoginContent() {
           Belum punya akun?{" "}
           <Link
             href="/register"
-            className="text-bni-teal hover:underline font-bold"
+            className="text-green-600 hover:text-green-700 hover:underline font-bold"
           >
-            Daftar di sini
+            Daftar sekarang
+          </Link>
+        </p>
+
+        <div className="flex items-center gap-3 mt-4 text-gray-400">
+          <div className="h-px bg-gray-200 flex-1" />
+          <span className="text-xs font-semibold text-gray-500">atau</span>
+          <div className="h-px bg-gray-200 flex-1" />
+        </div>
+
+        <p className="text-center text-sm text-gray-600 mt-4">
+          Lupa kata sandi?{" "}
+          <Link
+            href="/lupa-kata-sandi"
+            className="text-green-600 hover:text-green-700 hover:underline font-bold"
+          >
+            Perbarui di sini
           </Link>
         </p>
       </div>
