@@ -76,7 +76,7 @@ function AkunContent() {
     <main className="flex-1 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 md:grid-cols-12 gap-6 mt-8">
         <aside className="md:col-span-4 lg:col-span-3">
-          <div className="rounded-2xl bg-white border shadow-sm overflow-hidden">
+          <div className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
             {sidebar.map((item) => (
               <SidebarItem
                 key={item.key}
@@ -102,7 +102,7 @@ function AkunContent() {
         </aside>
 
         <section className="md:col-span-8 lg:col-span-9">
-          <div className="rounded-2xl bg-white border shadow-sm p-6 space-y-12 min-h-[400px]">
+          <div className="rounded-2xl bg-white border border-gray-200 shadow-sm p-6 space-y-12 min-h-[400px]">
             {active === "profil" && <ProfilContent />}
             {active === "notifikasi" && <NotifikasiContent />}
             {active === "pengajuan" && <PengajuanKPRContent />}

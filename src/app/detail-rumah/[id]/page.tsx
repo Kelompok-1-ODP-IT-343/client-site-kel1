@@ -254,54 +254,64 @@ export default async function PropertyDetailPage({
             </Card>
           )}
         </div>
-        <div className="flex flex-col gap-8 h-full lg:sticky lg:top-24">
-          <div>
-            <Card title="Harga Properti" icon={<CreditCard />}>
-              <div className="text-center">
-                <p className="font-extrabold text-[27px]">
-                  <span className="text-bni-orange">Rp</span>{" "}
-                  <span className="text-bni-orange">{formattedPrice.replace(/^Rp\s*/, "")}</span>
-                </p>
-              </div>
+        {/* WRAPPER KANAN FIXED */}
+        <div className="
+          hidden lg:flex
+          flex-col gap-4
+          fixed top-12 right-10
+          w-[420px]
+          max-h-[calc(100vh-4rem)]
+          overflow-y-auto
+          pb-4
+          z-30
+        ">
 
-              {detail.listing_type && (
-                <></>
-              )}
-
-              <div className="mt-4 grid grid-cols-1 gap-3 text-sm">
-                <InfoItem label="Tipe Properti" value={toTitleCase(detail.property_type)} icon={<Home className="w-5 h-5" />} />
-                <InfoItem label="Uang Muka Minimum" value={detail.minDownPaymentPercent != null ? `${detail.minDownPaymentPercent}%` : "-"} icon={<Receipt className="w-5 h-5" />} />
-                <InfoItem label="Tenor Maksimum" value={detail.maxLoanTermYears != null ? `${detail.maxLoanTermYears} tahun` : "-"} icon={<Calendar className="w-5 h-5" />} />
-              </div>
-
-              {/* Tombol ajukan dengan dialog login bila belum masuk */}
-              {/* Menggunakan client component untuk kontrol interaksi */}
-              <AjukanCTA
-                href={`/user/pengajuan?${targetAjukanParams}`}
-                className="mt-4 w-full bg-[#FF8500] hover:bg-[#e67800] text-white font-semibold py-3 rounded-lg transition-all block text-center shadow"
-              >
-                Ajukan KPR Sekarang
-              </AjukanCTA>
-            </Card>
-
-            <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h3 className="font-bold text-lg text-gray-800 text-center">
-                Ingin konsultasi?
-              </h3>
-              <p className="text-center text-sm text-gray-600 mt-1">
-                Hubungi kami melalui WhatsApp untuk konsultasi KPR.
+          {/* HARGA PROPERTI */}
+          <Card className="w-full px-4 py-3" title="Harga Properti" icon={<CreditCard />}>
+            <div className="text-center">
+              <p className="font-extrabold text-[22px] leading-tight">
+                <span className="text-bni-orange">Rp</span>{" "}
+                <span className="text-bni-orange">
+                  {formattedPrice.replace(/^Rp\s*/, "")}
+                </span>
               </p>
-              <Link
-                href="https://wa.me/628561310609?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20terkait%20KPR%20properti%20ini."
-                target="_blank"
-                className="mt-4 inline-flex items-center justify-center gap-2 w-full bg-[#DFF7F4] hover:bg-[#C8EFEA] text-[#006654] font-semibold py-2 rounded-lg border border-[#A9E3DD] transition-all shadow-sm"
-              >
-                <MessageCircle size={18} className="text-[#006654]" />
-                Hubungi via WhatsApp
-              </Link>
             </div>
+
+            <div className="mt-2 grid grid-cols-1 gap-2 text-sm">
+              <InfoItem label="Tipe Properti" value={toTitleCase(detail.property_type)} icon={<Home className="w-5 h-5" />} />
+              <InfoItem label="Uang Muka Minimum" value={`${detail.minDownPaymentPercent}%`} icon={<Receipt className="w-5 h-5" />} />
+              <InfoItem label="Tenor Maksimum" value={`${detail.maxLoanTermYears} tahun`} icon={<Calendar className="w-5 h-5" />} />
+            </div>
+
+            <AjukanCTA
+              href={`/user/pengajuan?${targetAjukanParams}`}
+              className="mt-3 w-full bg-[#FF8500] hover:bg-[#e67800] text-white font-semibold py-2.5 rounded-lg transition-all block text-center shadow"
+            >
+              Ajukan KPR Sekarang
+            </AjukanCTA>
+          </Card>
+
+          {/* INGIN KONSULTASI */}
+          <div className="bg-white rounded-2xl px-4 py-3 shadow-lg border border-gray-100">
+            <h3 className="font-bold text-base text-gray-800 text-center">
+              Ingin konsultasi?
+            </h3>
+            <p className="text-center text-xs text-gray-600 mt-1">
+              Hubungi kami melalui WhatsApp untuk konsultasi KPR.
+            </p>
+            <Link
+              href="https://wa.me/628561310609?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20terkait%20KPR%20properti%20ini."
+              target="_blank"
+              className="mt-3 inline-flex items-center justify-center gap-2 w-full bg-[#DFF7F4] hover:bg-[#C8EFEA] text-[#006654] font-semibold text-sm py-2 rounded-lg border border-[#A9E3DD] transition-all shadow-sm"
+            >
+              <MessageCircle size={16} className="text-[#006654]" />
+              Hubungi via WhatsApp
+            </Link>
           </div>
+
         </div>
+
+
       </div>{" "}
     </main>
   );
@@ -317,27 +327,34 @@ function formatPartnership(raw?: string | null): string {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
-
 function Card({
   title,
   icon,
   children,
+  className,
 }: {
   title: string;
   icon?: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-      {" "}
+    <div
+      className={`bg-white rounded-2xl p-6 shadow-lg border border-gray-100 ${
+        className ?? ""
+      }`}
+    >
       <div className="flex items-center gap-3 mb-5 border-b pb-3">
-        <div className="p-2 bg-orange-50 rounded-lg text-orange-500">{icon}</div>{" "}
-        <h2 className="text-lg font-bold text-gray-800">{title}</h2>{" "}
+        <div className="w-10 h-10 bg-orange-50 rounded-lg text-orange-500 flex items-center justify-center flex-shrink-0">{icon}</div>
+        <h2 className="text-lg leading-tight font-bold text-gray-800">{title}</h2>
       </div>
-      {children}{" "}
+
+      {children}
     </div>
   );
 }
+
+
 
 function InfoItem({
   label,

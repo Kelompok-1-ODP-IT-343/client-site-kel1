@@ -30,6 +30,8 @@ export default function NotifikasiContent() {
   const [items, setItems] = useState<ApiNotification[] | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const PAGE_SIZE = 5;
 
   useEffect(() => {
     let mounted = true;
@@ -71,8 +73,17 @@ export default function NotifikasiContent() {
     [items]
   );
 
+  useEffect(() => {
+    // Reset ke halaman pertama saat daftar berubah
+    setPage(1);
+  }, [viewItems.length]);
+
+  const totalPages = Math.max(1, Math.ceil(viewItems.length / PAGE_SIZE));
+  const startIdx = (page - 1) * PAGE_SIZE;
+  const pageItems = viewItems.slice(startIdx, startIdx + PAGE_SIZE);
+
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
+    <div className="p-0">
       <h2 className="text-2xl font-bold text-[#003366] mb-1">Notifikasi</h2>
       <p className="text-sm text-gray-500 mb-6">
         Pantau semua update dan informasi penting terkait pengajuan KPR Anda
@@ -97,10 +108,34 @@ export default function NotifikasiContent() {
       )}
 
       {!loading && !error && viewItems.length > 0 && (
-        <div className="flex flex-col gap-4">
-          {viewItems.map((item, idx) => (
-            <NotificationCard key={idx} {...item} />
-          ))}
+        <div>
+          <div className="flex flex-col gap-4">
+            {pageItems.map((item, idx) => (
+              <NotificationCard key={`${page}-${idx}`} {...item} />
+            ))}
+          </div>
+
+          <div className="mt-6 flex items-center justify-between">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 disabled:opacity-50"
+            >
+              Sebelumnya
+            </button>
+
+            <span className="text-sm text-gray-500">
+              Halaman {page} dari {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 disabled:opacity-50"
+            >
+              Berikutnya
+            </button>
+          </div>
         </div>
       )}
     </div>

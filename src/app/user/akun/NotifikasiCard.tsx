@@ -40,7 +40,7 @@ export default function NotificationCard({
   const styles = TYPE_STYLES[type];
 
   return (
-    <div className="relative w-full bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all">
+    <div className="relative w-full bg-white rounded-xl p-4 border border-gray-200 transition-all">
       {/* Left Accent */}
       <div className={cn("absolute left-0 top-0 h-full w-1 rounded-l-lg", styles.border)} />
 

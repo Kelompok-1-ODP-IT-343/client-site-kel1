@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { User, Bell, FileText, Heart, LogOut } from "lucide-react";
@@ -39,6 +40,8 @@ function getInitials(fullName?: string) {
 export default function UserMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout, login } = useAuth();
@@ -47,9 +50,10 @@ export default function UserMenu() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      const inMenu = menuRef.current?.contains(target);
+      const inDropdown = dropdownRef.current?.contains(target);
+      if (!inMenu && !inDropdown) setOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -72,12 +76,25 @@ export default function UserMenu() {
   useEffect(() => setImgOk(true), [safePhoto]);
 
   // Intentionally no profile fetch here.
+  const [pos, setPos] = useState<{ top: number; right: number }>({ top: 78, right: 32 });
+  useEffect(() => {
+    if (!open) return;
+    const r = buttonRef.current?.getBoundingClientRect();
+    if (r) {
+      // Turunkan sedikit (8px) agar tidak terhalang navbar dan sejajarkan kanan tombol
+      setPos({
+        top: Math.max(0, Math.round(r.bottom + 8)),
+        right: Math.max(0, Math.round(window.innerWidth - r.right)),
+      });
+    }
+  }, [open]);
 
   return (
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-50 transition"
+        ref={buttonRef}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition"
       >
         <div className="relative w-9 h-9 rounded-full overflow-hidden bg-bni-orange text-white grid place-items-center font-bold">
           {safePhoto && imgOk ? (
@@ -99,54 +116,60 @@ export default function UserMenu() {
         </span>
       </button>
 
-      {open && (
-        <div className="absolute right-0 mt-2 w-60 bg-white border rounded-2xl shadow-lg z-50 p-2">
-          <DropdownButton
-            icon={<User size={18} />}
-            label="Profil"
-            onClick={() => {
-              router.push(`${USER_ROUTES.AKUN}?tab=profil`);
-              setOpen(false);
-            }}
-          />
-          <DropdownButton
-            icon={<Bell size={18} />}
-            label="Notifikasi"
-            onClick={() => {
-              router.push(`${USER_ROUTES.AKUN}?tab=notifikasi`);
-              setOpen(false);
-            }}
-          />
-          <DropdownButton
-            icon={<FileText size={18} />}
-            label="Pengajuan KPR"
-            onClick={() => {
-              router.push(`${USER_ROUTES.AKUN}?tab=pengajuan`);
-              setOpen(false);
-            }}
-          />
-          <DropdownButton
-            icon={<Heart size={18} />}
-            label="Wishlist"
-            onClick={() => {
-              router.push(`${USER_ROUTES.AKUN}?tab=wishlist`);
-              setOpen(false);
-            }}
-          />
-
-          <hr className="my-2" />
-
-          <button
-            onClick={() => {
-              logout();
-              router.push(USER_ROUTES.BERANDA);
-            }}
-            className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-gray-100 rounded-xl text-red-600 font-medium"
+      {open &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 40 }}
+            className="w-60 bg-white border border-gray-200 rounded-lg shadow-md p-2"
           >
-            <LogOut size={18} /> Keluar
-          </button>
-        </div>
-      )}
+            <DropdownButton
+              icon={<User size={18} />}
+              label="Profil"
+              onClick={() => {
+                router.push(`${USER_ROUTES.AKUN}?tab=profil`);
+                setOpen(false);
+              }}
+            />
+            <DropdownButton
+              icon={<Bell size={18} />}
+              label="Notifikasi"
+              onClick={() => {
+                router.push(`${USER_ROUTES.AKUN}?tab=notifikasi`);
+                setOpen(false);
+              }}
+            />
+            <DropdownButton
+              icon={<FileText size={18} />}
+              label="Pengajuan KPR"
+              onClick={() => {
+                router.push(`${USER_ROUTES.AKUN}?tab=pengajuan`);
+                setOpen(false);
+              }}
+            />
+            <DropdownButton
+              icon={<Heart size={18} />}
+              label="Wishlist"
+              onClick={() => {
+                router.push(`${USER_ROUTES.AKUN}?tab=wishlist`);
+                setOpen(false);
+              }}
+            />
+
+            <hr className="my-2 border-gray-200" />
+
+            <button
+              onClick={() => {
+                logout();
+                router.push(USER_ROUTES.BERANDA);
+              }}
+              className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md text-red-600 font-medium"
+            >
+              <LogOut size={18} /> Keluar
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
@@ -163,7 +186,7 @@ function DropdownButton({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-gray-100 rounded-xl text-gray-800"
+      className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md text-gray-800"
     >
       {icon}
       <span className="font-medium">{label}</span>
