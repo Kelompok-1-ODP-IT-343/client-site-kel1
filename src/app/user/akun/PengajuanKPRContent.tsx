@@ -163,9 +163,7 @@ export default function PengajuanKPRContent() {
             Pantau status pengajuan dan detailnya secara real-time.
           </p>
         </div>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
-          {totalApps} aplikasi
-        </span>
+        {/* Label jumlah aplikasi dihilangkan karena sudah ditampilkan pada kartu ringkasan "Total Aplikasi" */}
       </div>
 
       {/* Ringkasan */}

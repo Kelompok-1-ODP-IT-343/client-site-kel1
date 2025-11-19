@@ -325,7 +325,7 @@ function ExploreSection({
           </div>
 
           <Link href="/cari-rumah" passHref>
-            <button className="hidden sm:block border-2 border-teal-600 text-teal-700 font-semibold px-6 py-2.5 rounded-xl hover:bg-teal-50 transition">
+            <button className="hidden sm:block border-2 border-[#FF8500] text-[#FF8500] font-semibold px-6 py-2.5 rounded-xl hover:bg-[#FF8500]/10 transition">
               Lihat Semua
             </button>
           </Link>
