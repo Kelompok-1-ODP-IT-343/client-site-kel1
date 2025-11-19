@@ -248,7 +248,7 @@ function LoginContent() {
           Belum punya akun?{" "}
           <Link
             href="/register"
-            className="text-green-600 hover:text-green-700 hover:underline font-bold"
+            className="text-bni-teal hover:text-bni-teal/80 hover:underline font-bold"
           >
             Daftar sekarang
           </Link>
@@ -264,7 +264,7 @@ function LoginContent() {
           Lupa kata sandi?{" "}
           <Link
             href="/lupa-kata-sandi"
-            className="text-green-600 hover:text-green-700 hover:underline font-bold"
+            className="text-bni-teal hover:text-bni-teal/80 hover:underline font-bold"
           >
             Perbarui di sini
           </Link>
