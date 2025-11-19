@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { CheckCircle2, AlertCircle, MapPin, ChevronDown, ChevronUp } from "lucide-react";
@@ -32,6 +32,7 @@ export default function DetailPengajuanPage() {
   const [showPropertyDetail, setShowPropertyDetail] = useState(false);
   // Ekspansi detail per langkah timeline
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const [showRateDetails, setShowRateDetails] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -105,6 +106,230 @@ export default function DetailPengajuanPage() {
       .filter(Boolean)
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
+  };
+
+  const parseRateKindYears = (name?: string) => {
+    const s = String(name || "");
+    const m = s.match(/(fixed|tiered)_(\d+)y/i);
+    if (!m) return null;
+    return { kind: m[1].toLowerCase(), years: Number(m[2]) };
+  };
+  const devLabelFromRateName = (rateName?: string) => {
+    const s = String(rateName || "");
+    const left = s.split(" - ")[0].trim();
+    const up = left.toUpperCase();
+    if (up.includes("TOP SELECTED")) return "Top Selected Developer";
+    return "Developer Kerja Sama";
+  };
+  const fixedRates: Record<string, Record<number, number>> = {
+    "Top Selected Developer": {
+      1: 7.75,
+      2: 7.75,
+      3: 7.75,
+      4: 8.0,
+      5: 8.0,
+      6: 8.0,
+      7: 8.0,
+      8: 8.0,
+      9: 8.25,
+      10: 8.25,
+      12: 4.75,
+      15: 2.75,
+      20: 8.5,
+      25: 8.75,
+      30: 9.0,
+    },
+    "Developer Kerja Sama": {
+      1: 8.0,
+      2: 8.0,
+      3: 8.0,
+      4: 8.25,
+      5: 8.25,
+      6: 8.25,
+      7: 8.25,
+      8: 8.25,
+      9: 8.75,
+      10: 8.75,
+      12: 5.25,
+      15: 3.25,
+      20: 9.25,
+      25: 9.75,
+      30: 10.25,
+    },
+  };
+  const tieredFirstYear: Record<string, Record<number, number>> = {
+    "Top Selected Developer": { 10: 2.75, 15: 2.75, 20: 3.0, 25: 3.25, 30: 3.5 },
+    "Developer Kerja Sama": { 10: 3.25, 15: 3.25, 20: 3.5, 25: 3.75, 30: 4.25 },
+  };
+  const interestPercentFromRateInfo = () => {
+    const ri = (data as any)?.kprRateInfo || null;
+    const dev = devLabelFromRateName(ri?.rateName);
+    const info = parseRateKindYears(ri?.rateName);
+    if (!info) return null;
+    if (info.kind === "fixed") {
+      const v = fixedRates[dev]?.[info.years];
+      return typeof v === "number" ? v : null;
+    }
+    const v = tieredFirstYear[dev]?.[info.years];
+    return typeof v === "number" ? v : null;
+  };
+  const bungaDisplay = (() => {
+    const v = interestPercentFromRateInfo();
+    if (typeof v === "number") return v;
+    const raw = Number(application.interestRate || 0) * 100;
+    return Number.isFinite(raw) ? raw : 0;
+  })();
+  type RateInfo = { rateName?: string };
+  type RateBreakdownItem = { year: number; rate: number };
+  const tieredSegments: Record<string, Record<number, Array<{ start: number; end: number; rate: number }>>> = {
+    "Top Selected Developer": {
+      10: [
+        { start: 1, end: 1, rate: 2.75 },
+        { start: 2, end: 2, rate: 4.75 },
+        { start: 3, end: 3, rate: 6.75 },
+        { start: 4, end: 4, rate: 8.75 },
+        { start: 5, end: 10, rate: 10.75 },
+      ],
+      15: [
+        { start: 1, end: 1, rate: 2.75 },
+        { start: 2, end: 3, rate: 4.75 },
+        { start: 4, end: 5, rate: 6.75 },
+        { start: 6, end: 7, rate: 8.75 },
+        { start: 8, end: 10, rate: 10.75 },
+      ],
+      20: [
+        { start: 1, end: 1, rate: 3.0 },
+        { start: 2, end: 3, rate: 5.0 },
+        { start: 4, end: 5, rate: 7.0 },
+        { start: 6, end: 10, rate: 9.0 },
+        { start: 11, end: 15, rate: 10.5 },
+        { start: 16, end: 20, rate: 11.0 },
+      ],
+      25: [
+        { start: 1, end: 1, rate: 3.25 },
+        { start: 2, end: 3, rate: 5.25 },
+        { start: 4, end: 5, rate: 7.25 },
+        { start: 6, end: 10, rate: 9.25 },
+        { start: 11, end: 15, rate: 10.75 },
+        { start: 16, end: 20, rate: 11.25 },
+        { start: 21, end: 25, rate: 11.75 },
+      ],
+      30: [
+        { start: 1, end: 1, rate: 3.5 },
+        { start: 2, end: 3, rate: 5.5 },
+        { start: 4, end: 5, rate: 7.5 },
+        { start: 6, end: 10, rate: 9.5 },
+        { start: 11, end: 15, rate: 11.0 },
+        { start: 16, end: 20, rate: 11.5 },
+        { start: 21, end: 25, rate: 12.0 },
+        { start: 26, end: 30, rate: 12.5 },
+      ],
+    },
+    "Developer Kerja Sama": {
+      10: [
+        { start: 1, end: 1, rate: 3.25 },
+        { start: 2, end: 2, rate: 5.25 },
+        { start: 3, end: 3, rate: 7.25 },
+        { start: 4, end: 4, rate: 9.25 },
+        { start: 5, end: 10, rate: 11.25 },
+      ],
+      15: [
+        { start: 1, end: 1, rate: 3.25 },
+        { start: 2, end: 3, rate: 5.25 },
+        { start: 4, end: 5, rate: 7.25 },
+        { start: 6, end: 7, rate: 9.25 },
+        { start: 8, end: 10, rate: 11.25 },
+      ],
+      20: [
+        { start: 1, end: 1, rate: 3.5 },
+        { start: 2, end: 3, rate: 5.5 },
+        { start: 4, end: 5, rate: 7.5 },
+        { start: 6, end: 10, rate: 9.5 },
+        { start: 11, end: 15, rate: 11.5 },
+        { start: 16, end: 20, rate: 12.0 },
+      ],
+      25: [
+        { start: 1, end: 1, rate: 3.75 },
+        { start: 2, end: 3, rate: 5.75 },
+        { start: 4, end: 5, rate: 7.75 },
+        { start: 6, end: 10, rate: 9.75 },
+        { start: 11, end: 15, rate: 11.75 },
+        { start: 16, end: 20, rate: 12.25 },
+        { start: 21, end: 25, rate: 12.75 },
+      ],
+      30: [
+        { start: 1, end: 1, rate: 4.25 },
+        { start: 2, end: 3, rate: 6.25 },
+        { start: 4, end: 5, rate: 8.25 },
+        { start: 6, end: 10, rate: 10.25 },
+        { start: 11, end: 15, rate: 12.25 },
+        { start: 16, end: 20, rate: 12.75 },
+        { start: 21, end: 25, rate: 13.25 },
+        { start: 26, end: 30, rate: 13.75 },
+      ],
+    },
+  };
+  const computeTieredBreakdown = (name?: string): { rates: RateBreakdownItem[]; hasFloating: boolean } | null => {
+    const info = parseRateKindYears(name);
+    if (!info || info.kind !== "tiered") return null;
+    const dev = devLabelFromRateName(name);
+    const segs = tieredSegments[dev]?.[info.years];
+    if (!segs || segs.length === 0) return null;
+    const tenor = application.loanTermYears || info.years;
+    const maxDefined = Math.max(...segs.map((s) => s.end));
+    const ratesByYear: Record<number, number> = {};
+    segs.forEach((s) => {
+      for (let y = s.start; y <= s.end; y++) ratesByYear[y] = s.rate;
+    });
+    const listUntil = Math.min(tenor, maxDefined);
+    const items: RateBreakdownItem[] = [];
+    for (let y = 1; y <= listUntil; y++) {
+      const r = ratesByYear[y];
+      if (typeof r === "number") items.push({ year: y, rate: r });
+    }
+    const hasFloating = tenor > maxDefined;
+    return { rates: items, hasFloating };
+  };
+  const rateExplanationView = (): JSX.Element | null => {
+    const name = ((data as any)?.kprRateInfo?.rateName as string | undefined) || undefined;
+    const info = parseRateKindYears(name);
+    if (!info) return null;
+    if (info.kind === "fixed") {
+      const dev = devLabelFromRateName(name);
+      const x = fixedRates[dev]?.[info.years] ?? bungaDisplay;
+      const longer = (application.loanTermYears || 0) > info.years;
+      const text = longer
+        ? `Bunga yang kamu ambil adalah Fixed Rate ${info.years} tahun yaitu bunga akan tetap sama ${x.toFixed(2)}% selama ${info.years} tahun, lalu tahun selanjutnya akan mengikuti bunga floating.`
+        : `Bunga yang kamu ambil adalah Fixed Rate ${info.years} tahun yaitu bunga akan tetap sama ${x.toFixed(2)}% selama ${info.years} Tahun.`;
+      return (
+        <div className="mt-6 rounded-xl border p-4 bg-white">
+          <div className="inline-block bg-[#FF8500]/10 text-[#FF8500] font-semibold px-3 py-1 rounded-full text-sm">Fixed Rate</div>
+          <p className="mt-3 text-gray-700 text-sm">{text}</p>
+        </div>
+      );
+    }
+    const br = computeTieredBreakdown(name);
+    if (!br) return null;
+    const { rates, hasFloating } = br;
+    return (
+      <div className="mt-6 space-y-3">
+        <div className="inline-block bg-[#3FD8D4]/10 text-[#3FD8D4] font-semibold px-3 py-1 rounded-full text-sm">Bunga Berjenjang</div>
+        <p className="text-gray-700 text-sm">Berikut rincian bunga yang berlaku pada pinjaman kamu:</p>
+        <div className="space-y-2">
+          {rates.map((item) => (
+            <div key={item.year} className="flex justify-between items-center bg-gray-50 border rounded-lg px-3 py-2 shadow-sm">
+              <span className="text-gray-700 font-medium text-sm">Tahun {item.year}</span>
+              <span className="text-gray-900 font-semibold text-sm">{item.rate.toFixed(2)}%</span>
+            </div>
+          ))}
+        </div>
+        {hasFloating && (
+          <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg text-sm text-gray-700">
+            Tahun sisanya akan mengikuti bunga <b>floating</b> (mengikuti suku bunga pasar).
+          </div>
+        )}
+      </div>
+    );
   };
 
   // ======== Progress Tenor & Outstanding ========
@@ -353,7 +578,7 @@ export default function DetailPengajuanPage() {
 
         {/* Kanan: Ringkasan Properti + tombol modal */}
         <ColorCard title="Informasi Properti" titleAlign="center">
-          <div className="flex items-center gap-6">
+          <div className="flex items-start gap-6">
             {property.mainImage ? (
               <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200">
                 <Image
@@ -365,18 +590,30 @@ export default function DetailPengajuanPage() {
                 />
               </div>
             ) : null}
-            <div>
-              <p className="mt-2 text-xl font-semibold text-gray-900">{property.title || "-"}</p>
-              <p className="text-bni-orange text-2xl font-bold">{f(property.price || 0)}</p>
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowPropertyDetail(true)}
-                  className="inline-flex items-center rounded-lg bg-[#3FD8D5] hover:bg-[#34c7c3] text-white px-4 py-2 text-sm font-semibold shadow"
-                >
-                  Detail Properti
-                </button>
+            <div className="flex-1">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="text-lg font-semibold text-gray-800">{property.title || "-"}</p>
+                </div>
+                <span className="text-xs px-2 py-1 rounded bg-teal-100 text-teal-700 font-medium">
+                  {toTitleCase(String(application.propertyType || "-").replace(/_/g, " "))}
+                </span>
               </div>
+              
+              {property.address ? (
+                <p className="mt-1 text-sm text-gray-600 flex items-center gap-1">
+                  <MapPin size={16} className="text-gray-500" />
+                  <span className="truncate">{property.address}</span>
+                </p>
+              ) : null}
+              <p className="text-3xl font-bold text-bni-orange my-3">{f(property.price || 0)}</p>
+              <button
+                type="button"
+                onClick={() => setShowPropertyDetail(true)}
+                className="px-4 py-2 bg-[#3FD8D5] text-white rounded-lg shadow-sm hover:bg-[#34c7c3]"
+              >
+                Detail Properti
+              </button>
             </div>
           </div>
         </ColorCard>
@@ -397,52 +634,63 @@ export default function DetailPengajuanPage() {
             <div className="text-right text-gray-900 font-semibold text-base">{application.loanTermYears} Tahun</div>
 
             <div className="text-gray-600 text-base">Bunga</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{(application.interestRate * 100).toFixed(2)}%</div>
+            <div className="text-right text-gray-900 font-semibold text-base">{bungaDisplay.toFixed(2)}%</div>
 
-            <div className="text-gray-600 text-base">Angsuran / Bulan</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{f(application.monthlyInstallment)}</div>
-
-            <div className="text-gray-600 text-base">Rasio LTV</div>
-            <div className="text-right text-gray-900 font-semibold text-base">{application.ltvRatio != null ? `${application.ltvRatio}%` : "-"}</div>
+          </div>
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => setShowRateDetails((v) => !v)}
+              className="flex items-center gap-2 text-bni-orange font-semibold"
+            >
+              {showRateDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {showRateDetails ? "Tutup Rincian Bunga" : "Lihat Rincian Bunga"}
+            </button>
+            {showRateDetails && rateExplanationView()}
           </div>
         </ColorCard>
 
         {/* Kanan: Dokumen Terlampir */}
         <ColorCard title="Dokumen Terlampir" titleAlign="center">
           {documents && documents.length > 0 ? (
-            <div className="flex flex-wrap justify-center gap-6 w-full">
-              {documents.map((doc: any) => {
-                const key = doc.documentId ?? doc.id ?? doc.filePath;
-                const rawType = String(doc.documentType || doc.type || "").toUpperCase();
-                const href = doc.filePath;
-                const labelMap: Record<string, string> = {
-                  KTP: "KTP",
-                  SLIP_GAJI: "SP GAJI",
-                  SALARY_SLIP: "SP GAJI",
-                  SP_GAJI: "SP GAJI",
-                };
-                const displayLabel = labelMap[rawType] || (doc.documentType ? String(doc.documentType).replace(/_/g, " ") : "Dokumen");
-                const gradient = rawType.includes("KTP")
-                  ? "from-emerald-400 to-teal-500"
-                  : rawType.includes("GAJI") || rawType.includes("SLIP")
-                  ? "from-blue-500 to-indigo-500"
-                  : "from-gray-300 to-gray-400";
+            (() => {
+              const docCount = Array.isArray(documents) ? documents.length : 0;
+              const containerClass = docCount <= 2
+                ? "flex flex-wrap justify-center gap-6 w-full"
+                : "grid sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full justify-items-center";
+              return (
+                <div className={containerClass}>
+                  {documents.map((doc: any) => {
+                    const key = doc.documentId ?? doc.id ?? doc.filePath;
+                    const rawType = String(doc.documentType || doc.type || "").toUpperCase();
+                    const href = doc.filePath;
+                    const labelMap: Record<string, string> = {
+                      KTP: "KTP",
+                      SLIP_GAJI: "Slip Gaji",
+                      SALARY_SLIP: "Slip Gaji",
+                      SP_GAJI: "Slip Gaji",
+                    };
+                    const displayLabel = labelMap[rawType] || (doc.documentType ? String(doc.documentType).replace(/_/g, " ") : "Dokumen");
+                    const gradient = rawType.includes("KTP")
+                      ? "from-teal-400 to-emerald-500"
+                      : "from-indigo-500 to-blue-500";
 
-                return (
-                  <div key={key} className="rounded-2xl bg-gray-50 p-6 flex flex-col items-center justify-center text-center shadow-sm">
-                    <button
-                      type="button"
-                      onClick={() => openDocPreview(href, displayLabel)}
-                      className={`w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow hover:shadow-md transition-transform hover:scale-105`}
-                      aria-label={`Lihat ${displayLabel}`}
-                    >
-                      <Image src="/file.svg" alt="Ikon Dokumen" width={44} height={44} />
-                    </button>
-                    <div className="mt-4 text-center text-sm font-semibold text-gray-900">{displayLabel}</div>
-                  </div>
-                );
-              })}
-            </div>
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => openDocPreview(href, displayLabel)}
+                        className="w-40 h-48 rounded-2xl bg-white p-4 shadow-md hover:shadow-xl transition-all duration-200 hover:scale-[1.03] flex flex-col items-center justify-between"
+                      >
+                        <div className={`w-28 h-28 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-inner`}>
+                          <Image src="/file.svg" alt="dokumen" width={46} height={46} className="opacity-90" />
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900 mt-2">{displayLabel}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()
           ) : (
             <p className="text-sm text-gray-500 text-center">Tidak ada dokumen terlampir.</p>
           )}
@@ -455,45 +703,23 @@ export default function DetailPengajuanPage() {
         onClose={() => setShowPropertyDetail(false)}
         title="Detail Properti"
         description={property ? (
-          <div className="grid grid-cols-2 gap-y-3 text-sm">
-            <div className="text-gray-600">Kode Properti</div>
-            <div className="text-right text-gray-900 font-semibold">{property.propertyCode || "-"}</div>
-
-            <div className="text-gray-600">Alamat</div>
-            <div className="text-right text-gray-900 font-semibold">{property.address || "-"}</div>
-
-            <div className="text-gray-600">Kota</div>
-            <div className="text-right text-gray-900 font-semibold">{property.city || "-"}</div>
-
-            <div className="text-gray-600">Provinsi</div>
-            <div className="text-right text-gray-900 font-semibold">{property.province || "-"}</div>
-
-            <div className="text-gray-600">Kecamatan</div>
-            <div className="text-right text-gray-900 font-semibold">{property.district || "-"}</div>
-
-            <div className="text-gray-600">Kelurahan</div>
-            <div className="text-right text-gray-900 font-semibold">{property.village || "-"}</div>
-
-            <div className="text-gray-600">Kode Pos</div>
-            <div className="text-right text-gray-900 font-semibold">{property.postalCode || "-"}</div>
-
-            <div className="text-gray-600">Luas Tanah</div>
-            <div className="text-right text-gray-900 font-semibold">{property.landArea != null ? `${property.landArea} m²` : "-"}</div>
-
-            <div className="text-gray-600">Luas Bangunan</div>
-            <div className="text-right text-gray-900 font-semibold">{property.buildingArea != null ? `${property.buildingArea} m²` : "-"}</div>
-
-            <div className="text-gray-600">Harga/m²</div>
-            <div className="text-right text-gray-900 font-semibold">{f(property.pricePerSqm)}</div>
-
-            <div className="text-gray-600">Developer</div>
-            <div className="text-right text-gray-900 font-semibold">{application.developerName || (property as any)?.developer?.companyName || "-"}</div>
-
-            <div className="text-gray-600">Tipe Developer</div>
-            <div className="text-right text-gray-900 font-semibold">{developerTypeLabel}</div>
-
-            <div className="text-gray-600">Jenis Properti</div>
-            <div className="text-right text-gray-900 font-semibold">{toTitleCase(String(application.propertyType || "-").replace(/_/g, " "))}</div>
+          <div className="max-w-3xl">
+            <p className="text-sm text-gray-500">Informasi lengkap properti yang diajukan pengguna</p>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+              <InfoRow label="Kode Properti" value={property.propertyCode || "-"} />
+              <InfoRow label="Alamat" value={property.address || "-"} />
+              <InfoRow label="Kota" value={property.city || "-"} />
+              <InfoRow label="Provinsi" value={property.province || "-"} />
+              <InfoRow label="Kecamatan" value={property.district || "-"} />
+              <InfoRow label="Kelurahan" value={property.village || "-"} />
+              <InfoRow label="Kode Pos" value={property.postalCode || "-"} />
+              <InfoRow label="Luas Tanah" value={property.landArea != null ? `${property.landArea} m²` : "-"} />
+              <InfoRow label="Luas Bangunan" value={property.buildingArea != null ? `${property.buildingArea} m²` : "-"} />
+              <InfoRow label="Harga / m²" value={f(property.pricePerSqm)} />
+              <InfoRow label="Developer" value={application.developerName || (property as any)?.developer?.companyName || "-"} />
+              <InfoRow label="Tipe Developer" value={developerTypeLabel} />
+              <InfoRow label="Jenis Properti" value={toTitleCase(String(application.propertyType || "-").replace(/_/g, " "))} />
+            </div>
           </div>
         ) : (
           <div className="text-sm text-gray-700">Informasi properti tidak tersedia.</div>
@@ -507,37 +733,24 @@ export default function DetailPengajuanPage() {
             onClose={closeDocPreview}
             description={
               docPreview.src && isImageUrl(docPreview.src) ? (
-                (() => {
-                  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
-                  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-                  const maxW = Math.min(vw * 0.86, 1024);
-                  const maxH = Math.min(vh * 0.80, 768);
-                  let w = maxW;
-                  let h = maxH;
-                  if (docDims) {
-                    const ratio = docDims.h / docDims.w;
-                    w = Math.min(maxW, maxH / ratio);
-                    h = Math.min(maxH, maxW * ratio);
-                  }
-                  return (
-                    <div className="relative" style={{ width: Math.round(w), height: Math.round(h) }}>
-                      <Image
-                        src={docPreview.src}
-                        alt={docPreview.title}
-                        fill
-                        className="object-contain rounded-lg bg-gray-100"
-                        unoptimized
-            onLoad={(e) => {
-              const img = e.currentTarget as HTMLImageElement;
-              setDocDims({ w: img.naturalWidth, h: img.naturalHeight });
-            }}
-                      />
-                    </div>
-                  );
-                })()
+                <div className="flex items-center justify-center">
+                  <div className="w-[750px] h-[750px] max-w-[86vw] max-h-[64vh]">
+                    <Image
+                      src={docPreview.src}
+                      alt={docPreview.title}
+                      fill
+                      className="object-contain rounded-lg bg-gray-100"
+                      unoptimized
+                      onLoad={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        setDocDims({ w: img.naturalWidth, h: img.naturalHeight });
+                      }}
+                    />
+                  </div>
+                </div>
               ) : (
-                <div className="text-sm text-gray-700">
-                  Dokumen bukan gambar. Klik tombol Tutup lalu buka di tab baru.
+                <div className="text-sm text-gray-700 text-center">
+                  Dokumen bukan gambar. Klik ikon tutup lalu buka di tab baru.
                 </div>
               )
             }
@@ -549,11 +762,20 @@ export default function DetailPengajuanPage() {
 }
 
 /* ==================== SUBCOMPONENTS ==================== */
-function ColorCard({ title, children, titleAlign }: { title: string; children: React.ReactNode; titleAlign?: "left" | "center" }) {
+  function ColorCard({ title, children, titleAlign }: { title: string; children: React.ReactNode; titleAlign?: "left" | "center" }) {
+    return (
+      <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-white hover:shadow-lg transition-shadow duration-300">
+        <div className={`bg-[#3FD8D5] px-5 py-3 text-white font-semibold text-lg ${titleAlign === "center" ? "text-center" : "text-left"}`}>{title}</div>
+        <div className="bg-white p-6">{children}</div>
+      </div>
+    );
+  }
+
+function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
-    <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-white hover:shadow-lg transition-shadow duration-300">
-      <div className={`bg-[#3FD8D5] px-5 py-3 text-white font-semibold text-lg ${titleAlign === "center" ? "text-center" : "text-left"}`}>{title}</div>
-      <div className="bg-white p-6">{children}</div>
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-gray-600">{label}</span>
+      <span className="font-semibold text-gray-900 text-right ml-4">{value ?? "-"}</span>
     </div>
   );
 }
