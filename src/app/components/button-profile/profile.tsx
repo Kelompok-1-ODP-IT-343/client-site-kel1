@@ -149,7 +149,7 @@ export default function UserMenu() {
             />
             <DropdownButton
               icon={<Heart size={18} />}
-              label="Wishlist"
+              label="Favorit"
               onClick={() => {
                 router.push(`${USER_ROUTES.AKUN}?tab=wishlist`);
                 setOpen(false);

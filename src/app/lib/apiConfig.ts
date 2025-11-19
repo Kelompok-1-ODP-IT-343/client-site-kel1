@@ -37,6 +37,13 @@ export const API_ENDPOINTS = {
   // TOGGLE_FAVORITE: (propertyId: number | string) => `/favorites/toggle/${propertyId}`,
   FETCH_FAVORITES: `${API_PREFIX}/properties/favorites`,
   VERIFY_OTP: `${API_PREFIX}/auth/verify-otp`,
+  // Password reset flow (may be mocked on client)
+  REQUEST_PASSWORD_RESET: `${API_PREFIX}/auth/request-password-reset`,
+  RESET_PASSWORD: `${API_PREFIX}/auth/reset-password`,
+  // Forgot password via phone + WhatsApp OTP
+  FORGOT_PASSWORD_SEND_OTP: `${API_PREFIX}/auth/forgot-password/phone/send-otp`,
+  FORGOT_PASSWORD_VERIFY_OTP: `${API_PREFIX}/auth/forgot-password/phone/verify-otp`,
+  FORGOT_PASSWORD_SET_PASSWORD: `${API_PREFIX}/auth/forgot-password/phone/set-password`,
   UPDATE_PROFILE: (userId: number | string) => `${API_PREFIX}/user/${userId}`,
   KPR_DETAIL: (id: number | string) => `${API_PREFIX}/kpr-applications/${id}`,
 } as const;

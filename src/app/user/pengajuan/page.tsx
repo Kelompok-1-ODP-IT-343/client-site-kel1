@@ -233,6 +233,7 @@ function FormPengajuanContent() {
       value = formatCurrency(String(value));
     if (name === "workExperience" || name === "loanTerm")
       value = formatNumberOnly(String(value));
+    if (name === "npwp") value = formatNumberOnly(String(value));
 
     setFormData((prev) => ({ ...prev, [name]: value }));
 

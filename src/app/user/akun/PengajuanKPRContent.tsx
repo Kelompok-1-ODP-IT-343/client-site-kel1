@@ -163,9 +163,7 @@ export default function PengajuanKPRContent() {
             Pantau status pengajuan dan detailnya secara real-time.
           </p>
         </div>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
-          {totalApps} aplikasi
-        </span>
+        {/* Label jumlah aplikasi dihilangkan karena sudah ditampilkan pada kartu ringkasan "Total Aplikasi" */}
       </div>
 
       {/* Ringkasan */}
@@ -223,16 +221,23 @@ export default function PengajuanKPRContent() {
                 <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#FFE8D2] via-[#FFC58A] to-[#FF8D28] opacity-70" />
 
                 <div className="grid md:grid-cols-[300px_1fr]">
-                  <div className="relative h-48 w-full md:h-full">
+                  <div className="relative h-48 w-full md:h-full overflow-hidden">
+                    <Image
+                      src={app.image}
+                      alt=""
+                      fill
+                      className="object-cover blur-xl scale-110"
+                      aria-hidden
+                    />
                     <Image
                       src={app.image}
                       alt={app.cluster}
                       fill
-                      className="object-cover"
+                      className="object-contain object-center"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
 
-                    <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-gray-900 shadow backdrop-blur-sm">
+                    <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-gray-900 shadow">
                       Pinjaman: {formatIDR(app.loanAmount)}
                     </div>
                   </div>
