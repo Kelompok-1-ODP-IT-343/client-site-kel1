@@ -153,7 +153,7 @@ export default async function PropertyDetailPage({
 
           {/* Spesifikasi Teknis */}
           <Card title="Fitur Rumah" icon={<Ruler />}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               <InfoItem label="Kamar Tidur" value={detail.bedrooms ?? "-"} icon={<BedDouble className="w-5 h-5" />} />
               <InfoItem label="Harga per m²" value={detail.pricePerSqm ? fmtIDR(detail.pricePerSqm) : "-"} icon={<Receipt className="w-5 h-5" />} />
               <InfoItem label="Jumlah Lantai" value={detail.floors ?? "-"} icon={<Ruler className="w-5 h-5" />} />
@@ -165,9 +165,9 @@ export default async function PropertyDetailPage({
             </div>
           </Card>
 
-          {/* Legalitas & Pajak */}
-          <Card title="Legalitas & Pajak" icon={<ShieldCheck />}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Legalitas dan Pajak */}
+          <Card title="Legalitas dan Pajak" icon={<ShieldCheck />}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               <InfoItem label="Jenis Sertifikat" value={fmtNum(detail.certificate_type)} icon={<ShieldCheck className="w-5 h-5" />} />
               <InfoItem label="Luas Sertifikat" value={detail.certificateArea ? `${detail.certificateArea} m²` : "-"} icon={<Ruler className="w-5 h-5" />} />
               <InfoItem label="PBB (per tahun)" value={detail.pbb_value ? fmtIDR(detail.pbb_value) : "-"} icon={<Receipt className="w-5 h-5" />} />
@@ -179,7 +179,7 @@ export default async function PropertyDetailPage({
           </Card>
 
           {/* Lokasi dan Tempat Sekitar */}
-          <Card title="Lokasi & Sekitar" icon={<Compass />}>
+          <Card title="Lokasi dan Sekitar" icon={<Compass />}>
             <h3 className="text-[17px] font-bold text-gray-800 mb-3">Alamat Properti</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm mb-4">
               <DevRow label="Alamat" value={detail.address} icon={<MapPin className="w-4 h-4 text-orange-500" />} />
@@ -216,15 +216,10 @@ export default async function PropertyDetailPage({
             <h3 className="text-[17px] font-bold text-gray-800 mb-3">
               Tempat Terdekat
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {detail.locations.length > 0 ? (
                 detail.locations.map((l, idx) => (
-                  <InfoItem
-                    key={idx}
-                    label={l.poiName}
-                    value={`${fmtNum(l.distanceKm)} km`}
-                    icon={<Compass size={16} />}
-                  />
+                  <NearbyItem key={idx} name={l.poiName} distanceKm={l.distanceKm} />
                 ))
               ) : (
                 <p className="text-gray-500">- Tidak ada data lokasi terdekat -</p>
@@ -351,16 +346,16 @@ function InfoItem({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="px-3 py-3 bg-white rounded-xl border border-gray-200 shadow-sm">
-      <div className="flex items-start gap-2.5">
+    <div className="px-3 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex items-start gap-2">
         {icon && (
           <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
             {icon}
           </div>
         )}
         <div>
-          <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-          <p className="font-semibold text-gray-900">{value ?? "-"}</p>
+          <p className="text-xs text-gray-500 leading-tight">{label}</p>
+          <p className="text-sm sm:text-base font-semibold text-gray-900 leading-snug">{value ?? "-"}</p>
         </div>
       </div>
     </div>
@@ -422,6 +417,26 @@ function DevRow({
       {icon && <span className="mt-0.5">{icon}</span>}
       <span className="w-40 shrink-0 text-gray-500">{label}</span>
       <div className="flex-1 min-w-0">{content}</div>
+    </div>
+  );
+}
+
+function NearbyItem({ name, distanceKm }: { name?: string; distanceKm?: number | string }) {
+  const displayName = name && String(name).trim().length > 0 ? String(name) : "-";
+  const distanceDisplay = distanceKm !== null && distanceKm !== undefined && String(distanceKm).trim().length > 0 ? `${distanceKm} km` : "-";
+  return (
+    <div className="px-3 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex items-start gap-2">
+        <div className="w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0">
+          <Compass className="w-5 h-5" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm sm:text-base font-semibold text-gray-900 leading-snug">{displayName}</p>
+          <div className="mt-1">
+            <span className="text-xs text-gray-500 leading-tight">{distanceDisplay}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
