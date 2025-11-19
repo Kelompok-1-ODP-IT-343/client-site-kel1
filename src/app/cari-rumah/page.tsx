@@ -308,7 +308,7 @@ function CariRumahContent() {
                                 placeholder="Nama Rumah Impianmu"
                                 value={filters.title}
                                 onChange={handleFilterChange}
-                                className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                                className="w-full appearance-none bg-white border border-black rounded-lg py-2.5 px-4 text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
                             />
                         </div>
                         <div>
@@ -320,7 +320,7 @@ function CariRumahContent() {
                                     name="location"
                                     value={filters.location}
                                     onChange={handleFilterChange}
-                                    className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                                    className="w-full appearance-none bg-white border border-black rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
                                 >
                                     <option value="">Semua Lokasi</option>
                                     {locationOptions.map((opt) => (
@@ -344,7 +344,7 @@ function CariRumahContent() {
                                     name="type"
                                     value={filters.type}
                                     onChange={handleFilterChange}
-                                    className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                                    className="w-full appearance-none bg-white border border-black rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
                                 >
                                     <option value="">Semua Tipe</option>
                                     {typeOptions.map((opt) => (
@@ -368,7 +368,7 @@ function CariRumahContent() {
                                     name="budget"
                                     value={filters.budget}
                                     onChange={handleFilterChange}
-                                    className="w-full appearance-none bg-white border-2 border-gray-800 rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                                    className="w-full appearance-none bg-white border border-black rounded-lg py-2.5 px-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
                                 >
                                     <option value="">Semua Harga</option>
                                     {budgetOptions.map((opt) => (
