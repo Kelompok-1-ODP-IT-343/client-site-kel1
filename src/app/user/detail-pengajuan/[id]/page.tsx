@@ -28,6 +28,7 @@ export default function DetailPengajuanPage() {
   const [docPreview, setDocPreview] = useState<{ open: boolean; src: string; title: string }>({ open: false, src: "", title: "" });
   // Dimensi gambar untuk modal agar mengikuti aspek gambar yang diupload
   const [docDims, setDocDims] = useState<{ w: number; h: number } | null>(null);
+  const [docImageError, setDocImageError] = useState(false);
   // Modal detail properti
   const [showPropertyDetail, setShowPropertyDetail] = useState(false);
   // Ekspansi detail per langkah timeline
@@ -78,11 +79,9 @@ export default function DetailPengajuanPage() {
   // Handler modal pratinjau dokumen (diletakkan setelah helper, bukan setelah return kondisional)
   const openDocPreview = (src?: string, title?: string) => {
     if (!src) return;
-    if (isImageUrl(src)) {
-      setDocDims(null);
-      setDocPreview({ open: true, src, title: title || "Dokumen" });
-    }
-    else if (typeof window !== "undefined") window.open(src, "_blank");
+    setDocImageError(false);
+    setDocDims(null);
+    setDocPreview({ open: true, src, title: title || "Dokumen" });
   };
   const closeDocPreview = () => {
     setDocPreview((p) => ({ ...p, open: false }));
@@ -732,7 +731,7 @@ export default function DetailPengajuanPage() {
             title={docPreview.title}
             onClose={closeDocPreview}
             description={
-              docPreview.src && isImageUrl(docPreview.src) ? (
+              docPreview.src && !docImageError ? (
                 <div className="flex items-center justify-center">
                   <div className="w-[750px] h-[750px] max-w-[86vw] max-h-[64vh]">
                     <Image
@@ -745,6 +744,7 @@ export default function DetailPengajuanPage() {
                         const img = e.currentTarget as HTMLImageElement;
                         setDocDims({ w: img.naturalWidth, h: img.naturalHeight });
                       }}
+                      onError={() => setDocImageError(true)}
                     />
                   </div>
                 </div>

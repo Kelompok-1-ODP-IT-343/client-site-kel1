@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-import { AuthProviderWrapper } from "@/app/providers/AuthProviderWrapper"; 
+import { AuthProviderWrapper } from "@/app/providers/AuthProviderWrapper";
 import Header from "@/app/components/layout/Header";
 import Footer from "@/app/components/layout/Footer";
 
@@ -23,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {/* ✅ Bungkus di Client Provider terpisah */}
         <AuthProviderWrapper>
+          {/* Desktop-only guard: redirect bila perangkat/layar tidak memenuhi */}
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow bg-gray-50">{children}</main>

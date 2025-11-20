@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { MapPin, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
+import { MapPin, ChevronDown, ChevronUp, Settings2, Plus, Trash2 } from "lucide-react";
 import StepContent from "./StepContent";
 import InputField from "../fields/InputField";
 import SelectField from "../fields/SelectField";
@@ -223,6 +223,50 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
     return rows;
   };
 
+  const buildMultiSegmentSchedule = (
+    principal: number,
+    segments: { start: number; end: number; rate: number }[]
+  ) => {
+    const rows: {
+      month: number;
+      principalComponent: number;
+      interestComponent: number;
+      payment: number;
+      balance: number;
+      rateApplied: number;
+    }[] = [];
+    let balance = principal;
+
+    for (let s = 0; s < segments.length; s++) {
+      const seg = segments[s];
+      const months = seg.end - seg.start + 1;
+      if (months <= 0 || balance <= 0) continue;
+
+      const r = seg.rate / 100 / 12;
+      const pay =
+        (balance * r) /
+        (1 - Math.pow(1 + r, -(months + (segments.length - s - 1) * 12)));
+
+      for (let i = 0; i < months; i++) {
+        const interest = balance * r;
+        const principalComp = pay - interest;
+        balance -= principalComp;
+        if (balance < 0) balance = 0;
+
+        rows.push({
+          month: seg.start + i,
+          principalComponent: principalComp,
+          interestComponent: interest,
+          payment: pay,
+          balance,
+          rateApplied: seg.rate,
+        });
+      }
+    }
+
+    return rows;
+  };
+
   const tenorBulan = loanTerm * 12;
 
   // Label for Paket KPR options
@@ -245,6 +289,47 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
   // Floating rate: use draft value and apply via Refresh button
   const [floatingRate, setFloatingRate] = useState<number>(10.75);
   const [floatingRateDraft, setFloatingRateDraft] = useState<number>(10.75);
+  const [floatingRatesDraft, setFloatingRatesDraft] = useState<Record<number, number>>({});
+  const [floatingSegCount, setFloatingSegCount] = useState<number>(1);
+  const [floatingSegRatesDraft, setFloatingSegRatesDraft] = useState<Record<number, number>>({ 1: 10.75 });
+  const useDebounced = <T,>(value: T, delay: number) => {
+    const [v, setV] = useState(value);
+    useEffect(() => {
+      const t = setTimeout(() => setV(value), delay);
+      return () => clearTimeout(t);
+    }, [value, delay]);
+    return v as T;
+  };
+  const floatingRateDebounced = useDebounced(floatingRateDraft, 300);
+  useEffect(() => {
+    setFloatingRate(floatingRateDebounced);
+  }, [floatingRateDebounced]);
+  const floatingRates = useDebounced(floatingRatesDraft, 300);
+  const fixedYears = useMemo(() => {
+    if (!selectedRate) return 0;
+    let count = 0;
+    for (let i = 0; i < Math.min(tenorSelected, selectedRate.rates.length); i++) {
+      if (typeof selectedRate.rates[i] === "number") count++;
+      else break;
+    }
+    return count;
+  }, [selectedRate, tenorSelected]);
+  const roundIDR = (n: number) => Math.round(n);
+
+  useEffect(() => {
+    const yearsFloating = Math.max(0, tenorSelected - fixedYears);
+    const cappedCount = Math.min(yearsFloating, yearsFloating);
+    if (floatingSegCount > cappedCount) setFloatingSegCount(cappedCount);
+    const lastRate = floatingSegRatesDraft[floatingSegCount] ?? floatingRateDraft;
+    const next: Record<number, number> = {};
+    for (let i = 1; i <= yearsFloating; i++) {
+      const yearIndex = fixedYears + i;
+      const segIdx = i <= floatingSegCount ? i : floatingSegCount;
+      const val = floatingSegRatesDraft[segIdx] ?? lastRate;
+      next[yearIndex] = Number.isFinite(val) ? val : floatingRateDraft;
+    }
+    setFloatingRatesDraft(next);
+  }, [floatingSegRatesDraft, floatingSegCount, fixedYears, tenorSelected, floatingRateDraft]);
   const yearlySim = useMemo(() => {
     if (!tenorSelected || !loanWithFees) return null;
     const years = tenorSelected;
@@ -255,6 +340,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
       let rateVal: number = floatingRate;
       const rateDef = selectedRate?.rates[i - 1];
       if (typeof rateDef === "number") rateVal = rateDef;
+      else if (floatingRates && typeof floatingRates[i] === "number") rateVal = floatingRates[i];
       // If 'Floating' or '—', use floatingRateInput
       const interest = outstanding * (rateVal / 100);
       const payment = principalPerYear + interest;
@@ -265,7 +351,30 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
     const totalPayment = perYear.reduce((s, y) => s + y.payment, 0);
     const totalInterest = totalPayment - loanWithFees;
     return { perYear, totalPayment, totalInterest, firstYearPayment: perYear[0]?.payment || 0 };
-  }, [tenorSelected, loanWithFees, selectedRate, floatingRate]);
+  }, [tenorSelected, loanWithFees, selectedRate, floatingRate, floatingRates]);
+
+  const rateSegments = useMemo(() => {
+    const segs: { start: number; end: number; rate: number }[] = [];
+    if (!tenorSelected) return segs;
+    for (let year = 1; year <= tenorSelected; year++) {
+      const def = selectedRate?.rates[year - 1];
+      const rate = typeof def === "number" ? (def as number) : (floatingRates?.[year] ?? floatingRate);
+      segs.push({ start: (year - 1) * 12 + 1, end: year * 12, rate });
+    }
+    return segs;
+  }, [selectedRate, tenorSelected, floatingRates, floatingRate]);
+
+  const amort = useMemo(() => {
+    if (!loanWithFees || rateSegments.length === 0) return { rows: [], totalPembayaran: 0, totalBunga: 0 };
+    const rows = buildMultiSegmentSchedule(loanWithFees, rateSegments);
+    const totalPembayaran = rows.reduce((s, r) => s + r.payment, 0);
+    const totalBunga = rows.reduce((s, r) => s + r.interestComponent, 0);
+    return { rows, totalPembayaran, totalBunga };
+  }, [loanWithFees, rateSegments]);
+  const pageSize = 12;
+  const [page, setPage] = useState(1);
+  const paged = useMemo(() => amort.rows.slice((page - 1) * pageSize, page * pageSize), [amort.rows, page]);
+  const maxPage = useMemo(() => Math.ceil(amort.rows.length / pageSize) || 1, [amort.rows.length]);
 
   return (
     <StepContent title="Konfirmasi Detail Pengajuan & Upload Dokumen">
@@ -456,52 +565,158 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
           </button>
 
           {showSimulasi && (
-            <div className="animate-fadeIn border border-gray-200 rounded-xl p-5 bg-gray-50">
-              <h3 className="text-lg font-semibold text-gray-700 flex gap-2 mb-4">
-                <Settings2 size={18} /> Simulasi Multi-Rate
-              </h3>
+          <div className="animate-fadeIn border border-gray-200 rounded-xl p-5 bg-gray-50">
+            <h3 className="text-lg font-semibold text-gray-700 flex gap-2 mb-4">
+              <Settings2 size={18} /> Simulasi Multi-Rate
+            </h3>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm">Estimasi Pembayaran Tahun Pertama</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(yearlySim?.firstYearPayment || 0)}</p>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Estimasi Pembayaran Tahun Pertama</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(yearlySim?.firstYearPayment || 0)}</p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <button
+                      type="button"
+                      title="Tambah segmen floating"
+                      onClick={() => {
+                        const floatingYears = Math.max(0, tenorSelected - fixedYears);
+                        if (floatingSegCount < floatingYears) {
+                          const nextCount = floatingSegCount + 1;
+                          const base = floatingSegRatesDraft[floatingSegCount] ?? floatingRateDraft;
+                          setFloatingSegCount(nextCount);
+                          setFloatingSegRatesDraft((prev) => ({ ...prev, [nextCount]: base }));
+                        }
+                      }}
+                      className="rounded-md bg-bni-orange text-white p-2 hover:bg-orange-600 disabled:opacity-50 transition"
+                      disabled={floatingSegCount >= Math.max(0, tenorSelected - fixedYears)}
+                    >
+                      <Plus size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      title="Hapus segmen floating"
+                      onClick={() => {
+                        if (floatingSegCount > 1) {
+                          const nextCount = floatingSegCount - 1;
+                          const updated = { ...floatingSegRatesDraft };
+                          delete updated[floatingSegCount];
+                          setFloatingSegCount(nextCount);
+                          setFloatingSegRatesDraft(updated);
+                        }
+                      }}
+                      className="rounded-md border border-gray-300 p-2 text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition"
+                      disabled={floatingSegCount <= 1}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                   <div className="flex items-center gap-3">
                     <label className="text-sm text-gray-700 flex items-center gap-2">
-                      Floating Rate (%)
+                      Floating Rate (Tahun ke {Math.max(1, fixedYears + 1)})
                       <input
                         type="number"
                         step="0.01"
-                        value={floatingRateDraft}
+                        value={floatingSegRatesDraft[1] ?? floatingRateDraft}
                         onChange={(e) => {
                           const raw = e.target.value;
                           const normalized = raw.replace(",", ".");
                           const n = Number(normalized);
-                          setFloatingRateDraft(Number.isFinite(n) ? n : 0);
+                          setFloatingSegRatesDraft((prev) => ({ ...prev, 1: Number.isFinite(n) ? n : 0 }));
                         }}
                         className="w-24 rounded border px-2 py-1 text-right"
                         placeholder="cth: 10.75"
                       />
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => setFloatingRate(floatingRateDraft)}
-                      className="px-3 py-1.5 rounded-md bg-bni-orange text-white text-xs font-semibold hover:bg-orange-600"
-                      title="Refresh simulasi"
-                    >
-                      Refresh
-                    </button>
                   </div>
+                  {Array.from({ length: Math.max(1, floatingSegCount) }).map((_, idx) => {
+                    const segIdx = idx + 1;
+                    if (segIdx === 1) return null;
+                    const yearLabel = fixedYears + segIdx;
+                    return (
+                      <div key={segIdx} className="flex items-center gap-3 transition-all animate-fadeIn">
+                        <label className="text-sm text-gray-700 flex items-center gap-2">
+                          Floating Rate (Tahun ke {yearLabel})
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={floatingSegRatesDraft[segIdx] ?? floatingSegRatesDraft[segIdx - 1] ?? floatingRateDraft}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const normalized = raw.replace(",", ".");
+                              const n = Number(normalized);
+                              setFloatingSegRatesDraft((prev) => ({ ...prev, [segIdx]: Number.isFinite(n) ? n : 0 }));
+                              setPage(1);
+                            }}
+                            className="w-24 rounded border px-2 py-1 text-right"
+                            placeholder="cth: 10.75"
+                            title={`Rate untuk tahun ke-${yearLabel}`}
+                          />
+                        </label>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
 
-                <div className="mt-3 text-sm text-gray-700 space-y-1">
-                  <p>Jumlah Pinjaman: <span className="font-semibold">{formatCurrency(loanWithFees)}</span></p>
-                  <p>Total Bunga: <span className="font-semibold">{formatCurrency(yearlySim?.totalInterest || 0)}</span></p>
-                  <p>Total Pembayaran: <span className="font-semibold">{formatCurrency(yearlySim?.totalPayment || 0)}</span></p>
+              <div className="mt-3 text-sm text-gray-700 space-y-1">
+                <p>Jumlah Pinjaman: <span className="font-semibold">{formatCurrency(loanWithFees)}</span></p>
+                <p>Total Bunga: <span className="font-semibold">{formatCurrency(yearlySim?.totalInterest || 0)}</span></p>
+                <p>Total Pembayaran: <span className="font-semibold">{formatCurrency(yearlySim?.totalPayment || 0)}</span></p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h4 className="text-base font-semibold text-gray-800 mb-3">Rincian Angsuran</h4>
+              <div className="overflow-x-auto border rounded-lg">
+                <table className="min-w-full text-sm text-gray-700">
+                  <thead className="bg-gray-50 text-gray-600">
+                    <tr>
+                      <th className="px-4 py-2 text-left">Bulan</th>
+                      <th className="px-4 py-2 text-left">Pokok</th>
+                      <th className="px-4 py-2 text-left">Bunga</th>
+                      <th className="px-4 py-2 text-left">Angsuran</th>
+                      <th className="px-4 py-2 text-left">Sisa</th>
+                      <th className="px-4 py-2 text-left">Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paged.map((r) => (
+                      <tr key={r.month} className="border-t">
+                        <td className="px-4 py-2">{r.month}</td>
+                        <td className="px-4 py-2">Rp{roundIDR(r.principalComponent).toLocaleString("id-ID")}</td>
+                        <td className="px-4 py-2">Rp{roundIDR(r.interestComponent).toLocaleString("id-ID")}</td>
+                        <td className="px-4 py-2 font-medium text-gray-900">Rp{roundIDR(r.payment).toLocaleString("id-ID")}</td>
+                        <td className="px-4 py-2">Rp{roundIDR(r.balance).toLocaleString("id-ID")}</td>
+                        <td className="px-4 py-2">{r.rateApplied.toFixed(2)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-between items-center mt-3 text-xs text-gray-600">
+                <span>Halaman {page} / {maxPage}</span>
+                <div className="flex gap-2">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="px-3 py-1 rounded border disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    disabled={page === maxPage}
+                    onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
+                    className="px-3 py-1 rounded border disabled:opacity-50"
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
           )}
         </div>
 
