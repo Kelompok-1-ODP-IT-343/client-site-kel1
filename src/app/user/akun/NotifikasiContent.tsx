@@ -34,6 +34,29 @@ export default function NotifikasiContent() {
   const [page, setPage] = useState<number>(1);
   const PAGE_SIZE = 5;
 
+  // Robust parser: treat timestamps without timezone as UTC, then render in client local time
+  const parseApiDateToLocal = (input?: string): Date => {
+    if (!input) return new Date(NaN);
+    const s = String(input).trim();
+
+    // Numeric epoch (seconds or milliseconds)
+    if (/^\d+$/.test(s)) {
+      const num = Number(s);
+      const ms = s.length === 10 ? num * 1000 : num; // 10 digits -> seconds
+      return new Date(ms);
+    }
+
+    // Already contains timezone info (Z or +HH:MM / -HH:MM)
+    if (/[zZ]|[+-]\d{2}:\d{2}$/.test(s)) {
+      return new Date(s);
+    }
+
+    // Normalize space separator to ISO 'T'
+    const normalized = s.replace(" ", "T");
+    // Assume backend sends UTC when no timezone provided -> append 'Z'
+    return new Date(`${normalized}Z`);
+  };
+
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -68,7 +91,11 @@ export default function NotifikasiContent() {
       (items || []).map((n) => ({
         title: n.title,
         message: n.message,
-        time: formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: localeId }),
+        // Convert to local Date first to avoid UTC misinterpretation
+        time: formatDistanceToNow(parseApiDateToLocal(n.createdAt), {
+          addSuffix: true,
+          locale: localeId,
+        }),
         type: mapType(n.title, n.notificationType),
       })),
     [items]
