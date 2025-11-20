@@ -339,30 +339,28 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
     try {
       const result = await registerUser(payload);
 
-      if (result.status === 409 || result.message?.toLowerCase().includes("terdaftar") || result.message?.toLowerCase().includes("already") || result.message?.toLowerCase().includes("exists")) {
-        const msg = (result.message || "").toLowerCase();
-        const isEmailDup = /email/.test(msg);
-        const isUsernameDup = /username|user\s*name/.test(msg);
+      // If API returned an error, prefer detailed error location from
+      // `data.errorDetail.detail` (backend provides helpful messages there).
+      if (!result.success) {
+        const apiDetail =
+          (result as any)?.data?.errorDetail?.detail ||
+          (result as any)?.data?.message ||
+          result.message ||
+          "Terjadi kesalahan saat registrasi.";
+
+        const lower = String(apiDetail).toLowerCase();
+        const isEmailDup = /email/.test(lower);
+        const isUsernameDup = /username|user\s*name/.test(lower);
+        const isPhoneDup = /nomor telepon|phone|users_phone_key|duplicate key.*phone|key \(phone\)/i.test(String(apiDetail));
 
         setErrors((prev) => ({
           ...prev,
-          email: isEmailDup || (!isEmailDup && !isUsernameDup)
-            ? "Email sudah pernah digunakan"
-            : prev.email,
-          username: isUsernameDup || (!isEmailDup && !isUsernameDup)
-            ? "Username sudah pernah digunakan"
-            : prev.username,
+          email: isEmailDup ? "Email sudah pernah digunakan" : prev.email,
+          username: isUsernameDup ? "Username sudah pernah digunakan" : prev.username,
+          phone: isPhoneDup ? "Nomor telepon sudah terdaftar" : prev.phone,
         }));
 
-        setGlobalError(
-          isEmailDup && isUsernameDup
-            ? "Email dan username sudah pernah digunakan"
-            : isEmailDup
-            ? "Email sudah pernah digunakan"
-            : isUsernameDup
-            ? "Username sudah pernah digunakan"
-            : "Akun dengan email atau username tersebut sudah terdaftar."
-        );
+        setGlobalError(`Registrasi gagal: ${apiDetail}`);
         setStep(1);
         setShowErrorModal(true);
         return;
