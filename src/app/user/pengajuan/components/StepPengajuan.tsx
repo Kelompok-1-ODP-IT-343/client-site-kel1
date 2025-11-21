@@ -16,11 +16,40 @@ import { fetchWithAuth } from "@/app/lib/authFetch";
 type DevCategory = "Top Selected Developer" | "Developer Kerja Sama";
 
 export default function StepPengajuan({ data, formData, handleChange, errors }: any) {
+  // Helpers to make image loading resilient in production
+  const envImageBase = (process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "").trim();
+  const envImageHost = (() => {
+    try { return envImageBase ? new URL(envImageBase).hostname : ""; } catch { return ""; }
+  })();
+  const allowedHosts = new Set<string>(["is3.cloudhost.id", envImageHost].filter(Boolean));
+
+  const sanitizeUrl = (u?: string | null): string | null => {
+    if (!u || typeof u !== "string") return null;
+    const v = u.trim().replace(/^`+|`+$/g, "");
+    if (!v) return null;
+    return v;
+  };
+  const isAbsoluteUrl = (u: string) => /^https?:\/\//i.test(u);
+  const toProxiedUrlIfNeeded = (u?: string | null): string => {
+    const clean = sanitizeUrl(u);
+    if (!clean) return "/rumah-1.jpg";
+    if (isAbsoluteUrl(clean)) {
+      try {
+        const h = new URL(clean).hostname;
+        if (allowedHosts.has(h)) {
+          return `/api/image-proxy?url=${encodeURIComponent(clean)}`;
+        }
+      } catch {}
+    }
+    return clean;
+  };
+
   const [showSimulasi, setShowSimulasi] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string>(
-    (Array.isArray(data?.images) && data.images[0]) || data?.image || "/rumah-default.jpg"
-  );
+  const [imageSrc, setImageSrc] = useState<string>(() => {
+    const initial = (Array.isArray(data?.images) && data.images[0]) || data?.image || "/rumah-1.jpg";
+    return toProxiedUrlIfNeeded(initial as string);
+  });
 
   const hargaProperti = Number(data.hargaProperti || 0);
   const downPayment = parseCurrency(formData.downPayment || "0");
@@ -49,7 +78,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
         const imgs = Array.isArray(json?.data?.images) ? json.data.images : [];
         const main = json?.data?.file_path ?? json?.data?.filePath ?? null;
         const nextImg = (imgs[0] || main || imageSrc) as string;
-        if (nextImg) setImageSrc(nextImg);
+        if (nextImg) setImageSrc(toProxiedUrlIfNeeded(nextImg));
         const partnershipLevel: string | undefined = json?.data?.developer?.partnershipLevel;
         const map: Record<string, DevCategory> = {
           TOP_SELECTED_DEVELOPER: "Top Selected Developer",
@@ -391,6 +420,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
                 alt={data.propertiNama || "Properti"}
                 fill
                 className="object-cover"
+                onError={() => setImageSrc("/rumah-1.jpg")}
               />
             </div>
 
