@@ -29,7 +29,6 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
     setProvinsiList(provinces);
   }, [indonesiaData]);
 
-  // Saat provinsi berubah, reset turunan dan set daftar kota
   useEffect(() => {
     if (!formData.province) {
       setKotaList([]);
@@ -41,18 +40,21 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
     const cities = indonesiaData
       .filter((d) => d.province === formData.province)
       .map((d) => d.city);
-    setKotaList([...new Set(cities)]);
-    setKecamatanList([]);
-    setKelurahanList([]);
-    setKodePosList([]);
-    // Kosongkan field turunan jika tidak cocok
-    handleChange({ target: { name: "city", value: "" } } as any);
-    handleChange({ target: { name: "district", value: "" } } as any);
-    handleChange({ target: { name: "subdistrict", value: "" } } as any);
-    handleChange({ target: { name: "postalCode", value: "" } } as any);
+    const uniqueCities = [...new Set(cities)];
+    setKotaList(uniqueCities);
+    const currentCity = formData.city || "";
+    const validCity = uniqueCities.includes(currentCity);
+    if (!validCity) {
+      setKecamatanList([]);
+      setKelurahanList([]);
+      setKodePosList([]);
+      handleChange({ target: { name: "city", value: "" } } as any);
+      handleChange({ target: { name: "district", value: "" } } as any);
+      handleChange({ target: { name: "subdistrict", value: "" } } as any);
+      handleChange({ target: { name: "postalCode", value: "" } } as any);
+    }
   }, [formData.province]);
 
-  // Saat kota berubah, set daftar kecamatan
   useEffect(() => {
     if (!formData.city) {
       setKecamatanList([]);
@@ -63,15 +65,19 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
     const districts = indonesiaData
       .filter((d) => d.city === formData.city)
       .map((d) => d.district);
-    setKecamatanList([...new Set(districts)]);
-    setKelurahanList([]);
-    setKodePosList([]);
-    handleChange({ target: { name: "district", value: "" } } as any);
-    handleChange({ target: { name: "subdistrict", value: "" } } as any);
-    handleChange({ target: { name: "postalCode", value: "" } } as any);
+    const uniqueDistricts = [...new Set(districts)];
+    setKecamatanList(uniqueDistricts);
+    const currentDistrict = formData.district || "";
+    const validDistrict = uniqueDistricts.includes(currentDistrict);
+    if (!validDistrict) {
+      setKelurahanList([]);
+      setKodePosList([]);
+      handleChange({ target: { name: "district", value: "" } } as any);
+      handleChange({ target: { name: "subdistrict", value: "" } } as any);
+      handleChange({ target: { name: "postalCode", value: "" } } as any);
+    }
   }, [formData.city]);
 
-  // Saat kecamatan berubah, set daftar kelurahan
   useEffect(() => {
     if (!formData.district) {
       setKelurahanList([]);
@@ -81,10 +87,15 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
     const subs = indonesiaData
       .filter((d) => d.district === formData.district)
       .map((d) => d.sub_district);
-    setKelurahanList([...new Set(subs)]);
-    setKodePosList([]);
-    handleChange({ target: { name: "subdistrict", value: "" } } as any);
-    handleChange({ target: { name: "postalCode", value: "" } } as any);
+    const uniqueSubs = [...new Set(subs)];
+    setKelurahanList(uniqueSubs);
+    const currentSub = formData.subdistrict || "";
+    const validSub = uniqueSubs.includes(currentSub);
+    if (!validSub) {
+      setKodePosList([]);
+      handleChange({ target: { name: "subdistrict", value: "" } } as any);
+      handleChange({ target: { name: "postalCode", value: "" } } as any);
+    }
   }, [formData.district]);
 
   // Saat kelurahan berubah, set daftar kode pos

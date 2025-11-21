@@ -31,7 +31,6 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
     setProvinsiKerjaList(provinces);
   }, [indonesiaData]);
 
-  // Saat provinsi kerja berubah, reset turunan dan set daftar kota
   useEffect(() => {
     if (!formData.companyProvince) {
       setKotaKerjaList([]);
@@ -43,18 +42,21 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
     const cities = indonesiaData
       .filter((d) => d.province === formData.companyProvince)
       .map((d) => d.city);
-    setKotaKerjaList([...new Set(cities)]);
-    setKecamatanKerjaList([]);
-    setKelurahanKerjaList([]);
-    setKodePosKerjaList([]);
-    // Kosongkan field turunan jika tidak cocok
-    handleChange({ target: { name: "companyCity", value: "" } } as any);
-    handleChange({ target: { name: "companyDistrict", value: "" } } as any);
-    handleChange({ target: { name: "companySubdistrict", value: "" } } as any);
-    handleChange({ target: { name: "companyPostalCode", value: "" } } as any);
+    const uniqueCities = [...new Set(cities)];
+    setKotaKerjaList(uniqueCities);
+    const currentCity = formData.companyCity || "";
+    const validCity = uniqueCities.includes(currentCity);
+    if (!validCity) {
+      setKecamatanKerjaList([]);
+      setKelurahanKerjaList([]);
+      setKodePosKerjaList([]);
+      handleChange({ target: { name: "companyCity", value: "" } } as any);
+      handleChange({ target: { name: "companyDistrict", value: "" } } as any);
+      handleChange({ target: { name: "companySubdistrict", value: "" } } as any);
+      handleChange({ target: { name: "companyPostalCode", value: "" } } as any);
+    }
   }, [formData.companyProvince]);
 
-  // Saat kota kerja berubah, set daftar kecamatan
   useEffect(() => {
     if (!formData.companyCity) {
       setKecamatanKerjaList([]);
@@ -65,15 +67,19 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
     const districts = indonesiaData
       .filter((d) => d.city === formData.companyCity)
       .map((d) => d.district);
-    setKecamatanKerjaList([...new Set(districts)]);
-    setKelurahanKerjaList([]);
-    setKodePosKerjaList([]);
-    handleChange({ target: { name: "companyDistrict", value: "" } } as any);
-    handleChange({ target: { name: "companySubdistrict", value: "" } } as any);
-    handleChange({ target: { name: "companyPostalCode", value: "" } } as any);
+    const uniqueDistricts = [...new Set(districts)];
+    setKecamatanKerjaList(uniqueDistricts);
+    const currentDistrict = formData.companyDistrict || "";
+    const validDistrict = uniqueDistricts.includes(currentDistrict);
+    if (!validDistrict) {
+      setKelurahanKerjaList([]);
+      setKodePosKerjaList([]);
+      handleChange({ target: { name: "companyDistrict", value: "" } } as any);
+      handleChange({ target: { name: "companySubdistrict", value: "" } } as any);
+      handleChange({ target: { name: "companyPostalCode", value: "" } } as any);
+    }
   }, [formData.companyCity]);
 
-  // Saat kecamatan kerja berubah, set daftar kelurahan
   useEffect(() => {
     if (!formData.companyDistrict) {
       setKelurahanKerjaList([]);
@@ -83,10 +89,15 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
     const subs = indonesiaData
       .filter((d) => d.district === formData.companyDistrict)
       .map((d) => d.sub_district);
-    setKelurahanKerjaList([...new Set(subs)]);
-    setKodePosKerjaList([]);
-    handleChange({ target: { name: "companySubdistrict", value: "" } } as any);
-    handleChange({ target: { name: "companyPostalCode", value: "" } } as any);
+    const uniqueSubs = [...new Set(subs)];
+    setKelurahanKerjaList(uniqueSubs);
+    const currentSub = formData.companySubdistrict || "";
+    const validSub = uniqueSubs.includes(currentSub);
+    if (!validSub) {
+      setKodePosKerjaList([]);
+      handleChange({ target: { name: "companySubdistrict", value: "" } } as any);
+      handleChange({ target: { name: "companyPostalCode", value: "" } } as any);
+    }
   }, [formData.companyDistrict]);
 
   // Saat kelurahan kerja berubah, set daftar kode pos
