@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { verifyOtpApi, verifyForgotPasswordOtp } from "@/app/lib/coreApi";
@@ -110,7 +110,7 @@ function OTPVerificationContent() {
     document.getElementById(`otp-${nextIndex}`)?.focus();
   };
 
-  const handleVerify = async () => {
+  const handleVerify = useCallback(async () => {
       const code = otp.join("");
 
       if (code.length !== 6) {
@@ -124,7 +124,6 @@ function OTPVerificationContent() {
       if (purpose === "reset" && !rawPhone) {
         return setError("Nomor tidak ditemukan. Silakan kirim OTP kembali.");
       }
-
       setLoading(true);
   setError("");
   setNotice("");
@@ -140,6 +139,10 @@ function OTPVerificationContent() {
             return;
           }
           setError(res.message || "Kode OTP salah. Silakan coba lagi.");
+          setTimeout(() => {
+            setOtp(["", "", "", "", "", ""]);
+            document.getElementById("otp-0")?.focus();
+          }, 1200);
           return;
         }
 
@@ -206,13 +209,21 @@ function OTPVerificationContent() {
           }
         } else {
           setError(res.message || "Kode OTP salah. Silakan coba lagi.");
+          setTimeout(() => {
+            setOtp(["", "", "", "", "", ""]);
+            document.getElementById("otp-0")?.focus();
+          }, 1200);
         }
       } catch (err: any) {
         setError(err.message || "Gagal terhubung ke server.");
+        setTimeout(() => {
+          setOtp(["", "", "", "", "", ""]);
+          document.getElementById("otp-0")?.focus();
+        }, 1200);
       } finally {
         setLoading(false);
       }
-    };
+    }, [otp, purpose, identifier, rawPhone, phone, login, router, finalRedirectPath]);
   const resendOtp = () => {
     setOtp(["", "", "", "", "", ""]);
     setError("");
@@ -221,6 +232,13 @@ function OTPVerificationContent() {
   };
 
   const goBack = () => router.back();
+
+  useEffect(() => {
+    const code = otp.join("");
+    if (code.length === 6 && !loading) {
+      handleVerify();
+    }
+  }, [otp, loading, handleVerify]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
@@ -251,6 +269,7 @@ function OTPVerificationContent() {
               onChange={(e) => handleInput(e.target.value, i)}
               onKeyDown={(e) => handleKeyDown(e, i)}
               onPaste={(e) => handlePaste(e, i)}
+              disabled={loading}
               className={`w-12 h-14 border rounded-lg text-center text-xl font-semibold transition text-black focus:outline-none focus:ring-2
                 ${error ? "border-red-500 ring-red-200" : "border-gray-300 focus:border-transparent focus:ring-orange-400"}`}
             />
@@ -268,14 +287,12 @@ function OTPVerificationContent() {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={handleVerify}
-          className="w-full py-3 rounded-lg font-bold text-white bg-bni-orange
-          transition-all duration-300 shadow-lg hover:bg-orange-600 hover:shadow-xl"
-        >
-          Verifikasi
-        </button>
+        {loading && (
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+            <span className="inline-block w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></span>
+            Memverifikasi...
+          </div>
+        )}
 
         <p className="text-gray-600 text-sm mt-6">
           Tidak menerima kode?{" "}
