@@ -177,14 +177,31 @@ function FormPengajuanContent() {
           phone: d.phone ?? prev.phone,
           email: d.email ?? prev.email,
 
+          // Alamat rumah
           address: d.address ?? prev.address,
+          subdistrict: d.subdistrict ?? d.subDistrict ?? d.sub_district ?? prev.subdistrict,
+          district: d.district ?? prev.district,
           city: d.city ?? prev.city,
           province: d.province ?? prev.province,
-          postalCode: d.postalCode ?? prev.postalCode,
+          postalCode: d.postalCode ?? d.postal_code ?? prev.postalCode,
 
+          // Pekerjaan & alamat kantor
           occupation: d.occupation ?? prev.occupation,
-          companyName: d.companyName ?? prev.companyName,
-          monthlyIncome: typeof d.monthlyIncome === "number" ? formatCurrency(String(d.monthlyIncome)) : (d.monthlyIncome ?? prev.monthlyIncome),
+          companyName: d.companyName ?? d.company_name ?? prev.companyName,
+          companyAddress: d.companyAddress ?? d.company_address ?? prev.companyAddress,
+          companySubdistrict: d.companySubdistrict ?? d.company_subdistrict ?? prev.companySubdistrict,
+          companyDistrict: d.companyDistrict ?? d.company_district ?? prev.companyDistrict,
+          companyCity: d.companyCity ?? d.company_city ?? prev.companyCity,
+          companyProvince: d.companyProvince ?? d.company_province ?? prev.companyProvince,
+          companyPostalCode: d.companyPostalCode ?? d.company_postal_code ?? prev.companyPostalCode,
+
+          // Pendapatan & tambahan
+          monthlyIncome:
+            typeof d.monthlyIncome === "number"
+              ? formatCurrency(String(d.monthlyIncome))
+              : d.monthlyIncome ?? prev.monthlyIncome,
+          workExperience: d.workExperience ?? prev.workExperience,
+          bankAccountNumber: d.bankAccountNumber ?? d.bank_account_number ?? prev.bankAccountNumber,
         }));
       } catch (_) {
         // ignore errors - form remains editable

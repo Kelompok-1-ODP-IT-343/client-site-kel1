@@ -45,8 +45,12 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
     const uniqueCities = [...new Set(cities)];
     setKotaKerjaList(uniqueCities);
     const currentCity = formData.companyCity || "";
-    const validCity = uniqueCities.includes(currentCity);
-    if (!validCity) {
+    const matchCity = uniqueCities.find((x) => x.toLowerCase() === currentCity.toLowerCase());
+    if (matchCity) {
+      if (matchCity !== currentCity) {
+        handleChange({ target: { name: "companyCity", value: matchCity } } as any);
+      }
+    } else {
       setKecamatanKerjaList([]);
       setKelurahanKerjaList([]);
       setKodePosKerjaList([]);
@@ -70,8 +74,12 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
     const uniqueDistricts = [...new Set(districts)];
     setKecamatanKerjaList(uniqueDistricts);
     const currentDistrict = formData.companyDistrict || "";
-    const validDistrict = uniqueDistricts.includes(currentDistrict);
-    if (!validDistrict) {
+    const matchDistrict = uniqueDistricts.find((x) => x.toLowerCase() === currentDistrict.toLowerCase());
+    if (matchDistrict) {
+      if (matchDistrict !== currentDistrict) {
+        handleChange({ target: { name: "companyDistrict", value: matchDistrict } } as any);
+      }
+    } else {
       setKelurahanKerjaList([]);
       setKodePosKerjaList([]);
       handleChange({ target: { name: "companyDistrict", value: "" } } as any);
@@ -92,8 +100,12 @@ export default function StepPekerjaan({ formData, handleChange, errors }: any) {
     const uniqueSubs = [...new Set(subs)];
     setKelurahanKerjaList(uniqueSubs);
     const currentSub = formData.companySubdistrict || "";
-    const validSub = uniqueSubs.includes(currentSub);
-    if (!validSub) {
+    const matchSub = uniqueSubs.find((x) => x.toLowerCase() === currentSub.toLowerCase());
+    if (matchSub) {
+      if (matchSub !== currentSub) {
+        handleChange({ target: { name: "companySubdistrict", value: matchSub } } as any);
+      }
+    } else {
       setKodePosKerjaList([]);
       handleChange({ target: { name: "companySubdistrict", value: "" } } as any);
       handleChange({ target: { name: "companyPostalCode", value: "" } } as any);

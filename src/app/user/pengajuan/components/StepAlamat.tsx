@@ -43,8 +43,12 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
     const uniqueCities = [...new Set(cities)];
     setKotaList(uniqueCities);
     const currentCity = formData.city || "";
-    const validCity = uniqueCities.includes(currentCity);
-    if (!validCity) {
+    const matchCity = uniqueCities.find((x) => x.toLowerCase() === currentCity.toLowerCase());
+    if (matchCity) {
+      if (matchCity !== currentCity) {
+        handleChange({ target: { name: "city", value: matchCity } } as any);
+      }
+    } else {
       setKecamatanList([]);
       setKelurahanList([]);
       setKodePosList([]);
@@ -68,8 +72,12 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
     const uniqueDistricts = [...new Set(districts)];
     setKecamatanList(uniqueDistricts);
     const currentDistrict = formData.district || "";
-    const validDistrict = uniqueDistricts.includes(currentDistrict);
-    if (!validDistrict) {
+    const matchDistrict = uniqueDistricts.find((x) => x.toLowerCase() === currentDistrict.toLowerCase());
+    if (matchDistrict) {
+      if (matchDistrict !== currentDistrict) {
+        handleChange({ target: { name: "district", value: matchDistrict } } as any);
+      }
+    } else {
       setKelurahanList([]);
       setKodePosList([]);
       handleChange({ target: { name: "district", value: "" } } as any);
@@ -90,8 +98,12 @@ export default function StepAlamat({ formData, handleChange, errors }: any) {
     const uniqueSubs = [...new Set(subs)];
     setKelurahanList(uniqueSubs);
     const currentSub = formData.subdistrict || "";
-    const validSub = uniqueSubs.includes(currentSub);
-    if (!validSub) {
+    const matchSub = uniqueSubs.find((x) => x.toLowerCase() === currentSub.toLowerCase());
+    if (matchSub) {
+      if (matchSub !== currentSub) {
+        handleChange({ target: { name: "subdistrict", value: matchSub } } as any);
+      }
+    } else {
       setKodePosList([]);
       handleChange({ target: { name: "subdistrict", value: "" } } as any);
       handleChange({ target: { name: "postalCode", value: "" } } as any);
