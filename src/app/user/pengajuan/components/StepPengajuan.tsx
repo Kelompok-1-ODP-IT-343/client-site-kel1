@@ -70,7 +70,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
       try {
         const propId = (data?.propertiId as string) || "";
         const id = propId && /\d+/.test(propId) ? propId : "5"; // fallback to given example id
-        const base = API_BASE_URL || "http://localhost:18080";
+        const base = API_BASE_URL || "https://satuatap.my.id";
         const url = `${base}${API_ENDPOINTS.PROPERTY_DETAIL(id)}`;
         const res = await fetchWithAuth(url, { method: "GET", signal: controller.signal }).catch(() => null as any);
         if (!res || !res.ok) return;
