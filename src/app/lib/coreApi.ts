@@ -392,6 +392,9 @@ export async function fetchPropertyList(params: {
           price: Number(d.price ?? 0),
           main_image: d.file_path ?? d.filePath ?? null,
           nearby_places: d.nearby_places ?? null,
+          // Prefer snake_case fields from API; fallback to camelCase variants
+          building_area: d.building_area ?? d.buildingArea ?? null,
+          land_area: d.land_area ?? d.landArea ?? null,
           parsedFeatures: dynamicFeatures,
           // Mengisi field baru berdasarkan logika di atas
           is_developer_pilihan: isDeveloperPilihan,
