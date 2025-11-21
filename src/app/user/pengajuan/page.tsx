@@ -196,10 +196,7 @@ function FormPengajuanContent() {
           companyPostalCode: d.companyPostalCode ?? d.company_postal_code ?? prev.companyPostalCode,
 
           // Pendapatan & tambahan
-          monthlyIncome:
-            typeof d.monthlyIncome === "number"
-              ? formatCurrency(String(d.monthlyIncome))
-              : d.monthlyIncome ?? prev.monthlyIncome,
+          monthlyIncome: formatCurrency(String(d.monthlyIncome ?? prev.monthlyIncome ?? "")),
           workExperience: d.workExperience ?? prev.workExperience,
           bankAccountNumber: d.bankAccountNumber ?? d.bank_account_number ?? prev.bankAccountNumber,
         }));
