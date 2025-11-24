@@ -47,7 +47,7 @@ export default function NotifikasiContent() {
     }
 
     // Already contains timezone info (Z or +HH:MM / -HH:MM)
-    if (/[zZ]|[+-]\d{2}:\d{2}$/.test(s)) {
+    if (/(?:Z|[+-]\d{2}:\d{2})$/i.test(s)) {
       return new Date(s);
     }
 
