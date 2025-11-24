@@ -292,7 +292,7 @@ function CariRumahContent() {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <section className="mb-12">
-                <div className="bg-teal-100 rounded-2xl">
+                <div className="bg-teal-100 rounded-2xl shadow-lg border border-gray-100">
                     <div className="px-8 sm:px-12 lg:px-16 xl:px-20 py-12">
                         <h1 className="text-4xl font-extrabold text-center tracking-tight bg-gradient-to-r from-teal-600 to-teal-500 bg-clip-text text-transparent mb-6">
                             Eksplor Rumah Impian
