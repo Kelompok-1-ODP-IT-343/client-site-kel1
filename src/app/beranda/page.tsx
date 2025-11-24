@@ -135,7 +135,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto"
+          className="mt-4 text-base sm:text-lg text-gray-900 max-w-2xl mx-auto"
         >
           KPR BNI dengan bunga kompetitif dan proses yang mudah
         </motion.p>
@@ -201,7 +201,7 @@ function FeatureSection() {
       <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
-            Mengapa Memilih KPR BNI?
+            Mengapa Memilih <span className="text-bni-orange">KPR BNI</span>?
           </h2>
           <p className="mt-3 text-lg text-gray-500 max-w-3xl mx-auto">
             Dapatkan kemudahan dan keuntungan terbaik untuk kepemilikan rumah
