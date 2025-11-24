@@ -13,7 +13,6 @@ import { setCookie } from "@/app/lib/cookie";
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextAfterLogin = searchParams.get("next") || "/beranda";
   const finalRedirectPath = searchParams.get("next") || "/beranda";
   const otpVerificationPath = "/OTP-verification";
   const { login, user } = useAuth();
@@ -137,22 +136,25 @@ function LoginContent() {
       }, 500);
     } else {
       const raw = (res.errorDetail?.detail || res.errorDetail?.message || res.message || "").toString();
-      const lower = raw.toLowerCase();
+      const parts = raw.split(":");
+      const tail = (parts.length ? parts[parts.length - 1] : raw).trim();
+      const lower = tail.toLowerCase();
       const friendly = /username atau email tidak ditemukan/.test(lower)
         ? "Username atau email tidak ditemukan"
         : /password.*salah/.test(lower)
         ? "Password salah"
-        : raw || "Login gagal.";
+        : tail || "Login gagal.";
       setStatus({
         loading: false,
         message: friendly,
         type: "error",
       });
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const msg = err instanceof Error && err.message ? err.message : "Gagal terhubung ke server.";
     setStatus({
       loading: false,
-      message: err.message || "Gagal terhubung ke server.",
+      message: msg,
       type: "error",
     });
   }
