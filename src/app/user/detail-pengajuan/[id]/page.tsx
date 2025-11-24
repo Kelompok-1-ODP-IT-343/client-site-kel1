@@ -670,9 +670,7 @@ export default function DetailPengajuanPage() {
                       SP_GAJI: "Slip Gaji",
                     };
                     const displayLabel = labelMap[rawType] || (doc.documentType ? String(doc.documentType).replace(/_/g, " ") : "Dokumen");
-                    const gradient = rawType.includes("KTP")
-                      ? "from-teal-400 to-emerald-500"
-                      : "from-indigo-500 to-blue-500";
+                    const gradient = "from-[#FFE8D2] to-[#FF8D28]";
 
                     return (
                       <button
@@ -680,8 +678,8 @@ export default function DetailPengajuanPage() {
                         onClick={() => openDocPreview(href, displayLabel)}
                         className="w-40 h-48 rounded-2xl bg-white p-4 shadow-md hover:shadow-xl transition-all duration-200 hover:scale-[1.03] flex flex-col items-center justify-between"
                       >
-                        <div className={`w-28 h-28 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-inner`}>
-                          <Image src="/file.svg" alt="dokumen" width={46} height={46} className="opacity-90" />
+                        <div className={`w-28 h-28 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-inner border-2 border-white`}>
+                          <Image src="/file.svg" alt="dokumen" width={46} height={46} className="opacity-100 invert brightness-0" />
                         </div>
                         <p className="text-sm font-semibold text-gray-900 mt-2">{displayLabel}</p>
                       </button>
