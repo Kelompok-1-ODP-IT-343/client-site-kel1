@@ -40,7 +40,7 @@ export default function TentangKami() {
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900">
             Tentang <span className="text-[#FF8500]">Satu Atap</span>
           </h1>
-          <p className="mt-3 text-gray-600 max-w-2xl mx-auto whitespace-nowrap">
+          <p className="mt-3 text-gray-600 max-w-2xl mx-auto" style={{ textAlign: "justify" }}>
             Portal simulasi & pengajuan KPR Pembelian yang terhubung dengan
             produk resmi <b>BNI Griya Pembelian</b>.
           </p>
@@ -60,7 +60,7 @@ export default function TentangKami() {
                   Tentang Produk
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-gray-700 leading-relaxed">
+              <CardContent className="text-gray-700 leading-relaxed" style={{ textAlign: "justify" }}>
                 <p>
                   <b>Satu Atap</b> adalah prototipe portal pengajuan{" "}
                   <b>KPR Pembelian</b> yang merujuk ke produk resmi{" "}
@@ -81,7 +81,7 @@ export default function TentangKami() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-gray-700 leading-relaxed">
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="list-disc list-outside pl-6 space-y-2" style={{ textAlign: "justify" }}>
                   <li>
                     Suku bunga kompetitif dengan pilihan masa fixed sesuai promo
                     BNI.
@@ -110,7 +110,7 @@ export default function TentangKami() {
                   Plafon & Syarat
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-gray-700 leading-relaxed">
+              <CardContent className="text-gray-700 leading-relaxed" style={{ textAlign: "justify" }}>
                 <p>
                   <b>Plafon kredit:</b> hingga Rp 20 miliar (tergantung analisis
                   kemampuan bayar & kebijakan BNI).
@@ -121,7 +121,7 @@ export default function TentangKami() {
                 <p className="mt-2">
                   <b>Syarat umum pemohon:</b>
                 </p>
-                <ul className="list-disc list-inside">
+                <ul className="list-disc list-outside pl-6 space-y-1" style={{ textAlign: "justify" }}>
                   <li>WNI usia ≥21 tahun.</li>
                   <li>
                     Usia maksimal kredit lunas: 55 tahun (pegawai) / 65 tahun
@@ -141,7 +141,7 @@ export default function TentangKami() {
                   Biaya dan Suku Bunga
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-gray-700 leading-relaxed">
+              <CardContent className="text-gray-700 leading-relaxed" style={{ textAlign: "justify" }}>
                 <p>
                   <b>Provisi:</b> 1% dari plafon kredit yang disetujui.
                 </p>
@@ -172,7 +172,7 @@ export default function TentangKami() {
                 Bantuan & Pengaduan
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-gray-700 leading-relaxed">
+            <CardContent className="text-gray-700 leading-relaxed" style={{ textAlign: "justify" }}>
               <p>
                 Untuk informasi resmi dan pengaduan, hubungi{" "}
                 <b>BNI Call 1500046</b> atau{" "}
