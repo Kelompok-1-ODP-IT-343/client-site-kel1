@@ -441,7 +441,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
 
         {/* ===== Detail Pinjaman ===== */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-3">Detail Pinjaman & Dokumen</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">Detail Pinjaman</h3>
 
           <div className="grid md:grid-cols-2 gap-x-6 gap-y-5">
             <InputField required label="Uang Muka (DP) (Rp)" name="downPayment" placeholder="Contoh: 150.000.000" value={formData.downPayment} onChange={handleChange} error={errors.downPayment} />
@@ -515,8 +515,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
               error={errors.bankAccountNumber}
             />
 
-            <FileInputField required label="Upload KTP (.jpg/.pdf, max 2MB)" name="fileKTP" file={formData.fileKTP} onChange={handleChange} error={errors.fileKTP} />
-            <FileInputField required label="Upload Slip Gaji (.pdf, max 2MB)" name="fileSlipGaji" file={formData.fileSlipGaji} onChange={handleChange} error={errors.fileSlipGaji} />
+            
 
             {/* Notes Pengajuan (opsional) */}
             <TextAreaField
@@ -527,6 +526,15 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
               onChange={handleChange}
               error={errors.notes}
             />
+          </div>
+        </div>
+
+        {/* ===== Dokumen Pendukung ===== */}
+        <div className="rounded-xl p-5 bg-white border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">Dokumen Pendukung</h3>
+          <div className="grid md:grid-cols-2 gap-x-6 gap-y-5">
+            <FileInputField required label="Unggah KTP (.jpg/.pdf, max 2MB)" name="fileKTP" file={formData.fileKTP} onChange={handleChange} error={errors.fileKTP} />
+            <FileInputField required label="Unggah Slip Gaji (.pdf, max 2MB)" name="fileSlipGaji" file={formData.fileSlipGaji} onChange={handleChange} error={errors.fileSlipGaji} />
           </div>
         </div>
 
