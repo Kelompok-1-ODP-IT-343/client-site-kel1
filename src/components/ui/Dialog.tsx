@@ -18,6 +18,17 @@ export default function Dialog({ open, title, description, onClose, actions }: D
     return () => setAnimateIn(false);
   }, []);
   useEffect(() => {
+    const el = document.documentElement;
+    if (open) {
+      el.setAttribute("data-dialog-open", "true");
+    } else {
+      el.removeAttribute("data-dialog-open");
+    }
+    return () => {
+      el.removeAttribute("data-dialog-open");
+    };
+  }, [open]);
+  useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();

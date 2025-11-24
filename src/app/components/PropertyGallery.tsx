@@ -103,7 +103,7 @@ export default function PropertyGallery({ images, title }: Props) {
             type="button"
             aria-label="Sebelumnya"
             onClick={goPrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow border border-gray-200"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow border border-gray-200 gallery-control"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -111,7 +111,7 @@ export default function PropertyGallery({ images, title }: Props) {
             type="button"
             aria-label="Berikutnya"
             onClick={goNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow border border-gray-200"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow border border-gray-200 gallery-control"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -119,7 +119,7 @@ export default function PropertyGallery({ images, title }: Props) {
       )}
       {/* Dots indikator */}
       {total > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/70 px-3 py-1 rounded-full z-20">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/70 px-3 py-1 rounded-full z-20 gallery-dots">
           {displayImages.map((_, i) => (
             <button
               key={i}
