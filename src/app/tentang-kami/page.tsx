@@ -40,7 +40,7 @@ export default function TentangKami() {
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900">
             Tentang <span className="text-[#FF8500]">Satu Atap</span>
           </h1>
-          <p className="mt-3 text-gray-600 max-w-2xl mx-auto" style={{ textAlign: "justify" }}>
+          <p className="mt-3 text-gray-600 max-w-2xl mx-auto" style={{ textAlign: "center" }}>
             Portal simulasi & pengajuan KPR Pembelian yang terhubung dengan
             produk resmi <b>BNI Griya Pembelian</b>.
           </p>
