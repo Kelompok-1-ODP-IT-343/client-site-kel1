@@ -33,6 +33,12 @@ export default function Dialog({ open, title, description, onClose, actions }: D
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${animateIn ? "opacity-100" : "opacity-0"}`}
         onClick={onClose}
+        role="button"
+        tabIndex={0}
+        aria-label="Tutup dialog"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") onClose();
+        }}
       />
       <div
         className={`relative z-10 w-full max-w-[min(86vw,1024px)] max-h-[80vh] rounded-2xl bg-white shadow-xl border border-gray-200 transition-transform duration-200 ${animateIn ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}

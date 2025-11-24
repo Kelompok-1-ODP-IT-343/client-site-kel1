@@ -25,7 +25,7 @@ export default function StepPengajuan({ data, formData, handleChange, errors }: 
 
   const sanitizeUrl = (u?: string | null): string | null => {
     if (!u || typeof u !== "string") return null;
-    const v = u.trim().replace(/^`+|`+$/g, "");
+    const v = u.trim().replace(/(?:^`+|`+$)/g, "");
     if (!v) return null;
     return v;
   };
