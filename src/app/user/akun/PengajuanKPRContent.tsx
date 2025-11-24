@@ -277,7 +277,7 @@ export default function PengajuanKPRContent() {
                       </div>
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-100">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-[#00B894] via-[#00D1A0] to-[#2ECC71] transition-all"
+                          className="h-full rounded-full bg-gradient-to-r from-[#FFE8D2] via-[#FFC58A] to-[#FF8D28] transition-all"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
@@ -289,7 +289,7 @@ export default function PengajuanKPRContent() {
                               className={cn(
                                 "grid h-4 w-4 place-items-center rounded-full border",
                                 idx <= stepIndex
-                                  ? "border-[#00B894] bg-[#00B894] text-white"
+                                  ? "border-bni-orange bg-bni-orange text-white"
                                   : "border-gray-300 bg-white text-gray-400"
                               )}
                             >

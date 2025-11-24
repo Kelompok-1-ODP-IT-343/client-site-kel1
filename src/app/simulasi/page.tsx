@@ -400,7 +400,7 @@ export default function SimulasiKprPage() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_2fr] gap-8 items-start">
           <div className="flex flex-col gap-8">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border">
+            <div className="rounded-2xl bg-white p-5">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <BarChart3 className="h-6 w-6 text-bni-orange" />
                 Hasil Simulasi
@@ -439,7 +439,7 @@ export default function SimulasiKprPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border">
+            <div className="rounded-2xl bg-white p-5">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Settings2 className="h-6 w-6 text-bni-orange" />
                 Pengaturan KPR
