@@ -164,7 +164,7 @@ function LoginContent() {
     <main className="flex flex-1 items-center justify-center py-10 px-4 bg-gray-50">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 transition-shadow hover:shadow-xl">
         <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-2">
-          Masuk ke Akun Anda
+          Masuk ke Akun <span className="text-bni-orange">Satu Atap</span>
         </h1>
         <p className="text-center text-gray-500 mb-8 text-sm">
           Gunakan akun Anda untuk melanjutkan pengajuan KPR.

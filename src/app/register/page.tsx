@@ -404,7 +404,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
       >
         <div className="text-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-[#003366] mb-2">
-            Daftar Akun Satu Atap
+            Daftar Akun <span className="text-bni-orange">Satu Atap</span>
           </h1>
           <p className="text-gray-600 text-sm md:text-base">
             Lengkapi data Anda untuk mengajukan KPR
