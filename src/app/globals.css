@@ -431,3 +431,7 @@ footer.text-broken-white * {
   padding: 6px 8px !important;
   border-radius: 6px !important;
 }
+html[data-dialog-open="true"] .gallery-control,
+html[data-dialog-open="true"] .gallery-dots {
+  display: none !important;
+}
