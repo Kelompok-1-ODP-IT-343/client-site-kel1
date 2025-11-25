@@ -521,8 +521,10 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                       onChange={handlePhoneChange}
                       inputProps={{ name: "phone", required: true }}
                       placeholder="Contoh: 81234567890"
-                      containerClass=""
-                      inputClass="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                      containerClass="w-full"
+                      inputClass="w-full pl-12 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                      buttonStyle={{ height: 42, borderTopLeftRadius: 8, borderBottomLeftRadius: 8 }}
+                      inputStyle={{ height: 42 }}
                     />
                     {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
                   </div>
