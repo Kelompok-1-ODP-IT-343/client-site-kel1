@@ -37,8 +37,8 @@ export default function AjukanCTA({ href, className, children }: Props) {
 
       <Dialog
         open={open}
-        title="Masuk ke Akun"
-        description={<p>Untuk mengajukan KPR, silakan masuk terlebih dahulu.</p>}
+        title={<span>Masuk ke Akun <span className="text-bni-orange">Satu Atap</span></span>}
+        description={<p className="text-center">Untuk mengajukan KPR, silakan masuk terlebih dahulu.</p>}
         onClose={() => setOpen(false)}
         actions={
           <button

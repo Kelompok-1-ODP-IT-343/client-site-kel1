@@ -442,9 +442,9 @@ function CariRumahContent() {
 
             <Dialog
               open={showLoginDialog}
-              title="Masuk ke Akun"
+              title={<span>Masuk ke Akun <span className="text-bni-orange">Satu Atap</span></span>}
               description={
-                <p>
+                <p className="text-center">
                   {loginPromptReason === "favorite"
                     ? "Silakan login untuk menyimpan favorit."
                     : "Untuk mengajukan KPR, silakan masuk terlebih dahulu."}

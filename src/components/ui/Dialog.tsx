@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 
 type DialogProps = {
   open: boolean;
-  title?: string;
+  title?: React.ReactNode;
   description?: React.ReactNode;
   onClose: () => void;
   actions?: React.ReactNode;
@@ -73,7 +73,7 @@ export default function Dialog({ open, title, description, onClose, actions }: D
         </div>
         <div className="px-5 pb-5">
           {description && (
-            <div className="mt-3 text-sm text-gray-700 overflow-auto" style={{ maxHeight: "64vh" }}>
+            <div className="mt-3 text-sm text-gray-700 overflow-auto text-center" style={{ maxHeight: "64vh" }}>
               {description}
             </div>
           )}
