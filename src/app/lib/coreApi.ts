@@ -287,7 +287,19 @@ export async function submitKprApplication(
     const statusText = (json?.status ?? json?.result ?? "")
       .toString()
       .toLowerCase();
-    const messageText = (json?.message ?? "").toString();
+    const normalizeKprMessage = (s: string) => {
+      const raw = String(s || "").trim();
+      const stripped = raw.replace(/^Failed to submit KPR application:\s*/i, "");
+      const m = stripped.match(/down payment must be at least\s*([\d.,]+)%\s*of\s*property price/i);
+      const rupiah = stripped.match(/\((Rp[^)]+)\)/i);
+      if (m) {
+        const percent = m[1];
+        const amountInfo = rupiah ? ` (${rupiah[1]})` : "";
+        return `Uang muka (DP) minimal ${percent}% dari harga properti${amountInfo}`;
+      }
+      return stripped || "Pengajuan KPR gagal.";
+    };
+    const messageText = normalizeKprMessage((json?.message ?? "").toString());
     const successFlag = Boolean(
       json?.success === true ||
         statusText === "success" ||
