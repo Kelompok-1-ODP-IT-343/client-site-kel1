@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 type DialogProps = {
@@ -21,11 +22,14 @@ export default function Dialog({ open, title, description, onClose, actions }: D
     const el = document.documentElement;
     if (open) {
       el.setAttribute("data-dialog-open", "true");
+      document.body.style.overflow = "hidden";
     } else {
       el.removeAttribute("data-dialog-open");
+      document.body.style.overflow = "";
     }
     return () => {
       el.removeAttribute("data-dialog-open");
+      document.body.style.overflow = "";
     };
   }, [open]);
   useEffect(() => {
@@ -39,8 +43,8 @@ export default function Dialog({ open, title, description, onClose, actions }: D
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[2147483647] isolation-isolate flex items-center justify-center">
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${animateIn ? "opacity-100" : "opacity-0"}`}
         onClick={onClose}
@@ -52,7 +56,7 @@ export default function Dialog({ open, title, description, onClose, actions }: D
         }}
       />
       <div
-        className={`relative z-10 w-full max-w-[min(86vw,1024px)] max-h-[80vh] rounded-2xl bg-white shadow-xl border border-gray-200 transition-transform duration-200 ${animateIn ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+        className={`relative z-[2147483647] w-full max-w-[min(86vw,1024px)] max-h-[80vh] rounded-2xl bg-white shadow-xl border border-gray-200 transition-transform duration-200 ${animateIn ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
         role="dialog"
         aria-modal="true"
       >
@@ -76,6 +80,7 @@ export default function Dialog({ open, title, description, onClose, actions }: D
           {actions ? <div className="mt-4 flex justify-end gap-3">{actions}</div> : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
