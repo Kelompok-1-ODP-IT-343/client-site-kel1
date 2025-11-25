@@ -435,7 +435,6 @@ html[data-dialog-open="true"] .gallery-control,
 html[data-dialog-open="true"] .gallery-dots {
   display: none !important;
 }
-/* Pastikan footer tidak pernah menimpa dialog saat dialog terbuka */
 html[data-dialog-open="true"] footer {
   position: relative !important;
   z-index: 0 !important;
