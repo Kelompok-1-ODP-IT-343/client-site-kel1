@@ -407,6 +407,52 @@ footer.text-broken-white * {
   color: #111827 !important;
 }
 
+.react-tel-input .flag-dropdown {
+  border: none !important;
+}
+.react-tel-input .selected-flag {
+  border-right: 1px solid #d1d5db !important;
+  border-top-left-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+  overflow: hidden !important;
+  background-color: transparent !important;
+  height: 100% !important;
+}
+.react-tel-input .selected-flag .flag {
+  border-radius: 4px !important; /* lengkungkan gambar bendera */
+}
+.react-tel-input .form-control {
+  border: none !important;
+  box-shadow: none !important;
+}
+/* Normalisasi tampilan autofill agar tidak berbentuk pill */
+.react-tel-input .form-control:-webkit-autofill,
+.react-tel-input .form-control:-webkit-autofill:hover,
+.react-tel-input .form-control:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  border-radius: 0 !important;
+  background-clip: padding-box !important;
+}
+.react-tel-input {
+  overflow: visible !important;
+  position: relative !important;
+}
+.react-tel-input .flag-dropdown {
+  overflow: visible !important;
+}
+.react-tel-input .country-list {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  z-index: 1000 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  max-height: 240px !important;
+  overflow-y: auto !important;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08) !important;
+}
+
 .calendar-dropdown select {
   background-color: white !important;
   color: #111827 !important;
@@ -431,6 +477,14 @@ footer.text-broken-white * {
   padding: 6px 8px !important;
   border-radius: 6px !important;
 }
+
+/* Ratakan tombol navigasi kalender sejajar dropdown bulan/tahun */
+.rdp-caption { display: flex !important; align-items: center !important; gap: 8px !important; }
+.rdp-caption_dropdowns { display: flex !important; align-items: center !important; gap: 8px !important; }
+.rdp-nav { display: flex !important; align-items: center !important; height: 32px !important; }
+.rdp-nav_button { height: 32px !important; width: 32px !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 1px solid #d1d5db !important; border-radius: 8px !important; margin: 0 !important; margin-top: 2px !important; }
+.rdp-nav_button svg { width: 16px !important; height: 16px !important; }
+.rdp-caption_dropdowns select { vertical-align: middle !important; }
 html[data-dialog-open="true"] .gallery-control,
 html[data-dialog-open="true"] .gallery-dots {
   display: none !important;

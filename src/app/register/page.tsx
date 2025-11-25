@@ -521,9 +521,9 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                       onChange={handlePhoneChange}
                       inputProps={{ name: "phone", required: true }}
                       placeholder="Contoh: 81234567890"
-                      containerClass="w-full"
-                      inputClass="w-full pl-12 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white"
-                      buttonStyle={{ height: "100%", borderTopLeftRadius: 8, borderBottomLeftRadius: 8 }}
+                      containerClass="w-full border border-gray-300 rounded-lg bg-white focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-transparent h-10"
+                      inputClass="w-full pl-12 pr-4 h-full rounded-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 !border-0 bg-transparent"
+                      buttonStyle={{ height: "100%", border: "none", borderRight: "1px solid #D1D5DB", borderTopLeftRadius: 8, borderBottomLeftRadius: 8, backgroundColor: "#F9FAFB" }}
                     />
                     {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
                   </div>
@@ -550,7 +550,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
                           id="birth_date"
                           variant="outline"
                           className={cn(
-                            "justify-start text-left font-normal w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white hover:bg-gray-50",
+                            "justify-start text-left font-normal w-full border border-gray-300 rounded-lg px-4 py-2.5 h-auto text-sm bg-white hover:bg-gray-50",
                             !birthDate && "text-gray-400"
                           )}
                           style={birthDate ? { color: "#111827" } : undefined}
