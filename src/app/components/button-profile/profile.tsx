@@ -46,8 +46,6 @@ export default function UserMenu() {
   const pathname = usePathname();
   const { user, logout, login } = useAuth();
 
-  if (!user) return null;
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -66,7 +64,7 @@ export default function UserMenu() {
   const preferInitials = true;
   const safePhoto = useMemo(() => {
     if (preferInitials) return null;
-    const url = normalizePhotoUrl(user.photoUrl);
+    const url = normalizePhotoUrl(user?.photoUrl);
     if (!url) return null;
     // Treat obvious placeholders as "no photo" so initials are used
     const isPlaceholder = /default|avatar|placeholder|profile\.png|user\.png/i.test(url);
@@ -101,6 +99,9 @@ export default function UserMenu() {
     };
   }, [open]);
 
+  if (!user) {
+    return null;
+  }
   return (
     <div className="relative" ref={menuRef}>
       <button
