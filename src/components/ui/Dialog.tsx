@@ -56,7 +56,7 @@ export default function Dialog({ open, title, description, onClose, actions }: D
         }}
       />
       <div
-        className={`relative z-[2147483647] w-full max-w-[min(86vw,1024px)] max-h-[80vh] rounded-2xl bg-white shadow-xl border border-gray-200 transition-transform duration-200 ${animateIn ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+        className={`relative z-[2147483647] w-[90vw] max-w-[520px] max-h-[80vh] rounded-2xl bg-white shadow-xl border border-gray-200 transition-transform duration-200 ${animateIn ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
         role="dialog"
         aria-modal="true"
       >
@@ -77,7 +77,7 @@ export default function Dialog({ open, title, description, onClose, actions }: D
               {description}
             </div>
           )}
-          {actions ? <div className="mt-4 flex justify-end gap-3">{actions}</div> : null}
+          {actions ? <div className="mt-4 flex w-full justify-center gap-3">{actions}</div> : null}
         </div>
       </div>
     </div>,
