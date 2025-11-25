@@ -17,10 +17,13 @@ import PengajuanKPRContent from "@/app/user/akun/PengajuanKPRContent";
 import WishlistContent from "@/app/user/akun/WishlistContent";
 import NotifikasiContent from "@/app/user/akun/NotifikasiContent";
 import { Section } from "@/app/user/akun/types";
+import { useAuth } from "@/app/lib/authContext";
+import { USER_ROUTES } from "@/app/routes/userRoutes";
 
 function AkunContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { logout } = useAuth();
 
   const initialTab = (searchParams.get("tab") || "profil").toLowerCase();
   const [active, setActive] = useState<Section>(
@@ -44,7 +47,12 @@ function AkunContent() {
     }
   }, [searchParams]);
 
-  const goLogout = () => router.push("/");
+  const goLogout = () => {
+    try {
+      logout();
+    } catch {}
+    router.push(USER_ROUTES.BERANDA);
+  };
 
   const sidebar = useMemo(
     () => [
