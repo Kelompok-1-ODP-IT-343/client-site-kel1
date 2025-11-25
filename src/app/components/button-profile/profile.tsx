@@ -76,17 +76,28 @@ export default function UserMenu() {
   useEffect(() => setImgOk(true), [safePhoto]);
 
   // Intentionally no profile fetch here.
-  const [pos, setPos] = useState<{ top: number; right: number }>({ top: 78, right: 32 });
+  const [pos, setPos] = useState<{ top: number; right?: number; left?: number }>({ top: 78, right: 32 });
   useEffect(() => {
     if (!open) return;
     const r = buttonRef.current?.getBoundingClientRect();
     if (r) {
-      // Turunkan sedikit (8px) agar tidak terhalang navbar dan sejajarkan kanan tombol
-      setPos({
-        top: Math.max(0, Math.round(r.bottom + 8)),
-        right: Math.max(0, Math.round(window.innerWidth - r.right)),
-      });
+      const isMobile = window.innerWidth <= 640;
+      const top = Math.max(0, Math.round(r.bottom + 8));
+      if (isMobile) {
+        // Pada mobile, tampilkan menu sedikit dari kiri agar tidak terpotong
+        setPos({ top, left: 12, right: undefined });
+      } else {
+        // Desktop: sejajarkan kanan tombol
+        setPos({ top, right: Math.max(8, Math.round(window.innerWidth - r.right)) });
+      }
     }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onScroll = () => setOpen(false);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, [open]);
 
   return (
@@ -120,8 +131,8 @@ export default function UserMenu() {
         createPortal(
           <div
             ref={dropdownRef}
-            style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 40 }}
-            className="w-60 bg-white border border-gray-200 rounded-lg shadow-md p-2"
+            style={{ position: "fixed", top: pos.top, right: pos.right, left: pos.left, zIndex: 1000 }}
+            className="w-60 max-w-[92vw] bg-white border border-gray-200 rounded-lg shadow-md p-2"
           >
             <DropdownButton
               icon={<User size={18} />}
