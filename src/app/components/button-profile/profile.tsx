@@ -78,16 +78,14 @@ export default function UserMenu() {
   // Intentionally no profile fetch here.
   const [pos, setPos] = useState<{ top: number; right?: number; left?: number }>({ top: 78, right: 32 });
   useEffect(() => {
-    if (!open) return;
     const r = buttonRef.current?.getBoundingClientRect();
-    if (r) {
-      const isMobile = window.innerWidth <= 640;
-      const top = Math.max(0, Math.round(r.bottom + 8));
+    if (!r) return;
+    const isMobile = window.innerWidth <= 640;
+    const top = Math.max(0, Math.round(r.bottom + 8));
+    if (open) {
       if (isMobile) {
-        // Pada mobile, tampilkan menu sedikit dari kiri agar tidak terpotong
         setPos({ top, left: 12, right: undefined });
       } else {
-        // Desktop: sejajarkan kanan tombol
         setPos({ top, right: Math.max(8, Math.round(window.innerWidth - r.right)) });
       }
     }
