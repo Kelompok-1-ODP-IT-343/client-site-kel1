@@ -94,10 +94,13 @@ export default function UserMenu() {
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
     const onScroll = () => setOpen(false);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    if (open) {
+      window.addEventListener("scroll", onScroll, { passive: true });
+    }
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [open]);
 
   return (
