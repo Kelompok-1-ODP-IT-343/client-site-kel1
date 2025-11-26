@@ -74,7 +74,7 @@ export default function BerandaPage() {
       <FeatureSection />
       <ExploreSection items={items} loading={loading} error={err} />
 
-      <FloatingTantiAI />  
+      <FloatingTantiAI />
     </main>
   );
 }
@@ -83,7 +83,7 @@ function FloatingTantiAI() {
   return (
     <button
       onClick={() =>
-        window.open("https://wa.me/628561310609", "_blank")
+        window.open("https://wa.me/6289678143705", "_blank")
       }
       className="
         fixed bottom-10 right-6 z-50 flex items-center gap-2

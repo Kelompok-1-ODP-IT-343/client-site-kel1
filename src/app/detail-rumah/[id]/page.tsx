@@ -289,7 +289,7 @@ export default async function PropertyDetailPage({
                 Hubungi kami melalui WhatsApp untuk konsultasi KPR.
               </p>
               <Link
-                href="https://wa.me/628561310609?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20terkait%20KPR%20properti%20ini."
+                href="https://wa.me/6289678143705?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20terkait%20KPR%20properti%20ini."
                 target="_blank"
                 className="mt-4 inline-flex items-center justify-center gap-2 w-full bg-[#DFF7F4] hover:bg-[#C8EFEA] text-[#006654] font-semibold py-2 rounded-lg border border-[#A9E3DD] transition-all shadow-sm"
               >
